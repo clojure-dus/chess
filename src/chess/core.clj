@@ -19,11 +19,9 @@
 
 (defn figure-at "returns the figure keyword for the given board and coordinates"
  [board x y]
-  (get-in board [:board x y]))
-
+  (get-in board [:board (- 7 y) x ]))
 (defn- set-figure [board x y figure]
-  (assoc-in board [:board x y] figure))
-
+  (assoc-in board [:board (- 7 y) x] figure))
 (defn- pos-empty? "is a position on the given board empty"
   [board x y] (= :_ (figure-at board x y)))
 
@@ -46,20 +44,21 @@
 
 (defn moves-vertical
   [x y c]
-       (partition 2 (interleave c (repeat y))))
+       (partition 2 (interleave (repeat x) c)))
 
 (defn moves-down [x y]
-  (moves-vertical x y (range (inc x) 8)))
+  (moves-vertical x y (range (dec y) -1 -1)))
 
-(defn moves-up [board x y]
-  (moves-vertical x y (range (dec x) -1 -1)))
+(defn moves-up [x y]
+  (moves-vertical x y (range (inc y) 8)))
 
 (defn moves-horizontal
   [x y c]
-  (partition 2 (interleave (repeat x) c)))
+  (partition 2 (interleave c (repeat y))))
 
 (defn moves-right [x y]
-  (moves-horizontal x y (range (inc y) 8)))
+  (moves-horizontal x y (range (inc x) 8)))
 
 (defn moves-left [x y]
-  (moves-horizontal x y (range (dec y) -1 -1)))
+  (moves-horizontal x y (range (dec x) -1 -1)))
+
