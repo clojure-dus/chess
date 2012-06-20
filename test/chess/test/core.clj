@@ -17,5 +17,9 @@
   (let [new-board (move-figure initial-board 1 0 2 0)]
     (are [x y] (= x y)
          :_ (figure-at new-board 1 0 )
-         :p (figure-at new-board 2 0 ))))
+         :p (figure-at new-board 2 0 ))
+    (testing "preconditions of move-figure: source and target are on the board, source is not empty"
+    (is (thrown? AssertionError (move-figure initial-board 4 0 5 0)))
+    (is (thrown? AssertionError (move-figure initial-board -1 0 0 0)))
+    (is (thrown? AssertionError (move-figure initial-board 0 0 0 8))))))
    
