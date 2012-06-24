@@ -13,15 +13,17 @@
 (def white-figures #{ :R :N :B :Q :K :P })
 (def black-figures #{ :r :n :b :q :k :p })
 
-(defn white? [x] (contains? white-figures x))
+(defn white? [x] {:pre [(not (= :_ x))]} (contains? white-figures x))
 
-(defn black? [x] (contains? black-figures x))
+(defn black? [x] {:pre [(not (= :_ x))] } (not (white? x)))
 
 (defn figure-at "returns the figure keyword for the given board and coordinates"
  [board x y]
   (get-in board [:board (- 7 y) x ]))
+
 (defn- set-figure [board x y figure]
   (assoc-in board [:board (- 7 y) x] figure))
+
 (defn- pos-empty? "is a position on the given board empty"
   [board x y] (= :_ (figure-at board x y)))
 
@@ -62,12 +64,36 @@
 (defn steps-left [x y]
   (steps-horizontal x y (range (dec x) -1 -1)))
 
+(defn steps-diagonal [fx fy x y]
+  (take-while #(apply pos-on-board? %) (drop 1 (iterate (fn [[a b]] (list (fx a) (fy b))) [x y]))))
+
 (defn empty-moves [f board x y]
   (take-while (fn [[a b]] (pos-empty? board a b)) (f x y)))
 
+(defn attacking-moves [f board x y]
+  (first (drop-while (fn [[a b]] (pos-empty? board a b)) (f x y))))
+
+(defn fetch-direction [figure]
+  (let [diag steps-diagonal]
+    (if (white? figure)
+      { :up steps-up :down steps-down :left steps-left :right steps-right :up-left (partial diag dec inc) :up-right (partial diag inc inc) :down-left (partial diag dec dec) :down-right (partial diag inc dec) }
+      { :up steps-down :down steps-up :left steps-right :right steps-left :up-left (partial diag inc dec) :up-right (partial diag dec dec) :down-left (partial diag inc inc) :down-right (partial diag dec inc) })))
+
+(defn steps-without-attack [ k n board x y ]
+  (let [ dir-fn (k (fetch-direction (figure-at board x y))) ]
+    (take n (empty-moves dir-fn board x y))))
+
+(defn steps-with-attack [ k n board x y ]
+  (let [ figure (figure-at board x y) dir-fn (k (fetch-direction figure)) steps (take n (dir-fn x y))]
+        (drop-while (fn [[a b]] (pos-empty? board a b)) steps)))
+
 (defn pawn-moves [board x y]
-  (let [ up (empty-moves steps-up initial-board x y) ] 
-  (cond    
-    (and (white? (figure-at board x y)) (= y 1)) (take 2 up)
-        :else (take 1 up))))
+  {:pre [(or (= :p (figure-at board x y)) (= :P (figure-at board x y)))]}
+  (concat '()
+          (cond (and (white? (figure-at board x y)) (= y 1)) (steps-without-attack :up 2 board x y)
+                (and (black? (figure-at board x y)) (= y 6)) (steps-without-attack :up 2 board x y)
+                :else (steps-without-attack :up 1 board x y))
+          (steps-with-attack :up-right 1 board x y)
+          (steps-with-attack :up-left  1 board x y)))
+  
          
