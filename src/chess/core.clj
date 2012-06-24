@@ -79,21 +79,22 @@
       { :up steps-up :down steps-down :left steps-left :right steps-right :up-left (partial diag dec inc) :up-right (partial diag inc inc) :down-left (partial diag dec dec) :down-right (partial diag inc dec) }
       { :up steps-down :down steps-up :left steps-right :right steps-left :up-left (partial diag inc dec) :up-right (partial diag dec dec) :down-left (partial diag inc inc) :down-right (partial diag dec inc) })))
 
-(defn steps-without-attack [ k n board x y ]
+(defn steps-without-attack [ board x y k n ]
   (let [ dir-fn (k (fetch-direction (figure-at board x y))) ]
     (take n (empty-moves dir-fn board x y))))
 
-(defn steps-with-attack [ k n board x y ]
+(defn steps-with-attack [ board x y k n ]
   (let [ figure (figure-at board x y) dir-fn (k (fetch-direction figure)) steps (take n (dir-fn x y))]
         (drop-while (fn [[a b]] (pos-empty? board a b)) steps)))
 
 (defn pawn-moves [board x y]
   {:pre [(or (= :p (figure-at board x y)) (= :P (figure-at board x y)))]}
+  (let [non-attacks (partial steps-without-attack board x y) attacks (partial steps-with-attack board x y)]
   (concat '()
-          (cond (and (white? (figure-at board x y)) (= y 1)) (steps-without-attack :up 2 board x y)
-                (and (black? (figure-at board x y)) (= y 6)) (steps-without-attack :up 2 board x y)
-                :else (steps-without-attack :up 1 board x y))
-          (steps-with-attack :up-right 1 board x y)
-          (steps-with-attack :up-left  1 board x y)))
+          (cond (and (white? (figure-at board x y)) (= y 1)) (non-attacks :up 2)
+                (and (black? (figure-at board x y)) (= y 6)) (non-attacks :up 2)
+                :else (non-attacks :up 1))
+          (attacks :up-right 1) 
+          (attacks :up-left  1))))
   
          
