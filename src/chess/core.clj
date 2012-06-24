@@ -42,23 +42,32 @@
   (let [fig (figure-at board x1 y1)]
     (set-figure (set-figure board x1 y1 :_) x2 y2 fig)))
 
-(defn moves-vertical
+(defn steps-vertical
   [x y c]
        (partition 2 (interleave (repeat x) c)))
 
-(defn moves-down [x y]
-  (moves-vertical x y (range (dec y) -1 -1)))
+(defn steps-down [x y]
+  (steps-vertical x y (range (dec y) -1 -1)))
 
-(defn moves-up [x y]
-  (moves-vertical x y (range (inc y) 8)))
+(defn steps-up [x y]
+  (steps-vertical x y (range (inc y) 8)))
 
-(defn moves-horizontal
+(defn steps-horizontal
   [x y c]
   (partition 2 (interleave c (repeat y))))
 
-(defn moves-right [x y]
-  (moves-horizontal x y (range (inc x) 8)))
+(defn steps-right [x y]
+  (steps-horizontal x y (range (inc x) 8)))
 
-(defn moves-left [x y]
-  (moves-horizontal x y (range (dec x) -1 -1)))
+(defn steps-left [x y]
+  (steps-horizontal x y (range (dec x) -1 -1)))
 
+(defn empty-moves [f board x y]
+  (take-while (fn [[a b]] (pos-empty? board a b)) (f x y)))
+
+(defn pawn-moves [board x y]
+  (let [ up (empty-moves steps-up initial-board x y) ] 
+  (cond    
+    (and (white? (figure-at board x y)) (= y 1)) (take 2 up)
+        :else (take 1 up))))
+         

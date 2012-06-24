@@ -1,3 +1,4 @@
+
 (ns chess.test.core
   (:use [chess.core])
   (:use [clojure.test]))
@@ -24,18 +25,18 @@
     (is (thrown? AssertionError (move-figure initial-board 0 0 0 8))))))
 
 
-(deftest test-moves-right
+(deftest test-steps-right
   (are [x y] (= x y)
-       (list (list 2 3) (list 3 3) (list 4 3) (list 5 3) (list 6 3) (list 7 3)) (moves-right 1 3)))
+       (list (list 2 3) (list 3 3) (list 4 3) (list 5 3) (list 6 3) (list 7 3)) (steps-right 1 3)))
 
-(deftest test-moves-left
+(deftest test-steps-left
   (are [x y] (= x y)
-       (list (list 1 3) (list 0 3)) (moves-left 2 3)))
+       (list (list 1 3) (list 0 3)) (steps-left 2 3)))
 
-(deftest test-moves-up
+(deftest test-steps-up
   (are [x y] (= x y)
-       (list (list 2 4) (list 2 5) (list 2 6) (list 2 7)) (moves-up 2 3)))
+       (list (list 2 4) (list 2 5) (list 2 6) (list 2 7)) (steps-up 2 3)))
 
-(deftest test-moves-down
+(deftest test-steps-down
   (are [x y] (= x y)
-       (list (list 2 2) (list 2 1) (list 2 0)) (moves-down 2 3)))
+       (list (list 2 2) (list 2 1) (list 2 0)) (steps-down 2 3)))
