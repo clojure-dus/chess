@@ -13,9 +13,9 @@
 (def white-figures #{ :R :N :B :Q :K :P })
 (def black-figures #{ :r :n :b :q :k :p })
 
-(defn white? [x] {:pre [(not (= :_ x))]} (contains? white-figures x))
+(defn white? [x] (contains? white-figures x))
 
-(defn black? [x] {:pre [(not (= :_ x))] } (not (white? x)))
+(defn black? [x] (contains? black-figures x))
 
 (defn figure-at "returns the figure keyword for the given board and coordinates"
  [board x y]
@@ -84,17 +84,27 @@
     (take n (empty-moves dir-fn board x y))))
 
 (defn steps-with-attack [ board x y k n ]
-  (let [ figure (figure-at board x y) dir-fn (k (fetch-direction figure)) steps (take n (dir-fn x y))]
-        (drop-while (fn [[a b]] (pos-empty? board a b)) steps)))
+  (let [ figure (figure-at board x y) dir-fn (k (fetch-direction figure)) steps (take n (dir-fn x y))
+        enemy (first (filter (fn [[a b]] (enemy-on-pos? board a b)) steps))]
+    (when (every? (fn [[a b]] (= :_ (figure-at board a b))) (take-while #(not (= % enemy)) steps)) enemy)))
 
 (defn pawn-moves [board x y]
-  {:pre [(or (= :p (figure-at board x y)) (= :P (figure-at board x y)))]}
+  {:pre [(contains? #{:P :p} (figure-at board x y))]}
   (let [non-attacks (partial steps-without-attack board x y) attacks (partial steps-with-attack board x y)]
-  (concat '()
+  (concat #{}
           (cond (and (white? (figure-at board x y)) (= y 1)) (non-attacks :up 2)
                 (and (black? (figure-at board x y)) (= y 6)) (non-attacks :up 2)
                 :else (non-attacks :up 1))
           (attacks :up-right 1) 
           (attacks :up-left  1))))
+
+(defn queen-moves [board x y]
+  {:pre [(contains? #{:Q :q} (figure-at board x y))]}
+  (let [non-attacks (partial steps-without-attack board x y) attacks (partial steps-with-attack board x y)]
+    (map #(attacks % 8) '(:up-left :up-right :down-left :down-right :up :down :left :right))))
+
+
+
+
   
          
