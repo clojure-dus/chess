@@ -42,16 +42,16 @@
 (deftest test-pawn-moves
   (testing "pawn is allowed to move 2 steps up from initial position"
     (are [x y] (= x y)
-       (list (list 0 2) (list 0 3)) (pawn-moves initial-board 0 1) 
-       (list (list 0 5) (list 0 4)) (pawn-moves initial-board 0 6)))
+       '((0 2) (0 3)) (pawn-moves initial-board 0 1) 
+       '((0 5) (0 4)) (pawn-moves initial-board 0 6)))
   (testing "pawn is allowed to move 1 step up from any other position"
     (are [x y] (= x y)
-       (list (list 0 3)) (pawn-moves (move-figure initial-board 0 1 0 2) 0 2)
-       (list (list 0 4)) (pawn-moves (move-figure initial-board 0 6 0 5) 0 5)))
+       '((0 3)) (pawn-moves (move-figure initial-board 0 1 0 2) 0 2)
+       '((0 4)) (pawn-moves (move-figure initial-board 0 6 0 5) 0 5)))
   (testing "no moves if pawn is blocked"
-    (is (list) (pawn-moves (move-figure initial-board 0 6 0 2) 0 1)))
+    (is '() (pawn-moves (move-figure initial-board 0 6 0 2) 0 1)))
   (testing "pawn attacks diagonal"
-    (is (list (list 0 2) (list 0 3) (list 1 2)) (pawn-moves (move-figure initial-board 1 6 1 2) 0 1))))
+    (is '((0 2) (0 3) (1 2)) (pawn-moves (move-figure initial-board 1 6 1 2) 0 1))))
 
 (deftest test-queen-moves
   (let [board (-> initial-board (move-figure 3 1 4 4) (move-figure 2 1 2 2))]
@@ -67,4 +67,6 @@
 
 (deftest test-bishop-moves
   (let [board (-> initial-board (move-figure 1 1 1 5) (move-figure 3 1 3 5)) ]
-    (is '((1 1) (0 2) (3 1) (4 2) (5 3) (6 4) (7 5)) (bishop-moves board 2 0))))
+    (is '((1 1) (0 2) (3 1) (4 2) (5 3) (6 4) (7 5)) (bishop-moves board 2 0)))
+  (let [board (-> initial-board (assoc :turn :b) (move-figure 3 6 1 1) (move-figure 5 6 1 1))]
+    (is '((5 6) (3 6)) (king-moves board 4 7))))
