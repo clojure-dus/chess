@@ -53,3 +53,18 @@
   (testing "pawn attacks diagonal"
     (is (list (list 0 2) (list 0 3) (list 1 2)) (pawn-moves (move-figure initial-board 1 6 1 2) 0 1))))
 
+(deftest test-queen-moves
+  (let [board (-> initial-board (move-figure 3 1 4 4) (move-figure 2 1 2 2))]
+    (is '((2 1) (1 2) (0 3) (3 1) (3 2) (3 3) (3 4) (3 5) (3 6)) (queen-moves board 3 0))))
+
+(deftest test-king-moves
+  (let [board (-> initial-board (move-figure 4 1 4 2) (move-figure 5 1 5 2))]
+    (is '((4 1) (5 1)) (king-moves board 4 0))))
+
+(deftest test-rook-moves
+  (let [board (-> initial-board  (move-figure 0 1 0 6) (move-figure 1 0 1 6))]
+    (is '((0 1) (0 2) (0 3) (0 4) (0 5) (1 0)) (rook-moves board 0 0))))
+
+(deftest test-bishop-moves
+  (let [board (-> initial-board (move-figure 1 1 1 5) (move-figure 3 1 3 5)) ]
+    (is '((1 1) (0 2) (3 1) (4 2) (5 3) (6 4) (7 5)) (bishop-moves board 2 0))))

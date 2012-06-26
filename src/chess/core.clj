@@ -88,6 +88,17 @@
         enemy (first (filter (fn [[a b]] (enemy-on-pos? board a b)) steps))]
     (when (every? (fn [[a b]] (= :_ (figure-at board a b))) (take-while #(not (= % enemy)) steps)) enemy)))
 
+(defn all-steps [board x y k n]
+  (concat (steps-without-attack board x y k n) (steps-with-attack board x y k n)))
+
+
+(defn get-moves [board x y dirs n]
+  (let [steps (partial all-steps board x y)]
+    (partition 2 (flatten (map #(steps % n) dirs)))))
+
+(def all-directions  '(:up-left :up-right :down-left :down-right :up :down :left :right))
+(def infinite-steps 8)
+
 (defn pawn-moves [board x y]
   {:pre [(contains? #{:P :p} (figure-at board x y))]}
   (let [non-attacks (partial steps-without-attack board x y) attacks (partial steps-with-attack board x y)]
@@ -99,9 +110,17 @@
           (attacks :up-left  1))))
 
 (defn queen-moves [board x y]
-  {:pre [(contains? #{:Q :q} (figure-at board x y))]}
-  (let [non-attacks (partial steps-without-attack board x y) attacks (partial steps-with-attack board x y)]
-    (map #(attacks % 8) '(:up-left :up-right :down-left :down-right :up :down :left :right))))
+  (get-moves board x y all-directions infinite-steps))
+
+(defn king-moves [board x y]
+  (get-moves board x y all-directions 1))
+
+(defn rook-moves [board x y]
+  (get-moves board x y '(:up :down :left :right) infinite-steps))
+
+(defn bishop-moves [board x y]
+  (get-moves board x y '(:up-left :up-right :down-left :down-right) infinite-steps))
+
 
 
 
