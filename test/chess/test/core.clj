@@ -70,3 +70,6 @@
     (is '((1 1) (0 2) (3 1) (4 2) (5 3) (6 4) (7 5)) (bishop-moves board 2 0)))
   (let [board (-> initial-board (assoc :turn :b) (move-figure 3 6 1 1) (move-figure 5 6 1 1))]
     (is '((5 6) (3 6)) (king-moves board 4 7))))
+
+(deftest test-knight-moves
+  (is '((2 2) (0 2)) (knight-moves initial-board 1 0)))

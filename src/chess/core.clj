@@ -27,16 +27,18 @@
 (defn- pos-empty? "is a position on the given board empty"
   [board x y] (= :_ (figure-at board x y)))
 
-(defn- pos-on-board? [x y]
+(defn- pos-on-board? "checks if a positition on the chess board"
+  [x y]
   (every? (fn [n] (and (>= n 0) (<= n 7))) [x y]))
 
-(defn enemy-on-pos? [board x y]
+(defn enemy-on-pos? "checks if an enemy figure is on the given position "
+  [board x y]
   (let [ fig-at-pos (figure-at board x y) ] 
   (if (= :w (:turn board))
     (black? fig-at-pos)
     (white? fig-at-pos))))
                         
-(defn move-figure "moves a figure on the given board from x1,y2 to x2,y2"
+(defn move-figure "moves a figure on the given board from x1,y2 to x2,y2 without any rule checking"
   [board x1 y1 x2 y2]
   {:pre  [(pos-on-board? x1 y1)
           (pos-on-board? x2 y2)
@@ -67,6 +69,9 @@
 (defn steps-diagonal [fx fy x y]
   (take-while #(apply pos-on-board? %) (drop 1 (iterate (fn [[a b]] (list (fx a) (fy b))) [x y]))))
 
+(defn knight-steps [x y]
+  (map (fn [[xn yn]] (list (+ x xn) (+ y yn))) '((2 1) (2 -1) (-2 1) (-2 -1) (1 2) (-1 2) (1 -2) (-1 -2))))
+
 (defn empty-moves [f board x y]
   (take-while (fn [[a b]] (pos-empty? board a b)) (f x y)))
 
@@ -83,16 +88,16 @@
   (let [ dir-fn (k (fetch-direction (figure-at board x y))) ]
     (take n (empty-moves dir-fn board x y))))
 
-(defn steps-with-attack [ board x y k n ]
+(defn steps-with-attack  [ board x y k n ]
   (let [ figure (figure-at board x y) dir-fn (k (fetch-direction figure)) steps (take n (dir-fn x y))
         enemy (first (filter (fn [[a b]] (enemy-on-pos? board a b)) steps))]
     (when (every? (fn [[a b]] (= :_ (figure-at board a b))) (take-while #(not (= % enemy)) steps)) enemy)))
 
-(defn all-steps [board x y k n]
+(defn all-steps "attacking and non-attacking steps" [board x y k n]
   (concat (steps-without-attack board x y k n) (steps-with-attack board x y k n)))
 
-
-(defn get-moves [board x y dirs n]
+(defn get-moves "collects the moves into all posible directions"
+  [board x y dirs n]
   (let [steps (partial all-steps board x y)]
     (partition 2 (flatten (map #(steps % n) dirs)))))
 
@@ -121,9 +126,8 @@
 (defn bishop-moves [board x y]
   (get-moves board x y '(:up-left :up-right :down-left :down-right) infinite-steps))
 
+(defn knight-moves "every knight step on a free position or an enemy is legal"
+  [board x y]
+  (filter (fn [[x y]] (and (pos-on-board? x y) (let [figure (figure-at board x y)] (or (= :_ figure) (enemy-on-pos? board x y)))))
+            (knight-steps x y)))
 
-
-
-
-  
-         
