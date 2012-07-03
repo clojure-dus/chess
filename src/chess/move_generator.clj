@@ -127,36 +127,6 @@
 (def all-directions  '(:up-left :up-right :down-left :down-right :up :down :left :right))
 (def infinite-steps 8)
 
-(defn pawn-moves [game-state x y]
-  {:pre [(contains? #{:P :p} (piece-at game-state x y))]}
-  (let [non-attacks (partial steps-without-attack game-state x y) attacks (partial steps-with-attack game-state x y)]
-  (concat #{}
-          (cond (and (white? (piece-at game-state x y)) (= y 1)) (non-attacks :up 2)
-                (and (black? (piece-at game-state x y)) (= y 6)) (non-attacks :up 2)
-                :else (non-attacks :up 1))
-          (attacks :up-right 1) 
-          (attacks :up-left  1))))
-
-(defn queen-moves [game-state x y]
-  (get-moves game-state x y all-directions infinite-steps))
-
-(defn king-moves
-  "(x, y) -> current king position on given game-state"
-  [game-state x y]
-  (get-moves game-state x y all-directions 1))
-
-(defn rook-moves [game-state x y]
-  (get-moves game-state x y '(:up :down :left :right) infinite-steps))
-
-(defn bishop-moves [game-state x y]
-  (get-moves game-state x y '(:up-left :up-right :down-left :down-right) infinite-steps))
-
-(defn knight-moves "every knight step on a free position or an enemy is legal"
-  [game-state x y]
-  (filter (fn [[x y]] (and (pos-on-game-state? x y) (let [piece (piece-at game-state x y)] (or (= :_ piece) (enemy-on-pos? game-state x y)))))
-          (knight-steps x y)))
-
-
 (defn piece [game-state position]
   (let [[x y] position
         p (piece-at game-state x y)]
@@ -167,16 +137,49 @@
         :q :queen, :Q :queen,
         :k :king,  :K :king} )))
 
-
-
 (defmulti possible-moves piece)
 
 (defmethod possible-moves :rook
   [game-state position]
   (let [[x y] position]
-    (rook-moves game-state x y)))
+    (get-moves game-state x y '(:up :down :left :right) infinite-steps)))
+
+(defmethod possible-moves :pawn
+  [game-state position]
+  (let [[x y] position non-attacks (partial steps-without-attack game-state x y) attacks (partial steps-with-attack game-state x y)]
+  (concat #{}
+          (cond (and (white? (piece-at game-state x y)) (= y 1)) (non-attacks :up 2)
+                (and (black? (piece-at game-state x y)) (= y 6)) (non-attacks :up 2)
+                :else (non-attacks :up 1))
+          (attacks :up-right 1) 
+          (attacks :up-left  1))))
+
+(defmethod possible-moves :queen
+  [game-state position]
+  (let [[x y] position]
+    (get-moves game-state x y all-directions infinite-steps)))
 
 
+(defmethod possible-moves :king
+  [game-state position]
+  (let [[x y] position]
+    (get-moves game-state x y all-directions 1)))
+
+
+(defmethod possible-moves :bishop
+  [game-state position]
+  (let [[x y] position]
+    (get-moves game-state x y '(:up-left :up-right :down-left :down-right) infinite-steps)))
+
+(defmethod possible-moves :knight
+  [game-state position]
+  (let [[x y] position]
+  (filter (fn [[x y]] (and (pos-on-game-state? x y) (let [piece (piece-at game-state x y)] (or (= :_ piece) (enemy-on-pos? game-state x y)))))
+          (knight-steps x y))))
+
+
+
+  
 (comment
 (defn generate-moves [game-state]
   (let [positions ...]
