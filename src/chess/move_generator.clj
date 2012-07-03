@@ -165,7 +165,6 @@
   (let [[x y] position]
     (get-moves game-state x y all-directions 1)))
 
-
 (defmethod possible-moves :bishop
   [game-state position]
   (let [[x y] position]
@@ -176,12 +175,8 @@
   (let [[x y] position]
   (filter (fn [[x y]] (and (pos-on-game-state? x y) (let [piece (piece-at game-state x y)] (or (= :_ piece) (enemy-on-pos? game-state x y)))))
           (knight-steps x y))))
-
-
-
-  
-(comment
-(defn generate-moves [game-state]
+ 
+(comment (defn generate-moves [game-state]
   (let [positions ...]
     (map (partial possible-moves game-state)
          positions))))
