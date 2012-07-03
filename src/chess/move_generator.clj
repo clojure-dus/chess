@@ -1,23 +1,5 @@
 (ns chess.move-generator
-  (:use [chess.core :only (initial-board white? black?)]
-        [clojure.math.combinatorics :only (cartesian-product)]))
-
-(defn piece-at
-  "returns the piece keyword for the given game-state and coordinates - (0, 0) is lower left corner"
-  [game-state x y]
-  (get-in game-state [:board (- 7 y) x ]))
-
-(defn- set-piece [game-state x y piece]
-  (assoc-in game-state [:board (- 7 y) x] piece))
-
-(defn- pos-empty?
-  "is a position on the given game-state empty"
-  [game-state x y]
-  (= :_ (piece-at game-state x y)))
-
-(defn- pos-on-game-state? "checks if a positition is on the chess game-state"
-  [x y]
-  (every? (fn [n] (<= 0 n 7)) [x y]))
+  (:use [chess.core :only (initial-board white? black? piece-at filter-my-positions move-piece pos-on-game-state? pos-empty?)]))
 
 (defn enemy-on-pos?
   "checks if an enemy piece is on the given position "
@@ -27,15 +9,6 @@
       (black? fig-at-pos)
       (white? fig-at-pos))))
                         
-(defn move-piece
-  "moves a piece on the given game-state from x1,y2 to x2,y2 without any rule checking"
-  [game-state x1 y1 x2 y2]
-  {:pre [(pos-on-game-state? x1 y1)
-         (pos-on-game-state? x2 y2)
-         (not (pos-empty? game-state x1 y1))]}
-  (let [fig (piece-at game-state x1 y1)]
-    (set-piece (set-piece game-state x1 y1 :_) x2 y2 fig)))
-
 (defn steps-vertical [x y c]
   (partition 2 (interleave (repeat x) c)))
 
@@ -171,14 +144,6 @@
   (let [[x y] position]
   (filter (fn [[x y]] (and (pos-on-game-state? x y) (let [piece (piece-at game-state x y)] (or (= :_ piece) (enemy-on-pos? game-state x y)))))
           (knight-steps x y))))
-
-(def all-positions
-  "a collection of positions/coordinates on a chess board"
-  (cartesian-product (range 8) (range 8)))
-
-(defn filter-my-positions [color-fn game-state]
-  "returns all posititions which are occupied by the given color"
-  (filter (fn [[x y]] (color-fn (piece-at game-state x y))) all-positions))
 
 (defn fetch-positions [game-state]
   "returns all positions/coordinates that are occupied by pieces"
