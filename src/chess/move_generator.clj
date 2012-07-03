@@ -120,7 +120,7 @@
   (concat (steps-without-attack game-state x y k n) (steps-with-attack game-state x y k n)))
 
 (defn get-moves "collects the moves into all posible directions"
-  [game-state x y dirs n]
+  [game-state [x y] dirs n]
   (let [steps (partial all-steps game-state x y)]
     (partition 2 (flatten (map #(steps % n) dirs)))))
 
@@ -141,8 +141,7 @@
 
 (defmethod possible-moves :rook
   [game-state position]
-  (let [[x y] position]
-    (get-moves game-state x y '(:up :down :left :right) infinite-steps)))
+    (get-moves game-state position '(:up :down :left :right) infinite-steps))
 
 (defmethod possible-moves :pawn
   [game-state position]
@@ -156,19 +155,16 @@
 
 (defmethod possible-moves :queen
   [game-state position]
-  (let [[x y] position]
-    (get-moves game-state x y all-directions infinite-steps)))
+    (get-moves game-state position all-directions infinite-steps))
 
 
 (defmethod possible-moves :king
   [game-state position]
-  (let [[x y] position]
-    (get-moves game-state x y all-directions 1)))
+    (get-moves game-state position all-directions 1))
 
 (defmethod possible-moves :bishop
   [game-state position]
-  (let [[x y] position]
-    (get-moves game-state x y '(:up-left :up-right :down-left :down-right) infinite-steps)))
+    (get-moves game-state position '(:up-left :up-right :down-left :down-right) infinite-steps))
 
 (defmethod possible-moves :knight
   [game-state position]
