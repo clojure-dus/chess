@@ -173,24 +173,32 @@
           (knight-steps x y))))
 
 (def all-positions
+  "a collection of positions/coordinates on a chess board"
   (cartesian-product (range 8) (range 8)))
 
 (defn filter-my-positions [color-fn game-state]
+  "returns all posititions which are occupied by the given color"
   (filter (fn [[x y]] (color-fn (piece-at game-state x y))) all-positions))
 
 (defn fetch-positions [game-state]
+  "returns all positions/coordinates that are occupied by pieces"
     (if (= :w (:turn game-state))
       (filter-my-positions white? game-state)
       (filter-my-positions black? game-state)))
     
-(defn build-pairs [k v]
+(defn build-pair [k v]
+  "k:starting position v:collection of target positions
+   creates a sequence coordinate pairs for a turn '((x-old y-old) (x-new y-new))"
     (reduce #(conj %1 [k %2]) [] v))
 
-(defn generate-moves [game-state]
-  (partition 2 (partition 2 (flatten
-  (filter #(not (nil? %))
+(defn build-all-pairs [game-state positions]
   (map (fn [x] (let [moves (possible-moves game-state x)]
-                      (when (seq (rest moves))
-                        (build-pairs x moves))))
-       (fetch-positions game-state)))))))
+                 (when (seq (rest moves))
+                   (build-pair x moves)))) positions))
+
+(defn generate-moves [game-state]
+  "generates all legal moves for the given game-state"
+  (->> (filter #(not (nil? %))
+     (build-all-pairs game-state (fetch-positions game-state)))
+          flatten (partition 2) (partition 2)))
 
