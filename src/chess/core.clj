@@ -10,10 +10,11 @@
    :rochade #{:K :Q :k :q},
    :turn :w})
 
-(def white-figures #{:R :N :B :Q :K :P})
-(def black-figures #{:r :n :b :q :k :p})
+(def white-pieces #{:R :N :B :Q :K :P})
+(def black-pieces #{:r :n :b :q :k :p})
 
-(defn white? [x] (contains? white-figures x))
+(defn white? [x] (contains? white-pieces x))
 
-(defn black? [x] (contains? black-figures x))
+(defn black? [x] (contains? black-pieces x))
+
 

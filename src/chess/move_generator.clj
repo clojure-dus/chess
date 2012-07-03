@@ -157,17 +157,29 @@
           (knight-steps x y)))
 
 
+(defn piece [game-state position]
+  (let [[x y] position
+        p (piece-at game-state x y)]
+    (p {:r :rook, :R :rook,
+        :p :pawn, :P :pawn,
+        :n :knight,:N :knight,
+        :b :bishop,:B :bishop,
+        :q :queen, :Q :queen,
+        :k :king,  :K :king} )))
+
+
+
+(defmulti possible-moves piece)
+
+(defmethod possible-moves :rook
+  [game-state position]
+  (let [[x y] position]
+    (rook-moves game-state x y)))
+
+
 (comment
 (defn generate-moves [game-state]
   (let [positions ...]
     (map (partial possible-moves game-state)
-         positions)))
+         positions))))
 
-(defmulti possible-moves piece)
-
-(defn piece [game-state position]
-  :rook)
-
-(defmethod possible-moves :rook
-  [game-state position]
-  ...))
