@@ -1,6 +1,6 @@
 (ns chess.move-generator
-  (:use [chess.core :only (initial-board white? black?)]))
-
+  (:use [chess.core :only (initial-board white? black?)]
+        [clojure.math.combinatorics :only (cartesian-product)]))
 
 (defn piece-at
   "returns the piece keyword for the given game-state and coordinates - (0, 0) is lower left corner"
@@ -171,9 +171,26 @@
   (let [[x y] position]
   (filter (fn [[x y]] (and (pos-on-game-state? x y) (let [piece (piece-at game-state x y)] (or (= :_ piece) (enemy-on-pos? game-state x y)))))
           (knight-steps x y))))
- 
-(comment (defn generate-moves [game-state]
-  (let [positions ...]
-    (map (partial possible-moves game-state)
-         positions))))
+
+(def all-positions
+  (cartesian-product (range 8) (range 8)))
+
+(defn filter-my-positions [color-fn game-state]
+  (filter (fn [[x y]] (color-fn (piece-at game-state x y))) all-positions))
+
+(defn fetch-positions [game-state]
+    (if (= :w (:turn game-state))
+      (filter-my-positions white? game-state)
+      (filter-my-positions black? game-state)))
+    
+(defn build-pairs [k v]
+    (reduce #(conj %1 [k %2]) [] v))
+
+(defn generate-moves [game-state]
+  (partition 2 (partition 2 (flatten
+  (filter #(not (nil? %))
+  (map (fn [x] (let [moves (possible-moves game-state x)]
+                      (when (seq (rest moves))
+                        (build-pairs x moves))))
+       (fetch-positions game-state)))))))
 
