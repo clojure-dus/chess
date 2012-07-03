@@ -41,6 +41,7 @@
   (= :_ (piece-at game-state x y)))
 
 (defn set-piece [game-state x y piece]
+  "sets a piece on the given coordinate without any rule checking"
   (assoc-in game-state [:board (- 7 y) x] piece))
 
 (defn move-piece
@@ -51,3 +52,14 @@
          (not (pos-empty? game-state x1 y1))]}
   (let [fig (piece-at game-state x1 y1)]
     (set-piece (set-piece game-state x1 y1 :_) x2 y2 fig)))
+
+(defn piece [game-state position]
+  "returns a keyword (color-neutral) for the piece on the given position"
+  (let [[x y] position
+        p (piece-at game-state x y)]
+    (p {:r :rook, :R :rook,
+        :p :pawn, :P :pawn,
+        :n :knight,:N :knight,
+        :b :bishop,:B :bishop,
+        :q :queen, :Q :queen,
+        :k :king,  :K :king} )))

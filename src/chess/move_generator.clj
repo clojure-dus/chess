@@ -1,5 +1,5 @@
 (ns chess.move-generator
-  (:use [chess.core :only (initial-board white? black? piece-at filter-my-positions move-piece pos-on-game-state? pos-empty?)]))
+  (:use [chess.core :only (initial-board white? black? piece-at filter-my-positions move-piece pos-on-game-state? pos-empty? piece)]))
 
 (defn enemy-on-pos?
   "checks if an enemy piece is on the given position "
@@ -99,16 +99,6 @@
 
 (def all-directions  '(:up-left :up-right :down-left :down-right :up :down :left :right))
 (def infinite-steps 8)
-
-(defn piece [game-state position]
-  (let [[x y] position
-        p (piece-at game-state x y)]
-    (p {:r :rook, :R :rook,
-        :p :pawn, :P :pawn,
-        :n :knight,:N :knight,
-        :b :bishop,:B :bishop,
-        :q :queen, :Q :queen,
-        :k :king,  :K :king} )))
 
 (defmulti possible-moves piece)
 
