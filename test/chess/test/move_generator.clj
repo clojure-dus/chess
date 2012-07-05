@@ -5,19 +5,19 @@
 
 (deftest test-steps-right
   (are [x y] (= x y)
-       (list (list 2 3) (list 3 3) (list 4 3) (list 5 3) (list 6 3) (list 7 3)) (steps-right 1 3)))
+       (list (list 2 3) (list 3 3) (list 4 3) (list 5 3) (list 6 3) (list 7 3)) (steps-right [1 3])))
 
 (deftest test-steps-left
   (are [x y] (= x y)
-       (list (list 1 3) (list 0 3)) (steps-left 2 3)))
+       (list (list 1 3) (list 0 3)) (steps-left [2 3])))
 
 (deftest test-steps-up
   (are [x y] (= x y)
-       (list (list 2 4) (list 2 5) (list 2 6) (list 2 7)) (steps-up 2 3)))
+       (list (list 2 4) (list 2 5) (list 2 6) (list 2 7)) (steps-up [2 3])))
 
 (deftest test-steps-down
   (are [x y] (= x y)
-       (list (list 2 2) (list 2 1) (list 2 0)) (steps-down 2 3)))
+       (list (list 2 2) (list 2 1) (list 2 0)) (steps-down [2 3])))
 
 (deftest test-pawn-moves
   (testing "pawn is allowed to move 2 steps up from initial position"
