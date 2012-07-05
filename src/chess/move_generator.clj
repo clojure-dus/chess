@@ -55,9 +55,6 @@
 (defn empty-moves [f game-state x y]
   (take-while (fn [[a b]] (pos-empty? game-state a b)) (f x y)))
 
-(defn attacking-moves [f game-state x y]
-  (first (drop-while (fn [[a b]] (pos-empty? game-state a b)) (f x y))))
-
 (defn fetch-direction [piece]
   (let [diag steps-diagonal]
     (if (white? piece)
