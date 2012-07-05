@@ -1,10 +1,10 @@
 (ns chess.move-generator
-  (:use [chess.core :only (initial-board white? black? piece-at filter-my-positions move-piece pos-on-board? pos-empty? piece)]))
+  (:use [chess.core :only (white? black? piece-at filter-my-positions pos-on-board? pos-empty? piece)]))
 
 (defn enemy-on-pos?
   "checks if an enemy piece is on the given position "
-  [game-state [x y]]
-  (let [fig-at-pos (piece-at game-state x y)] 
+  [game-state position]
+  (let [fig-at-pos (piece-at game-state position)] 
     (if (= :w (:turn game-state))
       (black? fig-at-pos)
       (white? fig-at-pos))))
@@ -39,9 +39,9 @@
 (defn steps-diagonal [fx fy x y]
   "possible steps in a diagonal direction starting from (x, y)
    fx and fy are functions that are applied to x (and y, respectively) to determine the next step
-
    (steps-diagonal inc inc 0 0) returns ((1 1) (2 2) (3 3) (4 4) (5 5) (6 6) (7 7))"
-  (take-while #(apply pos-on-board? %)
+  
+  (take-while #(apply pos-on-board? (partition 2 %))
               (drop 1 (iterate (fn [[a b]]
                                  (list (fx a) (fy b)))
                                [x y]))))
@@ -54,7 +54,7 @@
 
 (defn empty-moves [f game-state x y]
   "moves on empty fields"
-  (take-while (fn [[a b]] (pos-empty? game-state a b)) (f x y)))
+  (take-while (fn [position] (pos-empty? game-state position)) (f x y)))
 
 (defn fetch-direction [piece]
   "inverts the direction functions for black"
@@ -80,17 +80,17 @@
 (defn steps-without-attack [game-state x y dk n]
   "every step on an empty field.
    params: game-state, x y actual position, dk direction keyword, n number of allowed steps"
-  (let [dir-fn (dk (fetch-direction (piece-at game-state x y)))]
+  (let [dir-fn (dk (fetch-direction (piece-at game-state [x y])))]
     (take n (empty-moves dir-fn game-state x y))))
 
 (defn steps-with-attack  [ game-state x y dk n ]
   "every step on an enemy field, that isn't blocked by an own piece
    params: gamestate, x y actual position, dk direction-keyword, n number of allowed steps"
-  (let [piece (piece-at game-state x y)
+  (let [piece (piece-at game-state [x y])
         dir-fn (dk (fetch-direction piece))
         steps (take n (dir-fn x y))
         enemy (first (filter (fn [[a b]] (enemy-on-pos? game-state [a b])) steps))]
-    (when (every? (fn [[a b]] (= :_ (piece-at game-state a b))) (take-while #(not (= % enemy)) steps)) enemy)))
+    (when (every? (fn [pos] (= :_ (piece-at game-state pos))) (take-while #(not (= % enemy)) steps)) enemy)))
 
 (defn all-steps
   "attacking and non-attacking steps"
@@ -115,8 +115,8 @@
   [game-state position]
   (let [[x y] position non-attacks (partial steps-without-attack game-state x y) attacks (partial steps-with-attack game-state x y)]
   (concat #{}
-          (cond (and (white? (piece-at game-state x y)) (= y 1)) (non-attacks :up 2)
-                (and (black? (piece-at game-state x y)) (= y 6)) (non-attacks :up 2)
+          (cond (and (white? (piece-at game-state position)) (= y 1)) (non-attacks :up 2)
+                (and (black? (piece-at game-state position)) (= y 6)) (non-attacks :up 2)
                 :else (non-attacks :up 1))
           (attacks :up-right 1) 
           (attacks :up-left  1))))
@@ -136,7 +136,7 @@
 (defmethod possible-moves :knight
   [game-state position]
   (let [[x y] position]
-  (filter (fn [[x y]] (and (pos-on-board? x y) (let [piece (piece-at game-state x y)] (or (= :_ piece) (enemy-on-pos? game-state position)))))
+  (filter (fn [[x y]] (and (pos-on-board? position) (let [piece (piece-at game-state position)] (or (= :_ piece) (enemy-on-pos? game-state position)))))
           (knight-steps x y))))
 
 (defn fetch-positions [game-state]

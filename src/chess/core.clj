@@ -20,7 +20,7 @@
 
 (defn piece-at
   "returns the piece keyword for the given game-state and coordinates - (0, 0) is lower left corner"
-  [game-state x y]
+  [game-state [x y]]
   (get-in game-state [:board (- 7 y) x ]))
 
 (def all-positions
@@ -29,34 +29,33 @@
 
 (defn filter-my-positions [color-fn game-state]
   "returns all posititions which are occupied by the given color"
-  (filter (fn [[x y]] (color-fn (piece-at game-state x y))) all-positions))
+  (filter (fn [pos] (color-fn (piece-at game-state pos))) all-positions))
 
 (defn pos-on-board? "checks if a positition is on the chess board"
-  [x y]
+  [[x y]]
   (every? (fn [n] (<= 0 n 7)) [x y]))
 
 (defn pos-empty?
   "is a position on the given game-state empty"
-  [game-state x y]
-  (= :_ (piece-at game-state x y)))
+  [game-state position]
+  (= :_ (piece-at game-state position)))
 
-(defn set-piece [game-state x y piece]
+(defn set-piece [game-state [x y] piece]
   "sets a piece on the given coordinate without any rule checking"
   (assoc-in game-state [:board (- 7 y) x] piece))
 
 (defn move-piece
   "moves a piece on the given game-state from x1,y2 to x2,y2 without any rule checking"
-  [game-state x1 y1 x2 y2]
-  {:pre [(pos-on-board? x1 y1)
-         (pos-on-board? x2 y2)
-         (not (pos-empty? game-state x1 y1))]}
-  (let [fig (piece-at game-state x1 y1)]
-    (set-piece (set-piece game-state x1 y1 :_) x2 y2 fig)))
+  [game-state pos1 pos2]
+  {:pre [(pos-on-board? pos1)
+         (pos-on-board? pos2)
+         (not (pos-empty? game-state pos1))]}
+  (let [fig (piece-at game-state pos1)]
+    (set-piece (set-piece game-state pos1 :_) pos2 fig)))
 
 (defn piece [game-state position]
   "returns a keyword (color-neutral) for the piece on the given position"
-  (let [[x y] position
-        p (piece-at game-state x y)]
+  (let [p (piece-at game-state position)]
     (p {:r :rook, :R :rook,
         :p :pawn, :P :pawn,
         :n :knight,:N :knight,

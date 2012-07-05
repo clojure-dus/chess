@@ -1,5 +1,5 @@
 (ns chess.test.move-generator
-  (:use [chess.core :only (initial-board piece-at move-piece)])
+  (:use [chess.core :only (initial-board move-piece)])
   (:use [chess.move-generator])
   (:use [clojure.test]))
 
@@ -26,29 +26,29 @@
        '((0 5) (0 4)) (possible-moves initial-board [0 6])))
   (testing "pawn is allowed to move 1 step up from any other position"
     (are [x y] (= x y)
-       '((0 3)) (possible-moves (move-piece initial-board 0 1 0 2) [0 2])
-       '((0 4)) (possible-moves (move-piece initial-board 0 6 0 5) [0 5])))
+       '((0 3)) (possible-moves (move-piece initial-board [0 1] [0 2]) [0 2])
+       '((0 4)) (possible-moves (move-piece initial-board [0 6] [0 5]) [0 5])))
   (testing "no moves if pawn is blocked"
-    (is '() (possible-moves (move-piece initial-board 0 6 0 2) [0 1])))
+    (is '() (possible-moves (move-piece initial-board [0 6] [0 2]) [0 1])))
   (testing "pawn attacks diagonal"
-    (is '((0 2) (0 3) (1 2)) (possible-moves (move-piece initial-board 1 6 1 2) [0 1]))))
+    (is '((0 2) (0 3) (1 2)) (possible-moves (move-piece initial-board [1 6] [1 2]) [0 1]))))
 
 (deftest test-queen-moves
-  (let [game-state (-> initial-board (move-piece 3 1 4 4) (move-piece 2 1 2 2))]
+  (let [game-state (-> initial-board (move-piece [3 1] [4 4]) (move-piece [2 1] [2 2]))]
     (is '((2 1) (1 2) (0 3) (3 1) (3 2) (3 3) (3 4) (3 5) (3 6)) (possible-moves game-state [3 0]))))
 
 (deftest test-king-moves
-  (let [game-state (-> initial-board (move-piece 4 1 4 2) (move-piece 5 1 5 2))]
+  (let [game-state (-> initial-board (move-piece [4 1] [4 2]) (move-piece [5 1] [5 2]))]
     (is '((4 1) (5 1)) (possible-moves game-state [4 0]))))
 
 (deftest test-rook-moves
-  (let [game-state (-> initial-board  (move-piece 0 1 0 6) (move-piece 1 0 1 6))]
+  (let [game-state (-> initial-board  (move-piece [0 1] [0 6]) (move-piece [1 0] [1 6]))]
     (is '((0 1) (0 2) (0 3) (0 4) (0 5) (1 0)) (possible-moves game-state [0 0]))))
 
 (deftest test-bishop-moves
-  (let [game-state (-> initial-board (move-piece 1 1 1 5) (move-piece 3 1 3 5)) ]
+  (let [game-state (-> initial-board (move-piece [1 1] [1 5]) (move-piece [3 1] [3 5])) ]
     (is '((1 1) (0 2) (3 1) (4 2) (5 3) (6 4) (7 5)) (possible-moves game-state [2 0])))
-  (let [game-state (-> initial-board (assoc :turn :b) (move-piece 3 6 1 1) (move-piece 5 6 1 1))]
+  (let [game-state (-> initial-board (assoc :turn :b) (move-piece [3 6] [1 1]) (move-piece [5 6] [1 1]))]
     (is '((5 6) (3 6)) (possible-moves game-state [4 7]))))
 
 (deftest test-knight-moves
