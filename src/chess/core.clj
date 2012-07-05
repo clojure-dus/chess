@@ -31,7 +31,7 @@
   "returns all posititions which are occupied by the given color"
   (filter (fn [[x y]] (color-fn (piece-at game-state x y))) all-positions))
 
-(defn pos-on-game-state? "checks if a positition is on the chess game-state"
+(defn pos-on-board? "checks if a positition is on the chess board"
   [x y]
   (every? (fn [n] (<= 0 n 7)) [x y]))
 
@@ -47,8 +47,8 @@
 (defn move-piece
   "moves a piece on the given game-state from x1,y2 to x2,y2 without any rule checking"
   [game-state x1 y1 x2 y2]
-  {:pre [(pos-on-game-state? x1 y1)
-         (pos-on-game-state? x2 y2)
+  {:pre [(pos-on-board? x1 y1)
+         (pos-on-board? x2 y2)
          (not (pos-empty? game-state x1 y1))]}
   (let [fig (piece-at game-state x1 y1)]
     (set-piece (set-piece game-state x1 y1 :_) x2 y2 fig)))
