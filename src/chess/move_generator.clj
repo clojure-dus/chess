@@ -75,8 +75,10 @@
        :down-left (partial diag inc inc)
        :down-right (partial diag dec inc)})))
 
-(defn steps-without-attack [game-state x y k n]
-  (let [dir-fn (k (fetch-direction (piece-at game-state x y)))]
+(defn steps-without-attack [game-state x y dk n]
+  "every step on an empty field.
+   params: game-state, x y actual position, dk direction keyword, n number of allowed steps"
+  (let [dir-fn (dk (fetch-direction (piece-at game-state x y)))]
     (take n (empty-moves dir-fn game-state x y))))
 
 (defn steps-with-attack  [ game-state x y k n ]
