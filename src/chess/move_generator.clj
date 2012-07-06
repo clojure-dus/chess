@@ -10,6 +10,8 @@
       (white? fig-at-pos))))
                         
 (defn steps-vertical [x c]
+  "x: constant value on x-axis
+   c: collection of values on the y-axis"
   (partition 2 (interleave (repeat x) c)))
 
 (defn steps-down
@@ -23,6 +25,8 @@
   (steps-vertical x (range (inc y) 8)))
 
 (defn steps-horizontal
+  "y: constant value on y-axis
+   c: collection of values on the x-axis"
   [y c]
   (partition 2 (interleave c (repeat y))))
 
@@ -79,13 +83,13 @@
 
 (defn steps-without-attack [game-state position dk n]
   "every step on an empty field.
-   params: game-state, x y actual position, dk direction keyword, n number of allowed steps"
+   params: game-state, position actual position, dk direction keyword, n number of allowed steps"
   (let [dir-fn (dk (fetch-direction (piece-at game-state position)))]
     (take n (empty-moves dir-fn game-state position))))
 
 (defn steps-with-attack  [ game-state position dk n ]
   "every step on an enemy field, that isn't blocked by an own piece
-   params: gamestate, x y actual position, dk direction-keyword, n number of allowed steps"
+   params: gamestate, position=actual position,dk direction-keyword, n number of allowed steps"
   (let [piece (piece-at game-state position)
         dir-fn (dk (fetch-direction piece))
         steps (take n (dir-fn position))
@@ -114,12 +118,12 @@
 (defmethod possible-moves :pawn
   [game-state position]
   (let [[x y] position non-attacks (partial steps-without-attack game-state position) attacks (partial steps-with-attack game-state position)]
-  (concat #{}
+  (partition 2 (flatten (concat #{}
           (cond (and (white? (piece-at game-state position)) (= y 1)) (non-attacks :up 2)
                 (and (black? (piece-at game-state position)) (= y 6)) (non-attacks :up 2)
                 :else (non-attacks :up 1))
           (attacks :up-right 1) 
-          (attacks :up-left  1))))
+          (attacks :up-left  1))))))
 
 (defmethod possible-moves :queen
   [game-state position]
@@ -153,7 +157,6 @@
   (map (fn [x] (let [moves (possible-moves game-state x)]
                  (when (seq (rest moves))
                    (build-pair x moves)))) positions))
-
 (defn generate-moves [game-state]
   "generates all legal moves for the given game-state"
   (->> (filter #(not (nil? %))

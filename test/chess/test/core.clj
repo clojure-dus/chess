@@ -18,7 +18,6 @@
     (are [x y] (= x y)
          :_ (piece-at new-game-state [0 6] )
          :p (piece-at new-game-state [0 5] ))
-    (testing "preconditions of move-piece: source and target are on the game-state, source is not empty"
-    (is (thrown? AssertionError (move-piece initial-board [0 3] [0 4])))
+    (testing "preconditions of move-piece: source and target are on the game-state"
     (is (thrown? AssertionError (move-piece initial-board [-1 0] [0 0])))
     (is (thrown? AssertionError (move-piece initial-board [0 0] [0 8]))))))

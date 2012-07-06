@@ -48,8 +48,7 @@
   "moves a piece on the given game-state from x1,y2 to x2,y2 without any rule checking"
   [game-state pos1 pos2]
   {:pre [(pos-on-board? pos1)
-         (pos-on-board? pos2)
-         (not (pos-empty? game-state pos1))]}
+         (pos-on-board? pos2)]}
   (let [fig (piece-at game-state pos1)]
     (set-piece (set-piece game-state pos1 :_) pos2 fig)))
 
