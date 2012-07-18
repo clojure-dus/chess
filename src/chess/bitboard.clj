@@ -4,7 +4,7 @@
 ; Some resources
 ; http://pages.cs.wisc.edu/~psilord/blog/data/chess-pages/index.html
 ; http://chessprogramming.wikispaces.com/Bitboards
-(ns bitboard)
+(ns chess.bitboard)
 (set! *warn-on-reflection* true)
 (use 'clojure.pprint)
 
@@ -69,28 +69,27 @@ with one ctor per chess piece bitboard."
                   (concat white-bitboards black-bitboards)
 
                 board-value
-                  (fn [name] (list '. 'board  name))
+                  (^long fn [name] (list '. 'board  name))
 
                 ctor-expr
                   (fn [piece]
-                    (let [fn-update-value (fn [field]
+                    (let [^long fn-update-value (fn [field]
                                    (if (= field piece)
                                         (list 'bit-xor 'mask (board-value field))
                                         (board-value field)))
 
                           values (map fn-update-value all-bitboards)]
                                    (list 'let (vector 'white-pieces
-                                                 (cons 'bit-or
-                                                      (map fn-update-value  white-bitboards))
+                                                (cons 'bit-or
+                                                   (map fn-update-value  white-bitboards))
                                                        'black-pieces
                                                          (cons 'bit-or
-                                                            (map fn-update-value black-bitboards))
+                                                          (map fn-update-value black-bitboards))
                                                        'all-pieces
-                                                         (list 'bit-or 'white-pieces 'black-pieces))
-                                    (cons '->ChessBoard
-                                      (concat values ['white-pieces 'black-pieces 'all-pieces])))))
-               ]
-            (apply concat ( for [piece all-bitboards]
+                                                        (list 'bit-or 'white-pieces 'black-pieces))
+                                   (cons '->ChessBoard
+                                     (concat values ['white-pieces 'black-pieces 'all-pieces])))))]
+                         (apply concat ( for [piece all-bitboards]
                             [ `(~'= ~'piece '~piece) (ctor-expr piece)]))))))
 
 (create-update-bitboard-fn)
@@ -117,4 +116,10 @@ with one ctor per chess piece bitboard."
           update-mask          (bit-or from-mask  (bitvector to-pos))
           ] (update-bitboard board piece update-mask)))
 
+
+
 (move initial-board 'WhitePawns [0 1] [0 3])
+
+
+
+;(compile 'chess.bitboard)
