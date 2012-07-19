@@ -8,91 +8,66 @@
 (set! *warn-on-reflection* true)
 (use 'clojure.pprint)
 
-(defrecord ChessBoard [^long  WhitePawns
-                       ^long  WhiteRooks
-                       ^long  WhiteKnights
-                       ^long  WhiteBishops
-                       ^long  WhiteQueens
-                       ^long  WhiteKing
+(def ^:const WhitePawnsIdx 0)
+(def ^:const WhiteRooksIdx 1)
+(def ^:const WhiteKnightsIdx 2)
+(def ^:const WhiteBishopsIdx 3)
+(def ^:const WhiteQueensIdx 4)
+(def ^:const WhiteKingIdx 5)
+(def ^:const BlackPawnsIdx 6)
+(def ^:const BlackRooksIdx 7)
+(def ^:const BlackKnightsIdx 8)
+(def ^:const BlackBishopsIdx 9)
+(def ^:const BlackQueensIdx 10)
+(def ^:const BlackKingIdx 11)
 
-                       ^long  BlackPawns
-                       ^long  BlackRooks
-                       ^long  BlackKnights
-                       ^long  BlackBishops
-                       ^long  BlackQueens
-                       ^long  BlackKing
+(defrecord ChessBoard [^longs Bitboards
+                       ^long  Whitepieces
+                       ^long  Blackpieces
+                       ^long  Allpieces])
 
-                       ^long  WhitePieces
-                       ^long  BlackPieces
-                       ^long  AllPieces]
+(def ^ChessBoard initial-board
+          (ChessBoard.
+             (into-array Long/TYPE [
+               (unchecked-long 2r0000000000000000000000000000000000000000000000001111111100000000)
+               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000010000001)
+               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000001000010)
+               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000100100)
+               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000010000)
+               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000001000)
 
-                       ;rochade
-                       ;turn
-                       )
+               (unchecked-long 2r0000000011111111000000000000000000000000000000000000000000000000)
+               (unchecked-long 2r1000000100000000000000000000000000000000000000000000000000000000)
+               (unchecked-long 2r0100001000000000000000000000000000000000000000000000000000000000)
+               (unchecked-long 2r0010010000000000000000000000000000000000000000000000000000000000)
+               (unchecked-long 2r0000100000000000000000000000000000000000000000000000000000000000)
+               (unchecked-long 2r0001000000000000000000000000000000000000000000000000000000000000)])
 
-(def ^ChessBoard initial-board   (ChessBoard.
-                                  2r0000000000000000000000000000000000000000000000001111111100000000
-                                  2r0000000000000000000000000000000000000000000000000000000010000001
-                                  2r0000000000000000000000000000000000000000000000000000000001000010
-                                  2r0000000000000000000000000000000000000000000000000000000000100100
-                                  2r0000000000000000000000000000000000000000000000000000000000010000
-                                  2r0000000000000000000000000000000000000000000000000000000000001000
+              2r0000000000000000000000000000000000000000000000001111111111111111
+              2r1111111111111111000000000000000000000000000000000000000000000000
+              2r1111111111111111000000000000000000000000000000001111111111111111))
 
-                                  2r0000000011111111000000000000000000000000000000000000000000000000
-                                  2r1000000100000000000000000000000000000000000000000000000000000000
-                                  2r0100001000000000000000000000000000000000000000000000000000000000
-                                  2r0010010000000000000000000000000000000000000000000000000000000000
-                                  2r0000100000000000000000000000000000000000000000000000000000000000
-                                  2r0001000000000000000000000000000000000000000000000000000000000000
+  (defn update-bitboard [^ChessBoard board  piece ^long mask]
+    (let [bbs (aclone ^longs (.Bitboards  board))
+          old (aget bbs piece)
+          _ (aset-long bbs piece (bit-xor old mask))
+          whitepieces (bit-or (aget bbs WhitePawnsIdx)
+                              (aget bbs WhiteRooksIdx)
+                              (aget bbs WhiteKnightsIdx)
+                              (aget bbs WhiteBishopsIdx)
+                              (aget bbs WhiteQueensIdx)
+                              (aget bbs WhiteKingIdx))
 
-                                  2r0000000000000000000000000000000000000000000000001111111111111111
-                                  2r1111111111111111000000000000000000000000000000000000000000000000
-                                  2r1111111111111111000000000000000000000000000000001111111111111111
+          blackpieces (bit-or (aget bbs BlackPawnsIdx)
+                              (aget bbs BlackRooksIdx)
+                              (aget bbs BlackKnightsIdx)
+                              (aget bbs BlackBishopsIdx)
+                              (aget bbs BlackQueensIdx)
+                              (aget bbs BlackKingIdx))
 
-                                ;  #{:K :Q :k :q}
-                                ;  :w
-                                  ))
-
-(defmacro create-update-bitboard-fn[]
-  "In order to do as much work at compile-time as possible builds a big condp
-with one ctor per chess piece bitboard."
-   `(defn ~'update-bitboard
-      [~(with-meta 'board {:tag 'ChessBoard}) ~'piece ~(with-meta 'mask {:tag 'long})]
-      (cond
-        ~@(let [white-bitboards
-                  ['WhitePawns 'WhiteRooks 'WhiteKnights 'WhiteBishops 'WhiteQueens 'WhiteKing]
-
-                black-bitboards
-                  ['BlackPawns 'BlackRooks 'BlackKnights 'BlackBishops 'BlackQueens 'BlackKing]
-
-                all-bitboards
-                  (concat white-bitboards black-bitboards)
-
-                board-value
-                  (^long fn [name] (list '. 'board  name))
-
-                ctor-expr
-                  (fn [piece]
-                    (let [^long fn-update-value (fn [field]
-                                   (if (= field piece)
-                                        (list 'bit-xor 'mask (board-value field))
-                                        (board-value field)))
-
-                          values (map fn-update-value all-bitboards)]
-                                   (list 'let (vector 'white-pieces
-                                                (cons 'bit-or
-                                                   (map fn-update-value  white-bitboards))
-                                                       'black-pieces
-                                                         (cons 'bit-or
-                                                          (map fn-update-value black-bitboards))
-                                                       'all-pieces
-                                                        (list 'bit-or 'white-pieces 'black-pieces))
-                                   (cons '->ChessBoard
-                                     (concat values ['white-pieces 'black-pieces 'all-pieces])))))]
-                         (apply concat ( for [piece all-bitboards]
-                            [ `(~'= ~'piece '~piece) (ctor-expr piece)]))))))
-
-(create-update-bitboard-fn)
+          allpieces (bit-or whitepieces blackpieces)
+          ]
+      (ChessBoard. bbs whitepieces blackpieces allpieces)))
 
 (defn flatten-coord [file rank]
   (let [ file (inc file)
@@ -107,18 +82,17 @@ with one ctor per chess piece bitboard."
         (recur  (conj bitmasks (bit-shift-left (last bitmasks) 1)) (inc n))))]
   (defn bitvector ^long [x] (bit-vec x)))
 
-(defn move [^ChessBoard board piece from-cord to-cord]
+(defn move [^ChessBoard board pieceindex from-cord to-cord]
   (let [ [from-file from-rank] from-cord
          [to-file to-rank]     to-cord
           from-pos             (flatten-coord from-file from-rank)
           to-pos               (flatten-coord to-file to-rank)
           from-mask            (bitvector from-pos)
           update-mask          (bit-or from-mask  (bitvector to-pos))
-          ] (update-bitboard board piece update-mask)))
+          ] (update-bitboard board pieceindex update-mask)))
 
+(move initial-board WhitePawnsIdx [0 1] [0 3])
 
-
-(move initial-board 'WhitePawns [0 1] [0 3])
 
 
 
