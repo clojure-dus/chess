@@ -1,5 +1,6 @@
 (ns chess.core
-  (:use [clojure.math.combinatorics :only (cartesian-product)]))
+  (:use  [clojure.math.combinatorics :only (cartesian-product)]
+         [clojure.string :only (split)]))
 
 ; UPPERCASE -> white
 ; lowercase -> black
@@ -8,8 +9,8 @@
                 (vector [:r :n :b :q :k :b :n :r] (vec (repeat 8 :p)))
                 (repeat 4 (vec (repeat 8 :_)))
                 (vector (vec (repeat 8 :P)) [:R :N :B :Q :K :B :N :R]))),
-   :rochade #{:K :Q :k :q},
-   :turn :w})
+   :turn :w
+   :rochade #{:K :Q :k :q}})
 
 (def white-pieces #{:R :N :B :Q :K :P})
 (def black-pieces #{:r :n :b :q :k :p})
@@ -17,6 +18,8 @@
 (defn white? [x] (contains? white-pieces x))
 
 (defn black? [x] (contains? black-pieces x))
+
+(defn piece? [x] (or (white? x) (black? x)))
 
 (defn piece-at
   "returns the piece keyword for the given game-state and coordinates - (0, 0) is lower left corner"
@@ -61,3 +64,17 @@
         :b :bishop,:B :bishop,
         :q :queen, :Q :queen,
         :k :king,  :K :king} )))
+
+(defn- int-str [s] 
+  (try (Integer/parseInt (str s)) (catch Exception e)))
+
+(defn- read-fen-line [s]
+  (vec (flatten (map #(let [i (int-str %) k (if i (take i (repeat :_)) (keyword (str %)))] k) s))))
+
+(defn read-fen [s]
+  "reads a string in Forsyth-Edwards notation and returns internal chess board representation"
+  (let [r (split s #"[/ ]")]
+    (println r)
+    {:board (vec (map read-fen-line (take 8 r)))
+     :turn  (keyword (nth r 8))
+     :rochade (set (map #(keyword (str %)) (seq (nth r 9)))) }))

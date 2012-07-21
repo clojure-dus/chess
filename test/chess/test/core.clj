@@ -21,3 +21,8 @@
     (testing "preconditions of move-piece: source and target are on the game-state"
     (is (thrown? AssertionError (move-piece initial-board [-1 0] [0 0])))
     (is (thrown? AssertionError (move-piece initial-board [0 0] [0 8]))))))
+
+
+(deftest test-read-fen
+  (are [x y] (= x y)
+   (read-fen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") initial-board))
