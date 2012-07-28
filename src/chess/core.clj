@@ -74,7 +74,6 @@
 (defn read-fen [s]
   "reads a string in Forsyth-Edwards notation and returns internal chess board representation"
   (let [r (split s #"[/ ]")]
-    (println r)
     {:board (vec (map read-fen-line (take 8 r)))
      :turn  (keyword (nth r 8))
      :rochade (set (map #(keyword (str %)) (seq (nth r 9)))) }))
