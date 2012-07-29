@@ -155,7 +155,7 @@
 
 (defn build-all-pairs [game-state positions]
   (map (fn [x] (let [moves (possible-moves game-state x)]
-                 (when (seq (rest moves))
+                 (when (seq moves)
                    (build-pair x moves)))) positions))
 (defn generate-moves [game-state]
   "generates all legal moves for the given game-state"
