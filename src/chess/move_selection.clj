@@ -3,9 +3,13 @@
   (:use [chess.board-rating :only (rate)])
   (:use [chess.core :only (move-piece)]))
 
+(defn moves2boards [moves game-state]
+  (map (fn [[pos1 pos2]] (move-piece game-state pos1 pos2)) moves))
+
+
 (defn select-move  [game-state]
   (let [possible-moves  (generate-moves game-state)
-        possible-states (map (fn [[pos1 pos2]] (move-piece game-state pos1 pos2)) possible-moves)
+        possible-states (moves2boards possible-moves game-state)
         states2moves    (zipmap possible-states possible-moves)
         ratedstates     (map rate possible-states)
         moves2rates     (zipmap possible-moves ratedstates)
@@ -25,14 +29,13 @@
     (assoc game-state :turn :b)
     (assoc game-state :turn :w)))
 
+
 (defn rate-recursive [game-state depth max-depth]
-  (let [result-boards (map (fn [[pos1 pos2]] (move-piece game-state pos1 pos2)) (generate-moves game-state))]
+  (let [result-boards (moves2boards (generate-moves game-state) game-state)]
     (if (= depth max-depth)
       (rate game-state)
-      (let [rates (pmap (fn [board] (rate-recursive (change-turn board) (inc depth) max-depth)) result-boards)] 
-          (if (= 0 (mod depth 2))
-          (apply max rates)
-          (apply min rates))))))
+      (let [rates (pmap (fn [board] (rate-recursive (change-turn board) (inc depth) max-depth)) result-boards)]
+          (apply max rates)))))
 
 (defn min-max [game-state depth]
    (let [possible-moves  (generate-moves game-state)
