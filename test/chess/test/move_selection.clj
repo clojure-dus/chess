@@ -20,3 +20,8 @@
        true (check? (read-fen "8/5k2/6B1/8/8/8/8/2K5 b - - 0 1"))
        true (check? (read-fen "8/5k2/8/8/8/8/B7/2K5 b - - 0 1"))
        false (check? (read-fen "8/5k2/8/8/2R5/8/B7/2K5 b - - 0 1"))))
+
+
+(deftest test-check-mated?
+  (is (checkmated? (read-fen "r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 1")))
+  (is (not(checkmated? initial-board))))
