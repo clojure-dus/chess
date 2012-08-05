@@ -77,3 +77,7 @@
     {:board (vec (map read-fen-line (take 8 r)))
      :turn  (keyword (nth r 8))
      :rochade (set (map #(keyword (str %)) (seq (nth r 9)))) }))
+
+(defn pos-of-piece [game-state p]
+  "returns the positions [x y] of the given piece on the board"
+  (filter (fn [pos] (= p (piece-at game-state pos))) all-positions))

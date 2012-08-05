@@ -25,4 +25,9 @@
 
 (deftest test-read-fen
   (are [x y] (= x y)
-   (read-fen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") initial-board))
+       (read-fen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") initial-board))
+
+(deftest test-pos-of-piece
+  (are [x y] (= x y)
+       '((0 7) (7 7)) (pos-of-piece initial-board :r)
+       '((0 0) (7 0)) (pos-of-piece initial-board :R)))

@@ -1,7 +1,7 @@
 (ns chess.move-selection
   (:use [chess.move-generator :only (generate-moves)])
   (:use [chess.board-rating :only (rate)])
-  (:use [chess.core :only (move-piece)]))
+  (:use [chess.core :only (move-piece pos-of-piece piece-at)]))
 
 (defn moves2boards [moves game-state]
   "creates new game-states for the given boards"
@@ -12,6 +12,8 @@
         f (fn [[x y]] (str (nth chars x) (inc y))) ]
     (str (f from) "->" (f to))))
 
+     
+
 (defn whites-turn? [game-state]
   (= :w (:turn game-state)))
 
@@ -19,6 +21,16 @@
   (if (whites-turn? game-state)
     (assoc game-state :turn :b)
     (assoc game-state :turn :w)))
+
+(defn check? [game-state]
+  "tests if the given board is in check"
+  (let [opponent-moves (generate-moves (change-turn game-state))
+        king           (if (whites-turn? game-state) :K :k)
+        kings-pos      (pos-of-piece game-state king)]
+     (if (some (fn [[_ to]] (= king (piece-at game-state to))) opponent-moves)
+      true
+      false)))
+
 
 (defn select-max-rate  [game-state]
   "returns the best rate for all possible moves on the given board"
@@ -37,6 +49,7 @@
            (apply max rates)
            (apply min rates))))))
 
+
 (defn min-max [game-state max-depth]
   (let [possible-moves  (generate-moves game-state)
         possible-states (moves2boards possible-moves game-state)
@@ -47,3 +60,5 @@
 
 (defn select-move [game-state]
   (min-max game-state 2))
+
+
