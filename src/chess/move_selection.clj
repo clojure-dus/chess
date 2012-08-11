@@ -54,13 +54,16 @@
            (apply min rates))))))
 
 
-(defn min-max [game-state max-depth]
-  (let [possible-moves  (generate-moves game-state)
-        possible-states (moves2boards possible-moves game-state)
-        rated-states (map #(rate-recursive % 1 max-depth) possible-states)
+(defn min-max-generic [move-fn move2gamestate-fn rate-fn game-state max-depth]
+(let   [possible-moves  (move-fn game-state)
+        possible-states (move2gamestate-fn possible-moves game-state)
+        rated-states (map #(rate-fn % 1 max-depth) possible-states)
         max-rate     (apply max rated-states)
         moves2rates  (zipmap possible-moves rated-states)]
         (ffirst (filter #(= max-rate (val %)) moves2rates))))
+
+(def min-max
+  (partial min-max-generic generate-moves moves2boards rate-recursive))
 
 (defn select-move [game-state]
   (min-max game-state 2))

@@ -60,7 +60,7 @@
   "moves on empty fields"
   (take-while (fn [pos] (pos-empty? game-state pos)) (f position)))
 
-(defn fetch-direction [piece]
+(defn fetch-direction-internal [piece]
   "inverts the direction functions for black"
   (let [diag steps-diagonal]
     (if (white? piece)
@@ -80,6 +80,9 @@
        :up-right (partial diag dec dec)
        :down-left (partial diag inc inc)
        :down-right (partial diag dec inc)})))
+
+(def fetch-direction
+  (memoize fetch-direction-internal))
 
 (defn steps-without-attack [game-state position dk n]
   "every step on an empty field.
@@ -147,7 +150,7 @@
     (if (= :w (:turn game-state))
       (filter-my-positions white? game-state)
       (filter-my-positions black? game-state)))
-    
+
 (defn build-pair [k v]
   "k:starting position v:collection of target positions
    creates a sequence coordinate pairs for a turn '((x-old y-old) (x-new y-new))"
@@ -157,6 +160,7 @@
   (map (fn [x] (let [moves (possible-moves game-state x)]
                  (when (seq moves)
                    (build-pair x moves)))) positions))
+
 (defn generate-moves [game-state]
   "generates all legal moves for the given game-state"
   (->> (filter #(not (nil? %))
