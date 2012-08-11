@@ -48,14 +48,14 @@
   (let [result-boards (moves2boards (generate-moves game-state) game-state)]
     (if (= depth max-depth)
       (select-max-rate (change-turn game-state))
-      (let [rates (pmap (fn [board] (rate-recursive (change-turn board) (inc depth) max-depth)) result-boards)]
+      (let [rates (map (fn [board] (rate-recursive (change-turn board) (inc depth) max-depth)) result-boards)]
          (if (= 0 (mod depth 2))
            (apply max rates)
            (apply min rates))))))
 
 
 (defn min-max-generic [move-fn move2gamestate-fn rate-fn game-state max-depth]
-(let   [possible-moves  (move-fn game-state)
+  (let [possible-moves  (move-fn game-state)
         possible-states (move2gamestate-fn possible-moves game-state)
         rated-states (map #(rate-fn % 1 max-depth) possible-states)
         max-rate     (apply max rated-states)
@@ -64,7 +64,7 @@
 
 (def min-max
   (partial min-max-generic generate-moves moves2boards rate-recursive))
-
+ 
 (defn select-move [game-state]
   (min-max game-state 2))
 
