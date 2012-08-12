@@ -26,7 +26,7 @@
 (let [bit-vec  (loop [bitmasks (vector-of :long 2r1) n 0]
     (if (= 63 n) bitmasks
         (recur  (conj bitmasks (bit-shift-left (last bitmasks) 1)) (inc n))))]
-  (defn bitvector ^long [x] (bit-vec x)))
+  (defn get-bitmask ^long [x] (bit-vec x)))
 
 (defrecord ChessBoard [^longs Bitboards
                        ^long  Whitepieces
@@ -41,7 +41,7 @@
     (- (+ (* 8 rank) file) 9)))
 
 (comment
-  (def bitvector (reduce (fn [bm x] (conj bm (expt 2 x))) [] (range 63))))
+  (def get-bitmask (reduce (fn [bm x] (conj bm (expt 2 x))) [] (range 63))))
 
 (def  lookupFile  ^ints (into-array Integer/TYPE (take 64 (cycle (range 1 9)))))
 
@@ -50,11 +50,11 @@
 (def file-rank-squares
   (map #(let [file (aget lookupFile %) rank (aget lookupRank %)] [% file rank ])(range 64)))
 
+
 (def lookup-king-attacks
   "creates a lookup array of  64 squares which have bitboards
    in which knightattacks have been flaged "
   (let [result (make-array Long/TYPE 65)
-
         king-moves   [[1 2] [2 1] [2 -1] [1 -2] [-1 -2] [-2 -1] [-2 1] [-1 2]]
 
         all-moves  (for [[square file rank] file-rank-squares
@@ -64,9 +64,10 @@
                      [square f r])
         ](doseq [[square f r] all-moves]
                        (let [b (aget result square)
-                             bit (bitvector (flatten-coord f r))]
+                             bit (get-bitmask (flatten-coord f r))]
                          (aset result square (bit-or b bit))))
          result))
+
 
 (def ^ChessBoard initial-board
   (let [squares (apply
@@ -80,7 +81,7 @@
                                      BlackBishop BlackKnight BlackRook]))]
   (ChessBoard.
    (into-array Long/TYPE [
-               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000000000)     
+               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000000000)
                (unchecked-long 2r0000000000000000000000000000000000000000000000001111111100000000)
                (unchecked-long 2r0000000000000000000000000000000000000000000000000000000010000001)
                (unchecked-long 2r0000000000000000000000000000000000000000000000000000000001000010)
@@ -101,16 +102,17 @@
 
                squares)))
 
+
   (defn update-chessboard [^ChessBoard board  ^long from-square ^long dest-square]
     (let [bbs                  (aclone ^longs (.Bitboards  board))
-          squares              (.squares board)         
-          from-mask            (bitvector from-square)
-          to-mask              (bitvector dest-square)
+          squares              (.squares board)
+          from-mask            (get-bitmask from-square)
+          to-mask              (get-bitmask dest-square)
           update-mask          (bit-or from-mask  to-mask)
           piece-idx            (int (squares from-square))
           captured-idx         (int (squares dest-square))
           piece-bitboard       (aget bbs piece-idx)
-          captured-bitboard    (aget bbs captured-idx); if empty uses dummy bitboard 
+          captured-bitboard    (aget bbs captured-idx); if empty uses dummy bitboard
           squares              (assoc-in squares [from-square] Empty)
           squares              (assoc-in squares [dest-square] piece-idx)]
             (aset-long bbs piece-idx (bit-xor piece-bitboard  update-mask))
@@ -130,7 +132,7 @@
                               (aget bbs BlackKing))
               allpieces (bit-or whitepieces blackpieces)]
                (ChessBoard. bbs whitepieces blackpieces allpieces squares))))
-   
+
 (defn move [^ChessBoard board  from-cord to-cord]
   (let [ [from-file from-rank] from-cord
          [to-file to-rank]     to-cord
@@ -143,5 +145,4 @@
 
 
 
-;(compile 'chess.bitboard)
-
+(compile 'chess.bitboard)
