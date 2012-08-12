@@ -8,6 +8,13 @@
 (ns chess.bitboard)
 (set! *warn-on-reflection* true)
 (use 'clojure.pprint)
+(import 'chess.BitOps)
+
+(defn unsigned-shift-right[x n]
+  (BitOps/unsignedShiftRight x n))
+
+(comment
+  (println (seq (.getURLs (java.lang.ClassLoader/getSystemClassLoader)))))
 
 (def ^:const  Empty 0)
 (def ^:const  WhitePawn 1)
@@ -23,6 +30,8 @@
 (def ^:const  BlackQueen 11)
 (def ^:const  BlackKing 12)
 
+(defn white? [piece] (and (> piece Empty) (< piece BlackPawn)))
+
 (let [bit-vec  (loop [bitmasks (vector-of :long 2r1) n 0]
     (if (= 63 n) bitmasks
         (recur  (conj bitmasks (bit-shift-left (last bitmasks) 1)) (inc n))))]
@@ -35,39 +44,69 @@
                        squares
                        ])
 
-(defn flatten-coord [file rank]
-  (let [ file (inc file)
-         rank (inc rank)]
-    (- (+ (* 8 rank) file) 9)))
-
 (comment
   (def get-bitmask (reduce (fn [bm x] (conj bm (expt 2 x))) [] (range 63))))
 
-(def  lookupFile  ^ints (into-array Integer/TYPE (take 64 (cycle (range 1 9)))))
+(def  lookup-file  ^ints (into-array Integer/TYPE (take 64 (cycle (range 1 9)))))
 
-(def  lookupRank  ^ints (into-array Integer/TYPE (flatten (map (partial  repeat 8) (range 1 9)))))
+(def  lookup-rank  ^ints (into-array Integer/TYPE (flatten (map (partial  repeat 8) (range 1 9)))))
+
+(defn lookup-file-rank [square] [(aget lookup-file square) (aget lookup-rank square)])
 
 (def file-rank-squares
-  (map #(let [file (aget lookupFile %) rank (aget lookupRank %)] [% file rank ])(range 64)))
+ (map #(let [file (aget lookup-file %) rank (aget lookup-rank %)] [% file rank ])(range 64)))
 
+(defn coord->square [file rank]
+    (- (+ (* 8 rank) file) 9))
 
-(def lookup-king-attacks
+(defn square->coord [square]
+  [( aget lookup-file square) (aget lookup-rank square)])
+
+(let [ index-64 (into-array Byte/TYPE [
+            63,  0, 58,  1, 59, 47, 53,  2,
+            60, 39, 48, 27, 54, 33, 42,  3,
+            61, 51, 37, 40, 49, 18, 28, 20,
+            55, 30, 34, 11, 43, 14, 22,  4,
+            62, 57, 46, 52, 38, 26, 32, 41,
+            50, 36, 17, 19, 29, 10, 13, 21,
+            56, 45, 25, 31, 35, 16,  9, 12,
+            44, 24, 15,  8, 23,  7,  6,  5
+                                       ])]
+  (defn find-first-one-bit[^long bb]
+    " return index of least significant one-bit. bb assumed to be 64 bit"
+       (let [
+             debruin 0x07EDD5E59A4E28C2
+             term  (bit-and bb (unchecked-negate bb))
+             index (unsigned-shift-right (unchecked-multiply term  debruin) 58)]
+       (aget index-64 index))))
+
+(defn bitboard->coords[^long bitboard]
+  (loop [bb bitboard  res []]
+    (if (= 0 bb) res
+        (let [square (int(find-first-one-bit bb))
+              new-bb (bit-xor bb  (get-bitmask square))
+              ]
+          (recur new-bb (conj res (square->coord square)))))))
+
+(def ^longs knight-attacks-array
   "creates a lookup array of  64 squares which have bitboards
    in which knightattacks have been flaged "
   (let [result (make-array Long/TYPE 65)
-        king-moves   [[1 2] [2 1] [2 -1] [1 -2] [-1 -2] [-2 -1] [-2 1] [-1 2]]
+        knight-moves   [[1 2] [2 1] [2 -1] [1 -2] [-1 -2] [-2 -1] [-2 1] [-1 2]]
 
         all-moves  (for [[square file rank] file-rank-squares
-                         [x y] king-moves
+                         [x y] knight-moves
                          :let  [f (+ file x) r (+ rank y)]
-                         :when (and (> f -1 ) (< f 8) (> r -1) (< r 8))]
+                         :when (and (> f 0 ) (< f 9) (> r 0) (< r 9))]
                      [square f r])
         ](doseq [[square f r] all-moves]
                        (let [b (aget result square)
-                             bit (get-bitmask (flatten-coord f r))]
+                             bit (get-bitmask (coord->square f r))]
                          (aset result square (bit-or b bit))))
          result))
 
+(def lookup-attacks
+  {WhiteKnight knight-attacks-array BlackKnight knight-attacks-array })
 
 (def ^ChessBoard initial-board
   (let [squares (apply
@@ -136,13 +175,31 @@
 (defn move [^ChessBoard board  from-cord to-cord]
   (let [ [from-file from-rank] from-cord
          [to-file to-rank]     to-cord
-          from-pos             (flatten-coord from-file from-rank)
-          to-pos               (flatten-coord to-file to-rank)
+          from-pos             (coord->square from-file from-rank)
+          to-pos               (coord->square to-file to-rank)
           ] (update-chessboard board from-pos to-pos)))
 
-;(move initial-board  [0 1] [0 3])
+(defn possible-moves [^ChessBoard board [file rank]]
+  (let [
+        square (coord->square file rank)
+        squares              (.squares board)
+        piece                (squares square)
+        fn-attack            (lookup-attacks piece)
+        piece-move-bitset    (aget ^longs fn-attack square)
+        not-occupied-squares (bit-not (if (white? piece)
+                                        (.Whitepieces board)
+                                        (.Blackpieces board)))
+        moves                (bit-and piece-move-bitset not-occupied-squares)
+        ]
+    (bitboard->coords moves)))
+
+(defn piece-at [^ChessBoard board [file rank]]
+  (let [ square (coord->square file rank)
+        squares (.squares board)
+        piece   (squares square)
+        ]piece))
 
 
-
-
-(compile 'chess.bitboard)
+(comment
+(piece-at initial-board[2 1])
+  (pprint (possible-moves  initial-board [2 1])))
