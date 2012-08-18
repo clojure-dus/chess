@@ -49,7 +49,7 @@
   (let [game-state (-> initial-board (move-piece [1 1] [1 5]) (move-piece [3 1] [3 5])) ]
     (is (= '((1 1) (0 2) (3 1) (4 2) (5 3) (6 4) (7 5)) (possible-moves game-state [2 0]))))
   (let [game-state (-> initial-board (assoc :turn :b) (move-piece [3 6] [1 1]) (move-piece [5 6] [1 1]))]
-    (is (= '((5 6) (3 6)) (possible-moves game-state [4 7])))))
+    (is (= '((3 6) (5 6)) (possible-moves game-state [4 7])))))
 
 (deftest test-knight-moves
   (is (= '((2 2) (0 2)) (possible-moves initial-board [1 0]))))

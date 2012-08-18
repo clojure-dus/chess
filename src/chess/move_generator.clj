@@ -60,73 +60,71 @@
   "moves on empty fields"
   (take-while (fn [pos] (pos-empty? game-state pos)) (f position)))
 
-(defn fetch-direction-internal [piece]
-  "inverts the direction functions for black"
-  (let [diag steps-diagonal]
-    (if (white? piece)
-      {:up steps-up
-       :down steps-down
-       :left steps-left
-       :right steps-right
-       :up-left (partial diag dec inc)
-       :up-right (partial diag inc inc)
-       :down-left (partial diag dec dec)
-       :down-right (partial diag inc dec)}
-      {:up steps-down
-       :down steps-up
-       :left steps-right
-       :right steps-left
-       :up-left (partial diag inc dec)
-       :up-right (partial diag dec dec)
-       :down-left (partial diag inc inc)
-       :down-right (partial diag dec inc)})))
+(def steps-up-left
+  (partial steps-diagonal dec inc))
 
-(def fetch-direction
-  (memoize fetch-direction-internal))
+(def steps-up-right
+  (partial steps-diagonal inc inc))
 
-(defn steps-without-attack [game-state position dk n]
+(def steps-down-left
+  (partial steps-diagonal dec dec))
+
+(def steps-down-right
+  (partial steps-diagonal inc dec))
+
+(defn steps-without-attack [game-state position dir-fn n]
   "every step on an empty field.
-   params: game-state, position actual position, dk direction keyword, n number of allowed steps"
-  (let [dir-fn (dk (fetch-direction (piece-at game-state position)))]
-    (take n (empty-moves dir-fn game-state position))))
+   params: game-state, position actual position, dir-fn direction function, n number of allowed steps"
+    (take n (empty-moves dir-fn game-state position)))
 
-(defn steps-with-attack  [ game-state position dk n ]
+(defn steps-with-attack  [ game-state position dir-fn n ]
   "every step on an enemy field, that isn't blocked by an own piece
-   params: gamestate, position=actual position,dk direction-keyword, n number of allowed steps"
+   params: gamestate, position=actual position,dk direction function, n number of allowed steps"
   (let [piece (piece-at game-state position)
-        dir-fn (dk (fetch-direction piece))
         steps (take n (dir-fn position))
         enemy (first (filter (fn [[a b]] (enemy-on-pos? game-state [a b])) steps))]
     (when (every? (fn [pos] (= :_ (piece-at game-state pos))) (take-while #(not (= % enemy)) steps)) enemy)))
 
 (defn all-steps
   "attacking and non-attacking steps"
-  [game-state position dk n]
-  (concat (steps-without-attack game-state position dk n) (steps-with-attack game-state position dk n)))
+  [game-state position dir-fn n]
+  (concat (steps-without-attack game-state position dir-fn n) (steps-with-attack game-state position dir-fn n)))
 
 (defn get-moves "collects the moves into all posible directions"
   [game-state position dirs n]
   (let [steps (partial all-steps game-state position)]
     (partition 2 (flatten (map #(steps % n) dirs)))))
 
-(def all-directions  '(:up-left :up-right :down-left :down-right :up :down :left :right))
+(def all-directions  [steps-up-left steps-up-right steps-down-left steps-down-right steps-up steps-down steps-left steps-right])
+
 (def infinite-steps 8)
 
 (defmulti possible-moves piece)
 
 (defmethod possible-moves :rook
   [game-state position]
-    (get-moves game-state position '(:up :down :left :right) infinite-steps))
+  (get-moves game-state position [steps-up steps-down steps-left steps-right] infinite-steps))
+
+(defn pawn-attack-steps [white]
+  (if white
+    [steps-up-left steps-up-right]
+    [steps-down-right steps-down-left]))
+
+(defn pawn-non-attack-steps [white]
+  (if white
+    steps-up
+    steps-down))
 
 (defmethod possible-moves :pawn
   [game-state position]
-  (let [[x y] position non-attacks (partial steps-without-attack game-state position) attacks (partial steps-with-attack game-state position)]
-  (partition 2 (flatten (concat #{}
-          (cond (and (white? (piece-at game-state position)) (= y 1)) (non-attacks :up 2)
-                (and (black? (piece-at game-state position)) (= y 6)) (non-attacks :up 2)
-                :else (non-attacks :up 1))
-          (attacks :up-right 1) 
-          (attacks :up-left  1))))))
+  (let [[x y] position non-attacks (partial steps-without-attack game-state position) attacks (partial steps-with-attack game-state position)
+        white (white? (piece-at game-state position))]
+    (filter #(not (nil? %))
+            (concat
+             (cond (and white (= y 1)) (non-attacks steps-up 2)
+                (and (not white) (= y 6)) (non-attacks steps-down 2)
+                :else (non-attacks (pawn-non-attack-steps white) 1))
+                (map #(attacks % 1) (pawn-attack-steps white))))))
 
 (defmethod possible-moves :queen
   [game-state position]
@@ -138,7 +136,7 @@
 
 (defmethod possible-moves :bishop
   [game-state position]
-    (get-moves game-state position '(:up-left :up-right :down-left :down-right) infinite-steps))
+    (get-moves game-state position (list steps-up-left steps-up-right steps-down-left steps-down-right) infinite-steps))
 
 (defmethod possible-moves :knight
   [game-state initial-position]
