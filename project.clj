@@ -1,7 +1,17 @@
-(defproject demo-app "1.0.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :dependencies [[org.clojure/clojure "1.4.0"] [org.clojure/math.combinatorics "0.0.2"]]
+(defproject chess "1.0.0-SNAPSHOT"
+  :description "chess engine"
+  :dependencies [[org.clojure/clojure "1.4.0"]
+                 [org.clojure/math.combinatorics "0.0.2"]
+                 [ring "1.1.0"] ; http basics
+                 [compojure "1.1.0"] ; http routing
+                 [hiccup "1.0.1"]] ; generating html
   :dev-dependencies [[swank-clojure "1.4.0"]]
-  :warn-on-reflection true
+  :plugins [[lein-cljsbuild "0.2.6"]] ; see https://github.com/emezeske/lein-cljsbuild
+  :cljsbuild {:builds [{:source-path "src-cljs"
+                        :compiler {:output-to "resources/public/js/chess.js"
+                                   :optimizations :whitespace
+                                   :pretty-print true}}]}
+  :warn-on-reflection false
   :jvm-opts ["-Xmx1024M" "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
-  :extra-classpath-dirs ["/usr/lib/jvm/java-6-sun/lib/tools.jar"])
+  ;:extra-classpath-dirs ["/usr/lib/jvm/java-6-sun/lib/tools.jar"]
+  )
