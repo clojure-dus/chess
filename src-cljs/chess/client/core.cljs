@@ -1,5 +1,6 @@
 (ns chess.client.core
-  (:require [clojure.browser.repl :as repl]))
+  (:require [clojure.browser.repl :as repl]
+            [one.dispatch :as disp]))
 
 ;(repl/connect "http://localhost:9000/repl")
 
@@ -26,25 +27,20 @@
 (defn pos [x-from-upper-left y-from-upper-left]
   [x-from-upper-left y-from-upper-left])
 
-(defn map-alternating [f1 f2 coll]
-  (map (fn [idx elem]
-         (if (even? idx)
-           (f1 elem)
-           (f2 elem)))
-       (iterate inc 0)
+(defn map-alternating [coll & fs]
+  (map #(%1 %2)
+       (cycle fs)
        coll))
 
 (defn white-row [fields]
-  (map-alternating
+  (map-alternating fields
    #(assoc % :rgb (:white colors))
-   #(assoc % :rgb (:black colors))
-   fields))
+   #(assoc % :rgb (:black colors))))
 
 (defn black-row [fields]
-  (map-alternating
+  (map-alternating fields
    #(assoc % :rgb (:black colors))
-   #(assoc % :rgb (:white colors))
-   fields))
+   #(assoc % :rgb (:white colors))))
 
 (def chessboard-rows
   (memoize
@@ -57,7 +53,7 @@
                           :width field-size
                           :height field-size})
                        positions)]
-       (map-alternating white-row black-row (partition 8 fields))))))
+       (map-alternating (partition 8 fields) white-row black-row)))))
 
 (defn set-fill-style [ctx [r g b]]
   (set! (.-fillStyle ctx) (str "rgb(" r "," g "," b ")"))
@@ -80,7 +76,7 @@
       (draw-field context field))
     (-> context
         (set-fill-style (:black colors))
-        (draw-rectangle-outline (pos 0 0) BOARD-SIZE BOARD-SIZE (:black colors)))))
+        (draw-rectangle-outline (pos 0 0) BOARD-SIZE BOARD-SIZE))))
 
 (defn create-canvas [width height]
   (doto (.createElement js/document "canvas")
@@ -104,12 +100,31 @@
              %)
           fields)))
 
-(defn canvas-mousemove-handler [event]
+(defn remove-field-marker [context field]
+  (log (str "removing marker on " field)))
+
+(defn add-field-marker [context field]
+  (log (str "adding marker on " field)))
+
+(def left-field-reaction
+  (disp/react-to #{:left-field}
+                 (fn [event-id context field]
+                   (remove-field-marker context field))))
+
+(def entered-field-reaction
+  (disp/react-to #{:entered-field}
+                 (fn [event-id context field]
+                   (add-field-marker context field))))
+
+(defn canvas-mousemove-handler [context event]
   (update-state (fn [state]
                   (let [previous-field (:mouse-field state)
                         new-field (field-at (mouse-pos-relative-to-canvas event))]
                     (when (not= previous-field new-field)
-                      (log (str "new field " new-field)))
+                      (when previous-field
+                        (disp/fire :left-field context previous-field))
+                      (when new-field
+                        (disp/fire :entered-field context new-field)))
                     (assoc state :mouse-field new-field)))))
 
 (let [canvas (create-canvas BOARD-SIZE BOARD-SIZE)
@@ -118,4 +133,4 @@
       (.getElementById "chess-board")
       (.appendChild canvas))
   (draw-board-on context)
-  (.addEventListener canvas "mousemove" canvas-mousemove-handler false))
+  (.addEventListener canvas "mousemove" (partial canvas-mousemove-handler context) false))
