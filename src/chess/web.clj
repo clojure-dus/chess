@@ -8,12 +8,12 @@
         [hiccup.core :only [html]]))
 
 (def client-page
-  [:html
+  [:html1
    [:head
-    [:title "chess"]
-    [:script {:src "/js/chess.js" :type "text/javascript"}]]
+    [:title "chess"]]
    [:body
-    [:h1 "chess"]]])
+    [:div#chess-board]
+    [:script {:src "/js/chess.js" :type "text/javascript"}]]])
 
 (defroutes chess-client
   (GET "/chess" []
