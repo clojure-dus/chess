@@ -5,19 +5,20 @@
         [ring.middleware.file-info :only [wrap-file-info]]
         [compojure.core :only [defroutes GET]]
         [compojure.handler :only [api]]
-        [hiccup.core :only [html]]))
+        [hiccup.page :only [html5]]))
 
 (def client-page
-  [:html1
+  (list
    [:head
+    [:link {:rel "stylesheet" :type "text/css" :href "/css/chess.css"}]
     [:title "chess"]]
    [:body
     [:div#chess-board]
-    [:script {:src "/js/chess.js" :type "text/javascript"}]]])
+    [:script {:src "/js/chess.js" :type "text/javascript"}]]))
 
 (defroutes chess-client
   (GET "/chess" []
-       (-> (response (html client-page))
+       (-> (response (html5 client-page))
            (content-type "text/html"))))
 
 (def webapp
