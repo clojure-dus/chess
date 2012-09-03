@@ -1,7 +1,8 @@
 (ns chess.test.move-selection
-  (:use [chess.core :only (initial-board move-piece read-fen)])
-  (:use [chess.move-selection])
-  (:use [clojure.test]))
+  (:use [chess.core :only (initial-board move-piece)]
+        [chess.fen :only [read-fen]]
+        [chess.move-selection]
+        [clojure.test]))
 
 (deftest test-min-max
   (is

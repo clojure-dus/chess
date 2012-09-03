@@ -8,3 +8,5 @@ pom.xml
 out
 chess.js
 chess.css
+crossover-cljs
+

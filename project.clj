@@ -10,7 +10,9 @@
   :cljsbuild {:builds [{:source-path "src-cljs"
                         :compiler {:output-to "resources/public/js/chess.js"
                                    :optimizations :whitespace
-                                   :pretty-print true}}]}
+                                   :pretty-print true}}]
+              :crossovers [chess.core]
+              :crossover-path "crossover-cljs"}
   :warn-on-reflection false
   :jvm-opts ["-Xmx1024M" "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
   ;:extra-classpath-dirs ["/usr/lib/jvm/java-6-sun/lib/tools.jar"]

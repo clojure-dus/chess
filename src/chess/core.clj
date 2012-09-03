@@ -1,6 +1,4 @@
-(ns chess.core
-  (:use  [clojure.math.combinatorics :only (cartesian-product)]
-         [clojure.string :only (split)]))
+(ns chess.core)
 
 ; UPPERCASE -> white
 ; lowercase -> black
@@ -28,7 +26,9 @@
 
 (def all-positions
   "a collection of positions/coordinates on a chess board"
-  (cartesian-product (range 8) (range 8)))
+  (for [x (range 8)
+        y (range 8)]
+    [x y]))
 
 (defn filter-my-positions [color-fn game-state]
   "returns all posititions which are occupied by the given color"
@@ -64,19 +64,6 @@
         :b :bishop,:B :bishop,
         :q :queen, :Q :queen,
         :k :king,  :K :king} )))
-
-(defn- int-str [s] 
-  (try (Integer/parseInt (str s)) (catch Exception e)))
-
-(defn- read-fen-line [s]
-  (vec (flatten (map #(let [i (int-str %) k (if i (take i (repeat :_)) (keyword (str %)))] k) s))))
-
-(defn read-fen [s]
-  "reads a string in Forsyth-Edwards notation and returns internal chess board representation"
-  (let [r (split s #"[/ ]")]
-    {:board (vec (map read-fen-line (take 8 r)))
-     :turn  (keyword (nth r 8))
-     :rochade (set (map #(keyword (str %)) (seq (nth r 9)))) }))
 
 (defn pos-of-piece [game-state p]
   "returns the positions [x y] of the given piece on the board"

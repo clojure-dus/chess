@@ -1,6 +1,7 @@
 (ns chess.client.core
   (:require [clojure.browser.repl :as repl]
-            [one.dispatch :as disp]))
+            [one.dispatch :as disp]
+            [chess.core :as chess]))
 
 ;;(repl/connect "http://localhost:9000/repl")
 
@@ -103,6 +104,7 @@
     (.setAttribute "height" height)))
 
 ;; see http://dev.opera.com/articles/view/html5-canvas-painting/
+;; TODO doesn't work correctly
 (defn mouse-pos-relative-to-canvas [event]
   (if (or (.-layerX event) (= 0 (.-layerX event)))
     (pos (.-layerX event) (.-layerY event))
@@ -155,35 +157,13 @@
                         (disp/fire :field-focus context new-field)))
                     (assoc state :focused-field new-field)))))
 
-;; TODO reuse Clojure code (lein cljsbuild crossover feature?)
-(def game-state {:board (vec (concat
-                              (vector [:r :n :b :q :k :b :n :r] (vec (repeat 8 :p)))
-                              (repeat 4 (vec (repeat 8 :_)))
-                              (vector (vec (repeat 8 :P)) [:R :N :B :Q :K :B :N :R]))),
-                 :turn :w
-                 :rochade #{:K :Q :k :q}})
-
-(def white-pieces #{:R :N :B :Q :K :P})
-
-(def black-pieces #{:r :n :b :q :k :p})
-
-(defn white? [x]
-  (contains? white-pieces x))
-
-(defn black? [x]
-  (contains? black-pieces x))
-
-(defn piece? [x]
-  (or (white? x) (black? x)))
-
 (defn draw-piece [context piece-img {:keys [pos width height]}]
   (.drawImage context piece-img (first pos) (second pos))
   context)
 
 (defn img-src [piece]
-  (let [color (cond (white? piece) "white"
-                    (black? piece) "black"
-                    :else nil)]
+  (let [color (cond (chess/white? piece) "white"
+                    (chess/black? piece) "black")]
     (when color
       (str "/images/" color "_" (.toLowerCase (name piece)) ".png"))))
 
@@ -199,7 +179,7 @@
     (doseq [i indexes] ;; (map (fn [p f] ...) pieces fields) didn't work, don't know why
       (let [p (nth pieces i)
             f (nth fields i)]
-        (when (piece? p)
+        (when (chess/piece? p)
           (load-piece-img p (fn [img]
                               (draw-piece context img f))))))))
 
@@ -209,5 +189,5 @@
       (.getElementById "chess-board")
       (.appendChild canvas))
   (draw-board-on context)
-  (render-pieces context (:board game-state))
+  (render-pieces context (:board chess/initial-board))
   (.addEventListener canvas "mousemove" (partial canvas-mousemove-handler context) false))
