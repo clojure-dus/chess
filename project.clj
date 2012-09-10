@@ -11,7 +11,7 @@
                         :compiler {:output-to "resources/public/js/chess.js"
                                    :optimizations :whitespace
                                    :pretty-print true}}]
-              :crossovers [chess.core]
+              :crossovers [chess.core chess.move-generator]
               :crossover-path "crossover-cljs"}
   :warn-on-reflection false
   :jvm-opts ["-Xmx1024M" "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
