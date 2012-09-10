@@ -1,5 +1,5 @@
 (ns chess.client.core
-  (:require [clojure.browser.repl :as repl]
+  (:require ;;[clojure.browser.repl :as repl]
             [one.dispatch :as disp]
             [chess.core :as chess]))
 
