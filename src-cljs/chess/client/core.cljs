@@ -123,7 +123,7 @@
 
 (defn add-field-marker [context {:keys [pos width height]} rgb]
   (set-stroke-style context rgb)
-  (doseq [i (range 1 5)]
+  (doseq [i (range 1 3)]
     (draw-rectangle-outline context
                             (map #(+ % i) pos)
                             (- width (* 2 i))
