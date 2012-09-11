@@ -28,8 +28,5 @@
       (wrap-resource "public")
       wrap-file-info))
 
-;;(defonce server
-;;  (run-jetty (api #'webapp) {:port 8080 :join? false}))
-
 (defn -main [& args]
   (run-jetty (api #'webapp) {:port 8080 :join? true}))
