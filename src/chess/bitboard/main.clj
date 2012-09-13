@@ -10,4 +10,16 @@
   (:use [chess.bitboard.file-rank])
   (:use [chess.bitboard.chessboard])
   (:use [chess.bitboard.moves])
+  (:use [chess.fen])
+  (:import (chess.bitboard.chessboard ChessUpdate ChessBoard))
   )
+
+(defn board->bitboard [{:keys [board]}]
+  (let [squares (flatten board)
+        squares (map-indexed vector squares)
+        update-fn (fn [^ChessUpdate board [^int pos piece]]
+                    (.setPiece board pos ^int (keyword-piece-map piece)))
+        ] (reduce update-fn empty-board  squares)))
+
+
+(board->bitboard (read-fen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))

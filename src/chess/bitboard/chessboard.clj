@@ -3,10 +3,6 @@
   (:use [chess.bitboard.file-rank])
   (:use [chess.bitboard.piece-attacks]))
 
-(definterface ChessUpdate
-  (move [^int from ^int dest])
-  (set  [^int pos ^int piece]))
-
 
 (def ^:const  Empty 0)
 (def ^:const  WhitePawn 1)
@@ -35,8 +31,23 @@
                       BlackBishop "b"
                       BlackQueen  "q"
                       BlackKing   "k"
-
                       })
+
+(def keyword-piece-map  { :_ Empty
+                          :P WhitePawn
+                          :R WhiteRook
+                          :N WhiteKnight
+                          :B WhiteBishop
+                          :Q WhiteQueen
+                          :K WhiteKing
+                          :p BlackPawn
+                          :r BlackRook
+                          :n BlackKnight
+                          :b BlackBishop
+                          :q BlackQueen
+                          :k BlackKing
+                      })
+
 (def lookup-attacks
   {WhiteKnight knight-attacks-array BlackKnight knight-attacks-array })
 
@@ -59,6 +70,11 @@
 (defmacro build-allpieces[bitboards]
   `(bit-or  (build-whitepieces ~bitboards) (build-blackpieces ~bitboards)))
 
+(definterface ChessUpdate
+  (^Object movePiece [ ^int from ^int dest])
+  (^Object setPiece  [  ^int pos ^int piece]))
+
+
 (deftype ChessBoard [  ^longs Bitboards
                        ^long  Whitepieces
                        ^long  Blackpieces
@@ -79,7 +95,7 @@
       ]
       (str abc line rows line abc)))
   ChessUpdate
-  (move [^chess.chessboard.ChessBoard this ^int from  ^int dest]
+  ( movePiece [^ChessBoard this ^int from  ^int dest]
     (let [bbs                  (aclone ^longs (.Bitboards this))
           squares              (aclone ^ints  (.squares this))
           from-mask            (square->bit from)
@@ -100,7 +116,7 @@
                          (build-allpieces bbs)
                           squares)))
 
-(set [^chess.bitboard.chessboard.ChessBoard this ^int square ^int piece]
+(setPiece [^ChessBoard this ^int square ^int piece]
      (let [
            bbs                 (.Bitboards this)
            update-mask         (square->bit square)
@@ -123,36 +139,38 @@
 (def ^ChessBoard initial-board
   (let [
         squares (into-array Integer/TYPE [
-                                          WhiteRook,WhiteKnight,WhiteBishop,WhiteQueen,
-                                          WhiteKing,WhiteBishop,WhiteKnight,WhiteRook,
-                                          1,1,1,1,1,1,1,1,
-                                          0,0,0,0,0,0,0,0,
-                                          0,0,0,0,0,0,0,0,
-                                          0,0,0,0,0,0,0,0,
-                                          0,0,0,0,0,0,0,0,
-                                          7,7,7,7,7,7,7,7,
                                           BlackRook,BlackKnight,BlackBishop,BlackQueen,
-                                          BlackKing,BlackBishop,BlackKnight,BlackRook
+                                          BlackKing,BlackBishop,BlackKnight,BlackRook,
+                                          7,7,7,7,7,7,7,7,
+                                          0,0,0,0,0,0,0,0,
+                                          0,0,0,0,0,0,0,0,
+                                          0,0,0,0,0,0,0,0,
+                                          0,0,0,0,0,0,0,0,
+                                          1,1,1,1,1,1,1,1,
+                                          WhiteRook,WhiteKnight,WhiteBishop,WhiteQueen,
+                                          WhiteKing,WhiteBishop,WhiteKnight,WhiteRook
                                           ])]
   (ChessBoard.
    (into-array Long/TYPE [
                (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000000000)
-               (unchecked-long 2r0000000000000000000000000000000000000000000000001111111100000000)
-               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000010000001)
-               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000001000010)
-               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000100100)
-               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000010000)
-               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000001000)
+
 
                (unchecked-long 2r0000000011111111000000000000000000000000000000000000000000000000)
                (unchecked-long 2r1000000100000000000000000000000000000000000000000000000000000000)
                (unchecked-long 2r0100001000000000000000000000000000000000000000000000000000000000)
                (unchecked-long 2r0010010000000000000000000000000000000000000000000000000000000000)
                (unchecked-long 2r0000100000000000000000000000000000000000000000000000000000000000)
-               (unchecked-long 2r0001000000000000000000000000000000000000000000000000000000000000)])
+               (unchecked-long 2r0001000000000000000000000000000000000000000000000000000000000000)
 
-               (unchecked-long 2r0000000000000000000000000000000000000000000000001111111111111111)
+               (unchecked-long 2r0000000000000000000000000000000000000000000000001111111100000000)
+               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000010000001)
+               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000001000010)
+               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000100100)
+               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000010000)
+               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000001000)
+               ])
                (unchecked-long 2r1111111111111111000000000000000000000000000000000000000000000000)
+               (unchecked-long 2r0000000000000000000000000000000000000000000000001111111111111111)
                (unchecked-long 2r1111111111111111000000000000000000000000000000001111111111111111)
 
                squares

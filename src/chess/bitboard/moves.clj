@@ -8,7 +8,7 @@
 (defn move->coord [move]
   (let [from  (bit-and move 0x0000003f)
         dest  (bit-and (bit-shift-right move 6)  0x0000003f)
-        piece  (bit-and(bit-shift-right move 12) 0x0000000f)
+        piece (bit-and(bit-shift-right move 12) 0x0000000f)
         ]
     {:piece piece :from (square->coord from) :to (square->coord dest)}))
 
