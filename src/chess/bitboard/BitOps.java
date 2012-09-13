@@ -1,4 +1,4 @@
-package chess;
+package chess.bitboard;
 
 
 public class BitOps {
