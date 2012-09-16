@@ -44,18 +44,16 @@
    #(assoc % :rgb (:dark-field colors))
    #(assoc % :rgb (:light-field colors))))
 
-(def chessboard-rows
-  (memoize
-   (fn [board-size]
-     (let [field-size (/ board-size 8)
-           steps (range 0 board-size field-size)
-           positions (for [y steps x steps] (pos x y))
-           fields (map (fn [pos]
-                         {:pos pos
-                          :width field-size
-                          :height field-size})
-                       positions)]
-       (map-alternating (partition 8 fields) light-row dark-row)))))
+(defn chessboard-rows [board-size]
+  (let [field-size (/ board-size 8)
+        steps (range 0 board-size field-size)
+        positions (for [y steps x steps] (pos x y))
+        fields (map (fn [pos]
+                      {:pos pos
+                       :width field-size
+                       :height field-size})
+                    positions)]
+    (map-alternating (partition 8 fields) light-row dark-row)))
 
 (defn rgb-string [[r g b]]
   (str "rgba(" r "," g "," b ",1.0)")) ;; alpha value probably not required
@@ -92,8 +90,8 @@
       (set-fill-style rgb)
       (draw-filled-rectangle pos width height)))
 
-(defn draw-board-on [context]
-  (let [board-rows (chessboard-rows BOARD-SIZE)]
+(defn draw-board-on [context state]
+  (let [board-rows (:fields state)]
     (doseq [field (apply concat board-rows)]
       (draw-field context field))
     context))
@@ -103,15 +101,15 @@
     (.setAttribute "width" width)
     (.setAttribute "height" height)))
 
-;; see http://dev.opera.com/articles/view/html5-canvas-painting/
-;; TODO doesn't work correctly
 (defn mouse-pos-relative-to-canvas [event canvas]
+  "see http://miloq.blogspot.de/2011/05/coordinates-mouse-click-canvas.html"
   (comment (if (or (.-layerX event) (= 0 (.-layerX event)))
     (pos (.-layerX event) (.-layerY event))
     (pos (.-offsetX event) (.-offsetY event))))
   (let [[x y] (if (and (not= (.-x event) js/undefined)
                        (not= (.-x event) js/undefined))
-                [(.-x event) (.-y event)] ;; "normal" way to get position
+                [(.-x event)
+                 (.-y event)] ;; "normal" way to get position
                 [(+ (.-clientX event) (-> js/document .-body .-scrollLeft) (-> js/document .-documentElement .-scrollLeft))
                  (+ (.-clientY event) (-> js/document .-body .-scrollTop) (-> js/document .-documentElement .-scrollTop))])] ;; for firefox
     (pos (- x (.-offsetLeft canvas))
@@ -122,8 +120,8 @@
     (and (<= field-x x (+ field-x width))
          (<= field-y y (+ field-y height)))))
 
-(defn field-at [pos]
-  (let [fields (apply concat (chessboard-rows BOARD-SIZE))]
+(defn field-at [pos state]
+  (let [fields (apply concat (:fields state))]
     (some #(when (covers? % pos)
              %)
           fields)))
@@ -153,10 +151,21 @@
                  (fn [event-id context field]
                    (add-field-marker context field (:field-focus colors)))))
 
+(defmulti handle-mouse-down (fn [state pos]
+                              []))
+
+(defn canvas-mousedown-handler [context event]
+  (update-state (fn [state]
+                  state)))
+                  ;;(let [[new-state drawing-instructions] (handle-mouse-down state (mouse-pos-relative-to-canvas event (.-canvas context)))]
+                    ;;(draw drawing-instructions)
+                    ;;new-state))))
+
 (defn canvas-mousemove-handler [context event]
   (update-state (fn [state]
                   (let [previous-field (:focused-field state)
-                        new-field (field-at (mouse-pos-relative-to-canvas event (.-canvas context)))]
+                        new-field (field-at (mouse-pos-relative-to-canvas event (.-canvas context))
+                                            (current-state))]
                     (when (not= previous-field new-field)
                       (when previous-field
                         (disp/fire :field-focus-lost context previous-field))
@@ -179,9 +188,9 @@
     (set! (.-onload image) #(on-loaded-fn image))
     (set! (.-src image) (img-src piece))))
 
-(defn render-pieces [context piece-rows]
-  (let [pieces (vec (apply concat piece-rows))
-        fields (vec (apply concat (chessboard-rows BOARD-SIZE)))
+(defn render-pieces [context state]
+  (let [pieces (vec (apply concat (:pieces state)))
+        fields (vec (apply concat (:fields state)))
         indexes (range (count pieces))]
     (doseq [i indexes] ;; (map (fn [p f] ...) pieces fields) didn't work, don't know why
       (let [p (nth pieces i)
@@ -195,6 +204,11 @@
   (-> js/document
       (.getElementById "chess-board")
       (.appendChild canvas))
-  (draw-board-on context)
-  (render-pieces context (:board chess/initial-board))
-  (.addEventListener canvas "mousemove" (partial canvas-mousemove-handler context) false))
+  (update-state (fn [state]
+                  (assoc state
+                    :pieces (:board chess/initial-board)
+                    :fields (chessboard-rows BOARD-SIZE))))
+  (draw-board-on context (current-state))
+  (render-pieces context (current-state))
+  (.addEventListener canvas "mousemove" (partial canvas-mousemove-handler context) false)
+  (.addEventListener canvas "mousedown" (partial canvas-mousedown-handler context) false))
