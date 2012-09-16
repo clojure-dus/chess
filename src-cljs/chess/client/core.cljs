@@ -105,10 +105,17 @@
 
 ;; see http://dev.opera.com/articles/view/html5-canvas-painting/
 ;; TODO doesn't work correctly
-(defn mouse-pos-relative-to-canvas [event]
-  (if (or (.-layerX event) (= 0 (.-layerX event)))
+(defn mouse-pos-relative-to-canvas [event canvas]
+  (comment (if (or (.-layerX event) (= 0 (.-layerX event)))
     (pos (.-layerX event) (.-layerY event))
     (pos (.-offsetX event) (.-offsetY event))))
+  (let [[x y] (if (and (not= (.-x event) js/undefined)
+                       (not= (.-x event) js/undefined))
+                [(.-x event) (.-y event)] ;; "normal" way to get position
+                [(+ (.-clientX event) (-> js/document .-body .-scrollLeft) (-> js/document .-documentElement .-scrollLeft))
+                 (+ (.-clientY event) (-> js/document .-body .-scrollTop) (-> js/document .-documentElement .-scrollTop))])] ;; for firefox
+    (pos (- x (.-offsetLeft canvas))
+         (- y (.-offsetTop canvas)))))
 
 (defn covers? [{:keys [pos width height]} [x y]]
   (let [[field-x field-y] pos]
@@ -149,7 +156,7 @@
 (defn canvas-mousemove-handler [context event]
   (update-state (fn [state]
                   (let [previous-field (:focused-field state)
-                        new-field (field-at (mouse-pos-relative-to-canvas event))]
+                        new-field (field-at (mouse-pos-relative-to-canvas event (.-canvas context)))]
                     (when (not= previous-field new-field)
                       (when previous-field
                         (disp/fire :field-focus-lost context previous-field))
