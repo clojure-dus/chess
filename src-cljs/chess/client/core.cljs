@@ -56,7 +56,7 @@
     (map-alternating (partition 8 fields) light-row dark-row)))
 
 (defn rgb-string [[r g b]]
-  (str "rgba(" r "," g "," b ",1.0)")) ;; alpha value probably not required
+  (str "rgb(" r "," g "," b ")"))
 
 (defn set-fill-style [ctx rgb]
   (set! (.-fillStyle ctx) (rgb-string rgb))
@@ -91,7 +91,7 @@
       (draw-filled-rectangle pos width height)))
 
 (defn draw-board-on [context state]
-  (let [board-rows (:fields state)]
+  (let [board-rows (:board state)]
     (doseq [field (apply concat board-rows)]
       (draw-field context field))
     context))
@@ -120,8 +120,8 @@
     (and (<= field-x x (+ field-x width))
          (<= field-y y (+ field-y height)))))
 
-(defn field-at [pos state]
-  (let [fields (apply concat (:fields state))]
+(defn field-at [state pos]
+  (let [fields (apply concat (:board state))]
     (some #(when (covers? % pos)
              %)
           fields)))
@@ -151,27 +151,81 @@
                  (fn [event-id context field]
                    (add-field-marker context field (:field-focus colors)))))
 
-(defmulti handle-mouse-down (fn [state pos]
-                              []))
+(defn moving-and-field-type
+  "creates vector [<:moving/:not-moving> <:empty-field/:enemy-field/:player-field>]"
+  [state pos & _]
+  [(if (:moving state)
+     :moving
+     :not-moving)
+   (let [piece (:piece (field-at state pos))
+         piece-color (cond
+                      (chess/white? piece) :white
+                      (chess/black? piece) :black
+                      :else nil)
+         player-color (:player-color state)]
+     (cond
+      (nil? piece-color) :empty-field
+      (= piece-color player-color) :player-field
+      :else :enemy-field))])
+
+(defmulti handle-mouse-down moving-and-field-type)
+
+(defmethod handle-mouse-down [:not-moving :empty-field]
+  [state pos]
+  state)
+
+(defmethod handle-mouse-down [:not-moving :enemy-field]
+  [state pos]
+  state)
+
+(defmethod handle-mouse-down [:not-moving :player-field]
+  [state pos]
+  (assoc state :moving {:from (field-at state pos)}))
+
+(defmethod handle-mouse-down [:moving :player-field]
+  [state pos]
+  (let [from-field (-> state :moving :from)
+        current-field (field-at state pos)]
+    (if (= from-field current-field)
+      (dissoc state :moving)
+      state)))
 
 (defn canvas-mousedown-handler [context event]
   (update-state (fn [state]
-                  state)))
-                  ;;(let [[new-state drawing-instructions] (handle-mouse-down state (mouse-pos-relative-to-canvas event (.-canvas context)))]
-                    ;;(draw drawing-instructions)
-                    ;;new-state))))
+                  (let [new-state (handle-mouse-down state (mouse-pos-relative-to-canvas event (.-canvas context)))]
+                    ;; TODO (draw (drawing-instructions new-state) context)
+                    new-state))))
+
+(defmulti handle-mouse-move moving-and-field-type)
+
+(defn default-mouse-move [state pos context]
+  (let [previous-field (:focused-field state)
+        new-field (field-at state pos)]
+    (when (not= previous-field new-field)
+      (when previous-field
+        (disp/fire :field-focus-lost context previous-field))
+      (when new-field
+        (disp/fire :field-focus context new-field)))
+    (assoc state :focused-field new-field)))
+
+(defmethod handle-mouse-move [:not-moving :empty-field]
+  [state pos & [context]]
+  (default-mouse-move state pos context))
+
+(defmethod handle-mouse-move [:not-moving :enemy-field]
+  [state pos & [context]]
+  (default-mouse-move state pos context))
+
+(defmethod handle-mouse-move [:not-moving :player-field]
+  [state pos & [context]]
+  (default-mouse-move state pos context))
 
 (defn canvas-mousemove-handler [context event]
   (update-state (fn [state]
-                  (let [previous-field (:focused-field state)
-                        new-field (field-at (mouse-pos-relative-to-canvas event (.-canvas context))
-                                            (current-state))]
-                    (when (not= previous-field new-field)
-                      (when previous-field
-                        (disp/fire :field-focus-lost context previous-field))
-                      (when new-field
-                        (disp/fire :field-focus context new-field)))
-                    (assoc state :focused-field new-field)))))
+                  (let [new-state (handle-mouse-move state
+                                                     (mouse-pos-relative-to-canvas event (.-canvas context))
+                                                     context)]
+                    new-state))))
 
 (defn draw-piece [context piece-img {:keys [pos width height]}]
   (.drawImage context piece-img (first pos) (second pos))
@@ -189,15 +243,24 @@
     (set! (.-src image) (img-src piece))))
 
 (defn render-pieces [context state]
-  (let [pieces (vec (apply concat (:pieces state)))
-        fields (vec (apply concat (:fields state)))
-        indexes (range (count pieces))]
-    (doseq [i indexes] ;; (map (fn [p f] ...) pieces fields) didn't work, don't know why
-      (let [p (nth pieces i)
-            f (nth fields i)]
-        (when (chess/piece? p)
-          (load-piece-img p (fn [img]
-                              (draw-piece context img f))))))))
+  (let [fields (apply concat (:board state))]
+    (doseq [field fields]
+      (let [piece (:piece field)]
+        (when (chess/piece? piece)
+          (load-piece-img piece (fn [img]
+                                  (draw-piece context img field))))))))
+
+(defn put-pieces
+  "fields: vector of vectors with fields
+   pieces: vector of vectors with pieces"
+  [fields pieces]
+  (map (fn [field-row piece-row]
+         (map (fn [field piece]
+                (assoc field :piece piece))
+              field-row
+              piece-row))
+       fields
+       pieces))
 
 (let [canvas (create-canvas BOARD-SIZE BOARD-SIZE)
       context (.getContext canvas "2d")]
@@ -205,9 +268,11 @@
       (.getElementById "chess-board")
       (.appendChild canvas))
   (update-state (fn [state]
+                  (let [pieces (:board chess/initial-board)
+                        fields (chessboard-rows BOARD-SIZE)]
                   (assoc state
-                    :pieces (:board chess/initial-board)
-                    :fields (chessboard-rows BOARD-SIZE))))
+                    :player-color :white
+                    :board (put-pieces fields pieces)))))
   (draw-board-on context (current-state))
   (render-pieces context (current-state))
   (.addEventListener canvas "mousemove" (partial canvas-mousemove-handler context) false)
