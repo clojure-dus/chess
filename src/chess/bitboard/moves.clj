@@ -5,34 +5,16 @@
   (:use [clojure.pprint]))
 
 
-(defn move->coord [move]
-  (let [from  (bit-and move 0x0000003f)
-        dest  (bit-and (bit-shift-right move 6)  0x0000003f)
-        piece (bit-and(bit-shift-right move 12) 0x0000000f)
-        ]
-    {:piece piece :from (square->coord from) :to (square->coord dest)}))
-
-
-(defn make-move ^long [ ^long from ^long dest ^long piece]
-  (let[
-       move 0
-       move (bit-and  0x0000003f from)
-
-       move (bit-and 0xfffff03f move)
-       move (bit-or  move (bit-shift-left (bit-and 0x0000003f dest) 6))
-
-       move (bit-and  0xffff0fff move)
-       move (bit-or  move (bit-shift-left (bit-and 0x0000000f piece) 12))]
-    move))
-
-(defn possible-moves [^chess.bitboard.chessboard.ChessBoard board]
+(defn possible-moves [game-state]
   (let [result          (transient [])
-        squares         (.squares board)
-        wanted-pieces   (.Whitepieces board)
+        squares         (:board game-state)
+        pieces          (if (= (game-state :turn) :w)
+                          (:whitepieces game-state)
+                          (:blackpieces game-state))
         ]
-        (bitmap-seq [from wanted-pieces]
+        (bitmap-seq [from pieces]
              (let[
-                  piece                (aget squares from)
+                  piece                (squares nth from)
                   piece-attack-arr     (lookup-attacks piece)
                   piece-move-bitset    (aget  piece-attack-arr from)
                   not-occupied-squares (bit-not wanted-pieces)
