@@ -2,7 +2,7 @@
   (:use [chess.bitboard.file-rank])
   (:use [chess.bitboard.bitoperations]))
 
-(def ^longs knight-attacks-array
+(def  knight-attacks-array
   "creates a lookup array of  64 squares which have bitboards
    in which knightattacks have been flaged "
   (let [result (make-array Long/TYPE 65)
