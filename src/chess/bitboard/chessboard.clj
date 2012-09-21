@@ -9,7 +9,7 @@
    :turn :w
    :rochade #{:K :Q :k :q }
    :r 0 :n 0 :b 0 :q 0 :k 0 :p 0
-   :R 0 :N 0 :B 0 :Q 0 :K 1 :P 0
+   :R 0 :N 0 :B 0 :Q 0 :K 0 :P 0
    :_ 0
    :whitepieces 0
    :blackpieces 0
@@ -57,6 +57,10 @@
               (assoc-in [captured] (bit-xor (game-state captured) (bit-set 0 dest)))
                (set-piece piece dest))))
 
+(defn pieces-by-turn [game-state]
+  (if (= (game-state :turn) :w)
+      (:whitepieces game-state)
+      (:blackpieces game-state)))
 
 (defn print-board [game-state]
  (let [

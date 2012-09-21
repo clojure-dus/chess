@@ -2,31 +2,36 @@
   (:use [chess.bitboard.file-rank])
   (:use [chess.bitboard.bitoperations])
   (:use [chess.bitboard.chessboard])
-   (:use [chess.bitboard.piece-attacks])
-
+  (:use [chess.bitboard.piece-attacks])
   (:use [clojure.pprint]))
 
 
-(defmulti find-moves (fn[piece from-pos game-state] piece))
+(defmulti find-moves (fn[piece from-pos game-state]
+                       (case piece
+                         (:N :n) :Knight
+                         (:R :r) :Rook
+                         (:B :b) :Bishop
+                         (:Q :q) :Queen
+                         (:K :k) :King
+                         (:P :p) :Pawn)))
 
-(defmethod find-moves :N [piece from-pos game-state]
+(defmethod find-moves :Knight [piece from-pos game-state]
   (let [piece-move-bitset    (aget knight-attacks-array from-pos)
-                  not-occupied-squares (bit-not (:whitepieces game-state))
-                  moves                (bit-and piece-move-bitset not-occupied-squares)]
+        not-occupied-squares (bit-not (pieces-by-turn game-state))
+        moves                (bit-and piece-move-bitset not-occupied-squares)]
               (for-bitmap [dest-pos moves]
                 [piece from-pos dest-pos])))
 
 
 (defn possible-moves [game-state]
-  (let [squares         (:board game-state)
-        pieces          (if (= (game-state :turn) :w)
-                          (:whitepieces game-state)
-                          (:blackpieces game-state))
-        ]
+  (let [squares  (:board game-state)
+        pieces   (pieces-by-turn game-state)]
     (for-bitmap [from pieces]
-             (find-moves :N  from game-state))))
+       (find-moves (squares from) from game-state))))
 
+
+(def two-lonely-knight (read-fen "8/8/8/8/8/8/8/1N4N1 w KQkq - 0 1"))
 (comment
-  (def a-lonely-knight (read-fen "8/8/8/8/8/8/8/6N1 w KQkq - 0 1"))
-  (print-board a-lonely-knight)
-  (possible-moves a-knight))
+  (print-board two-lonely-knight))
+
+(possible-moves two-lonely-knight)
