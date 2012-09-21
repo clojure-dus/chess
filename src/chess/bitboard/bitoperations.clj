@@ -29,12 +29,11 @@
        (aget index-64 index))))
 
 
-
-(defmacro bitmap-seq[sexpr  body]
-  (let [key (first sexpr)
-        bitmap (second sexpr)]
-    `(loop [~'pieces  ~bitmap]
-      (if (= 0 ~'pieces) nil
-          (let [~key (find-first-one-bit ~'pieces)]
-             (do ~body)
-               (recur (bit-xor ~'pieces (bit-set 0 ~key))))))))
+(defmacro for-bitmap [[key bitmap] & body]
+  `(loop [result# []
+          pieces#  ~bitmap]
+     (if (= 0 pieces#)
+       result#
+       (let [~key (find-first-one-bit pieces#)]
+         (recur (conj result# (do ~@body))
+                (bit-xor pieces# (bit-set 0 ~key)))))))
