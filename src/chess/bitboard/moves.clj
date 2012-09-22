@@ -5,33 +5,50 @@
   (:use [chess.bitboard.piece-attacks])
   (:use [clojure.pprint]))
 
-
-(defmulti find-moves (fn[piece from-pos game-state]
+(defmulti find-piece-moves (fn[piece _ _]
                        (case piece
-                         (:N :n) :Knight
+                         (:N :n):Knight
                          (:R :r) :Rook
                          (:B :b) :Bishop
                          (:Q :q) :Queen
                          (:K :k) :King
-                         (:P :p) :Pawn)))
+                         :P      :WhitePawn
+                         :p      :BlackPawn)))
 
-(defmethod find-moves :Knight [piece from-pos game-state]
-  (let [piece-move-bitset    (aget knight-attacks-array from-pos)
-        not-occupied-squares (bit-not (pieces-by-turn game-state))
-        moves                (bit-and piece-move-bitset not-occupied-squares)]
-              (for-bitmap [dest-pos moves]
-                [piece from-pos dest-pos])))
+ (defmethod find-piece-moves :Knight [piece from-sq game-state]
+   (let [piece-move-bitset    (aget knight-attack-array from-sq)
+         not-occupied-squares (bit-not (pieces-by-turn game-state))
+         moves                (bit-and piece-move-bitset not-occupied-squares)]
+     (for-bitmap [dest-pos moves]
+       [piece from-sq dest-pos])))
 
+ (defmethod find-piece-moves :WhitePawn [piece from-sq game-state]
+   (let [moves    (aget pawn-white-move-array from-sq)
+         occupied (bit-and (:allpieces game-state) moves)
+         moves    (bit-xor moves occupied)
+         attacks  (bit-and (:blackpieces game-state) (aget pawn-white-attack-array from-sq))
+         moves    (bit-or moves attacks)]
+     (for-bitmap [dest-pos moves]
+       [piece from-sq dest-pos])))
+
+(defmethod find-piece-moves :BlackPawn [piece from-sq game-state]
+  (let [moves    (aget pawn-black-move-array from-sq)
+        occupied (bit-and (:allpieces game-state) moves)
+        moves    (bit-xor moves occupied)
+        attacks  (bit-and (:whitepieces game-state) (aget pawn-black-attack-array from-sq))
+        moves    (bit-or moves attacks)]
+     (for-bitmap [dest-pos moves]
+       [piece from-sq dest-pos])))
+
+ (defmethod find-piece-moves :King [piece from-sq game-state]
+   (let [moves    (aget king-attack-array from-sq)
+           ; todo castle move
+         ]
+     (for-bitmap [dest-pos moves]
+       [piece from-sq dest-pos])))
 
 (defn possible-moves [game-state]
   (let [squares  (:board game-state)
         pieces   (pieces-by-turn game-state)]
-    (for-bitmap [from pieces]
-       (find-moves (squares from) from game-state))))
-
-
-(def two-lonely-knight (read-fen "8/8/8/8/8/8/8/1N4N1 w KQkq - 0 1"))
-(comment
-  (print-board two-lonely-knight))
-
-(possible-moves two-lonely-knight)
+    (for-bitmap [from-sq pieces]
+      (find-piece-moves (squares from-sq) from-sq game-state))))

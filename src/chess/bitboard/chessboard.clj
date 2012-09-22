@@ -35,16 +35,15 @@
 
 (def initial-board
   (create-board-fn
-          '([:r 7] [:n 6] [:b 5] [:q 4] [:k 3] [:b 2] [:n 1] [:r 0]
-            [:p 8] [:p 9] [:p 10] [:p 11] [:p 12] [:p 13] [:p 14] [:p 15]
-            [:R 56] [:N 57] [:B 58] [:Q 59] [:K 60] [:B 61] [:N 62] [:R 63]
-            [:P 55] [:P 54] [:P 53] [:P 52] [:P 51] [:P 50] [:P 49] [:P 48])))
-
+          '([:r 63] [:n 62] [:b 61] [:q 60] [:k 59] [:b 58] [:n 57] [:r 56]
+            [:p 55] [:p 54] [:p 53] [:p 52] [:p 51] [:p 50] [:p 49] [:p 48]
+            [:P 15] [:P 14] [:P 13] [:P 12] [:P 11] [:P 10] [:P  9] [:P  8]
+            [:R  7] [:N  6] [:B  5] [:Q  4] [:K  3] [:B  2] [:N  1] [:R  0])))
 
 (defn read-fen [fen-str]
   (let [
         other-board-impl (other-impl-read-fen fen-str)
-        squares (flatten  (:board other-board-impl))
+        squares (flatten  (reverse (:board other-board-impl)))
         squares (map-indexed vector squares)
         squares (map reverse squares)
         ] (create-board-fn squares)))
@@ -62,18 +61,28 @@
       (:whitepieces game-state)
       (:blackpieces game-state)))
 
-(defn print-board [game-state]
- (let [
-         abc  "    A  B  C  D  E  F  G  H \n"
-         rows (:board game-state)
-         rows (map (fn[x] (str  x " ")) rows)
-         rows (partition 8 rows)
-         rows (map (fn[x file] (vec(cons (str " " file "  ") x))) rows (range 1 9))
-         rows (map (fn [x] (conj  x  "\n")) rows)
-       rows (apply str (flatten rows)) ]
+(defn print-board-vector [board-vector]
+ (let [abc  "    a  b  b  d  e  f  g  h \n"
+       rows board-vector
+       rows (map (fn[x] (str x " ")) rows)
+       rows (partition 8 rows)
+       rows (map (fn[rank row] (vec (cons (str " " rank "  ") row)))  (range 1 9) rows)
+       rows (map (fn [x] (conj x "\n")) rows)
+       rows (reverse rows)
+       rows (apply str (flatten rows))]
    (println)
-   (print  rows abc )))
+   (print rows abc)))
 
+(defn print-board [game-state]
+  (print-board-vector (:board game-state)))
 
-(print-board
- (read-fen "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"))
+(defn bitmap->board-vector [board-vector piece bitmap]
+  "adds a bitmap to a board. board is a vector of piece keyowrds"
+  (let [indexes (for-bitmap[idx bitmap] idx)
+        update-fn (fn [board-vector idx] (assoc board-vector idx piece))]
+     (reduce update-fn board-vector indexes)))
+
+(defn print-bitmap [bitmap piece]
+  (println "\nBitmap :" (Long/toBinaryString bitmap))
+  (let [board-vector  (mapv #(if (< % 10) (str 0 %)  %) (range 64))]
+    (print-board-vector (bitmap->board-vector board-vector piece bitmap))))

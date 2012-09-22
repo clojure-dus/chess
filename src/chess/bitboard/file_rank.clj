@@ -7,9 +7,8 @@
 (defn lookup-file-rank [square] [(aget lookup-file square) (aget lookup-rank square)])
 
 (def file-rank-squares
-  (map #(let
-            [file (aget lookup-file %)
-             rank (aget lookup-rank %)]
+  (map #(let [file (aget lookup-file %)
+              rank (aget lookup-rank %)]
                 [% file rank ])(range 64)))
 
 (defn coord->square [file rank]
@@ -19,3 +18,6 @@
 
 (defn square->coord [square]
   [(file-letters-map ( aget lookup-file square)) (aget lookup-rank square)])
+
+(defn coords->squares [coords]
+   (map (fn [[f r]] ( coord->square f r)) coords))
