@@ -1,7 +1,8 @@
 (ns chess.test.move-generator
   (:use [chess.core :only (initial-board move-piece)])
   (:use [chess.move-generator])
-  (:use [clojure.test]))
+  (:use [clojure.test])
+  (:use [chess.directions]))
 
 (deftest test-steps-right
   (are [x y] (= x y)
