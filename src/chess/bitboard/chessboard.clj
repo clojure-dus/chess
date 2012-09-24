@@ -1,185 +1,88 @@
 (ns chess.bitboard.chessboard
   (:use [chess.bitboard.bitoperations])
   (:use [chess.bitboard.file-rank])
-  (:use [chess.bitboard.piece-attacks]))
+  (:use [chess.bitboard.piece-attacks])
+  (:use [chess.fen :rename {read-fen other-impl-read-fen}]))
 
+(def empty-board
+  {:board  (vec (repeat 64 :_))
+   :turn :w
+   :rochade #{:K :Q :k :q }
+   :r 0 :n 0 :b 0 :q 0 :k 0 :p 0
+   :R 0 :N 0 :B 0 :Q 0 :K 0 :P 0
+   :_ 0
+   :whitepieces 0
+   :blackpieces 0
+   :allpieces   0
+   :enpassent   0 })
 
-(def ^:const  Empty 0)
-(def ^:const  WhitePawn 1)
-(def ^:const  WhiteRook 2)
-(def ^:const  WhiteKnight 3)
-(def ^:const  WhiteBishop 4)
-(def ^:const  WhiteQueen 5)
-(def ^:const  WhiteKing 6)
-(def ^:const  BlackPawn 7)
-(def ^:const  BlackRook 8)
-(def ^:const  BlackKnight 9)
-(def ^:const  BlackBishop 10)
-(def ^:const  BlackQueen 11)
-(def ^:const  BlackKing 12)
+(defmacro thread-it [& [first-expr & rest-expr]]
+   (if (empty? rest-expr)
+     first-expr
+    `(let [~'it ~first-expr]
+       (thread-it ~@rest-expr))))
 
-(def piece-char-map  {Empty       " "
-                      WhitePawn   "P"
-                      WhiteRook   "R"
-                      WhiteKnight "N"
-                      WhiteBishop "B"
-                      WhiteQueen  "Q"
-                      WhiteKing   "K"
-                      BlackPawn   "p"
-                      BlackRook   "r"
-                      BlackKnight "n"
-                      BlackBishop "b"
-                      BlackQueen  "q"
-                      BlackKing   "k"
-                      })
+(defn set-piece [game-state piece dest]
+  (thread-it game-state
+    (update-in it [piece] bit-or (bit-set 0 dest))
+      (assoc-in it [:board dest] piece)
+        (assoc-in it [:whitepieces] (reduce #(bit-or %1 (%2 it)) 0 [:R :N :B :Q :K :P]))
+          (assoc-in it [:blackpieces] (reduce #(bit-or %1 (%2 it)) 0 [:r :n :b :q :k :p]))
+            (assoc-in it [:allpieces] (bit-or (:whitepieces it) (:blackpieces it)))))
 
-(def keyword-piece-map  { :_ Empty
-                          :P WhitePawn
-                          :R WhiteRook
-                          :N WhiteKnight
-                          :B WhiteBishop
-                          :Q WhiteQueen
-                          :K WhiteKing
-                          :p BlackPawn
-                          :r BlackRook
-                          :n BlackKnight
-                          :b BlackBishop
-                          :q BlackQueen
-                          :k BlackKing
-                      })
+(defn create-board-fn [coll]
+  (reduce #(set-piece %1 (first %2) (second %2)) empty-board coll))
 
-(def lookup-attacks
-  {WhiteKnight knight-attacks-array BlackKnight knight-attacks-array })
+(def initial-board
+  (create-board-fn
+          '([:r 63] [:n 62] [:b 61] [:q 60] [:k 59] [:b 58] [:n 57] [:r 56]
+            [:p 55] [:p 54] [:p 53] [:p 52] [:p 51] [:p 50] [:p 49] [:p 48]
+            [:P 15] [:P 14] [:P 13] [:P 12] [:P 11] [:P 10] [:P  9] [:P  8]
+            [:R  7] [:N  6] [:B  5] [:Q  4] [:K  3] [:B  2] [:N  1] [:R  0])))
 
-(defmacro build-whitepieces [bitboards]
-`(bit-or (aget ~bitboards WhitePawn)
-         (aget ~bitboards WhiteRook)
-         (aget ~bitboards WhiteKnight)
-         (aget ~bitboards WhiteBishop)
-         (aget ~bitboards WhiteQueen)
-         (aget ~bitboards WhiteKing)))
-
-(defmacro build-blackpieces[bitboards]
-`(bit-or (aget ~bitboards BlackPawn)
-         (aget ~bitboards BlackRook)
-         (aget ~bitboards BlackKnight)
-         (aget ~bitboards BlackBishop)
-         (aget ~bitboards BlackQueen)
-         (aget ~bitboards BlackKing)))
-
-(defmacro build-allpieces[bitboards]
-  `(bit-or  (build-whitepieces ~bitboards) (build-blackpieces ~bitboards)))
-
-(definterface ChessUpdate
-  (^Object movePiece [ ^int from ^int dest])
-  (^Object setPiece  [  ^int pos ^int piece]))
-
-
-(deftype ChessBoard [  ^longs Bitboards
-                       ^long  Whitepieces
-                       ^long  Blackpieces
-                       ^long  Allpieces
-                       ^ints  squares]
-  Object
-  (toString
-    [this]
-    (let [
-         line "  +--+-+-+-+-+-+-+--+\n"
-         abc  "    A B C D E F G H\n"
-         rows (map piece-char-map (.squares this))
-         rows (map (fn[x] ( str x " ")) rows)
-         rows (partition 8 rows)
-         rows (map (fn[x file] (vec(cons (str file " | ") x))) rows (range 1 9))
-         rows (map (fn [x] (conj  x  "|\n")) rows)
-         rows (apply str (flatten rows))
-      ]
-      (str abc line rows line abc)))
-  ChessUpdate
-  ( movePiece [^ChessBoard this ^int from  ^int dest]
-    (let [bbs                  (aclone ^longs (.Bitboards this))
-          squares              (aclone ^ints  (.squares this))
-          from-mask            (square->bit from)
-          to-mask              (square->bit dest)
-          update-mask          (bit-or from-mask  to-mask)
-          piece                (aget squares from)
-          captured-piece       (aget squares dest)
-          piece-bitboard       (aget bbs piece)
-          captured-bitboard    (aget bbs captured-piece); if empty uses dummy bitboard
-         ]
-            (aset-int squares dest piece)
-            (aset-int squares from Empty)
-            (aset-long bbs piece (bit-xor piece-bitboard  update-mask))
-            (aset-long bbs captured-piece (bit-xor captured-bitboard to-mask))
-            (ChessBoard. bbs
-                         (build-whitepieces bbs)
-                         (build-blackpieces bbs)
-                         (build-allpieces bbs)
-                          squares)))
-
-(setPiece [^ChessBoard this ^int square ^int piece]
-     (let [
-           bbs                 (.Bitboards this)
-           update-mask         (square->bit square)
-           piece-bitboard       (aget bbs piece)
-           ]
-            (aset-int squares square piece)
-            (aset-long  bbs piece (bit-or piece-bitboard  update-mask))
-            this)))
-
-  (defn print-chessboard [board writer]
-    (.write writer (str board)))
-(comment
-  (.addMethod simple-dispatch ChessBoard (fn [board]
-                                           (print-chessboard board *out*)))
-)
-  (defmethod print-method ChessBoard [board writer]
-    (print-chessboard board writer))
-
-
-(def ^ChessBoard initial-board
+(defn read-fen [fen-str]
   (let [
-        squares (into-array Integer/TYPE [
-                                          BlackRook,BlackKnight,BlackBishop,BlackQueen,
-                                          BlackKing,BlackBishop,BlackKnight,BlackRook,
-                                          7,7,7,7,7,7,7,7,
-                                          0,0,0,0,0,0,0,0,
-                                          0,0,0,0,0,0,0,0,
-                                          0,0,0,0,0,0,0,0,
-                                          0,0,0,0,0,0,0,0,
-                                          1,1,1,1,1,1,1,1,
-                                          WhiteRook,WhiteKnight,WhiteBishop,WhiteQueen,
-                                          WhiteKing,WhiteBishop,WhiteKnight,WhiteRook
-                                          ])]
-  (ChessBoard.
-   (into-array Long/TYPE [
-               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000000000)
+        other-board-impl (other-impl-read-fen fen-str)
+        squares (flatten  (reverse (:board other-board-impl)))
+        squares (map-indexed vector squares)
+        squares (map reverse squares)
+        ] (create-board-fn squares)))
 
+(defn move-piece [game-state piece from dest]
+  (let [captured (get-in game-state [:board dest])]
+    (-> game-state
+        (assoc-in [:board from] :_)
+           (update-in [piece] bit-xor (bit-set 0 from))
+              (assoc-in [captured] (bit-xor (game-state captured) (bit-set 0 dest)))
+               (set-piece piece dest))))
 
-               (unchecked-long 2r0000000011111111000000000000000000000000000000000000000000000000)
-               (unchecked-long 2r1000000100000000000000000000000000000000000000000000000000000000)
-               (unchecked-long 2r0100001000000000000000000000000000000000000000000000000000000000)
-               (unchecked-long 2r0010010000000000000000000000000000000000000000000000000000000000)
-               (unchecked-long 2r0000100000000000000000000000000000000000000000000000000000000000)
-               (unchecked-long 2r0001000000000000000000000000000000000000000000000000000000000000)
+(defn pieces-by-turn [game-state]
+  (if (= (game-state :turn) :w)
+      (:whitepieces game-state)
+      (:blackpieces game-state)))
 
-               (unchecked-long 2r0000000000000000000000000000000000000000000000001111111100000000)
-               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000010000001)
-               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000001000010)
-               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000100100)
-               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000010000)
-               (unchecked-long 2r0000000000000000000000000000000000000000000000000000000000001000)
-               ])
-               (unchecked-long 2r1111111111111111000000000000000000000000000000000000000000000000)
-               (unchecked-long 2r0000000000000000000000000000000000000000000000001111111111111111)
-               (unchecked-long 2r1111111111111111000000000000000000000000000000001111111111111111)
+(defn print-board-vector [board-vector]
+ (let [abc  "    a  b  b  d  e  f  g  h \n"
+       rows board-vector
+       rows (map (fn[x] (str x " ")) rows)
+       rows (partition 8 rows)
+       rows (map (fn[rank row] (vec (cons (str " " rank "  ") row)))  (range 1 9) rows)
+       rows (map (fn [x] (conj x "\n")) rows)
+       rows (reverse rows)
+       rows (apply str (flatten rows))]
+   (println)
+   (print rows abc)))
 
-               squares
-               )))
+(defn print-board [game-state]
+  (print-board-vector (:board game-state)))
 
-(def ^ChessBoard empty-board
-  (ChessBoard.
-   (make-array Long/TYPE 13)
-               (long 0)
-               (long 0)
-               (long 0)
-               (make-array Integer/TYPE 64)))
+(defn bitmap->board-vector [board-vector piece bitmap]
+  "adds a bitmap to a board. board is a vector of piece keyowrds"
+  (let [indexes (for-bitmap[idx bitmap] idx)
+        update-fn (fn [board-vector idx] (assoc board-vector idx piece))]
+     (reduce update-fn board-vector indexes)))
+
+(defn print-bitmap [bitmap piece]
+  (println "\nBitmap :" (Long/toBinaryString bitmap))
+  (let [board-vector  (mapv #(if (< % 10) (str 0 %)  %) (range 64))]
+    (print-board-vector (bitmap->board-vector board-vector piece bitmap))))

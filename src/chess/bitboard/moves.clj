@@ -2,47 +2,53 @@
   (:use [chess.bitboard.file-rank])
   (:use [chess.bitboard.bitoperations])
   (:use [chess.bitboard.chessboard])
+  (:use [chess.bitboard.piece-attacks])
   (:use [clojure.pprint]))
 
+(defmulti find-piece-moves (fn[piece _ _]
+                       (case piece
+                         (:N :n):Knight
+                         (:R :r) :Rook
+                         (:B :b) :Bishop
+                         (:Q :q) :Queen
+                         (:K :k) :King
+                         :P      :WhitePawn
+                         :p      :BlackPawn)))
 
-(defn move->coord [move]
-  (let [from  (bit-and move 0x0000003f)
-        dest  (bit-and (bit-shift-right move 6)  0x0000003f)
-        piece (bit-and(bit-shift-right move 12) 0x0000000f)
-        ]
-    {:piece piece :from (square->coord from) :to (square->coord dest)}))
+ (defmethod find-piece-moves :Knight [piece from-sq game-state]
+   (let [piece-move-bitset    (aget knight-attack-array from-sq)
+         not-occupied-squares (bit-not (pieces-by-turn game-state))
+         moves                (bit-and piece-move-bitset not-occupied-squares)]
+     (for-bitmap [dest-pos moves]
+       [piece from-sq dest-pos])))
 
+ (defmethod find-piece-moves :WhitePawn [piece from-sq game-state]
+   (let [moves    (aget pawn-white-move-array from-sq)
+         occupied (bit-and (:allpieces game-state) moves)
+         moves    (bit-xor moves occupied)
+         attacks  (bit-and (:blackpieces game-state) (aget pawn-white-attack-array from-sq))
+         moves    (bit-or moves attacks)]
+     (for-bitmap [dest-pos moves]
+       [piece from-sq dest-pos])))
 
-(defn make-move ^long [ ^long from ^long dest ^long piece]
-  (let[
-       move 0
-       move (bit-and  0x0000003f from)
+(defmethod find-piece-moves :BlackPawn [piece from-sq game-state]
+  (let [moves    (aget pawn-black-move-array from-sq)
+        occupied (bit-and (:allpieces game-state) moves)
+        moves    (bit-xor moves occupied)
+        attacks  (bit-and (:whitepieces game-state) (aget pawn-black-attack-array from-sq))
+        moves    (bit-or moves attacks)]
+     (for-bitmap [dest-pos moves]
+       [piece from-sq dest-pos])))
 
-       move (bit-and 0xfffff03f move)
-       move (bit-or  move (bit-shift-left (bit-and 0x0000003f dest) 6))
+ (defmethod find-piece-moves :King [piece from-sq game-state]
+   (let [moves    (aget king-attack-array from-sq)
+           ; todo castle move
+         ]
+     (for-bitmap [dest-pos moves]
+       [piece from-sq dest-pos])))
 
-       move (bit-and  0xffff0fff move)
-       move (bit-or  move (bit-shift-left (bit-and 0x0000000f piece) 12))]
-    move))
-
-(defn possible-moves [^chess.bitboard.chessboard.ChessBoard board]
-  (let [result          (transient [])
-        squares         (.squares board)
-        wanted-pieces   (.Whitepieces board)
-        ]
-        (bitmap-seq [from wanted-pieces]
-             (let[
-                  piece                (aget squares from)
-                  piece-attack-arr     (lookup-attacks piece)
-                  piece-move-bitset    (aget  piece-attack-arr from)
-                  not-occupied-squares (bit-not wanted-pieces)
-                  moves                (bit-and piece-move-bitset not-occupied-squares)
-                  ]
-               (bitmap-seq [dest moves]
-                           (do          (print "from : " from  ", dest : " dest)
-                             (conj! result (make-move from dest piece))))))
-        (persistent! result)))
-
-
-(defn print-moves [moves]
-  (pprint (map move->coord moves)))
+(defn possible-moves [game-state]
+  (let [squares  (:board game-state)
+        pieces   (pieces-by-turn game-state)]
+    (for-bitmap [from-sq pieces]
+      (find-piece-moves (squares from-sq) from-sq game-state))))
