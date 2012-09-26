@@ -21,3 +21,6 @@
 
 (defn coords->squares [coords]
    (map (fn [[f r]] ( coord->square f r)) coords))
+
+(def rank-shift-array (into-array Integer/TYPE
+                         (mapcat #(repeat 8 %) (take 8 (iterate (partial + 8) 1)))))
