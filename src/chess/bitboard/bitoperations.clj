@@ -38,3 +38,16 @@
        (let [~key (find-first-one-bit pieces#)]
          (recur (conj result# (do ~@body))
                 (bit-xor pieces# (bit-set 0 ~key)))))))
+
+
+(defn vector->bit [vect]
+  (if (empty? vect)
+    0
+    (reduce (fn [x y] 0 (bit-or y (bit-shift-left x 1))) vect)))
+
+(defn bit->vector[bits]
+  (loop [result '() n 0]
+    (let [bit (if (bit-test bits n) 1 0)]
+      (if (or (= n 40) (= bits (vector->bit result)))
+        (apply vector result)
+        (recur (conj result bit) (inc n))))))

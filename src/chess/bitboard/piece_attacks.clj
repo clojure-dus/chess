@@ -2,6 +2,7 @@
   (:use [chess.bitboard.file-rank])
   (:use [chess.bitboard.bitoperations]))
 
+
 (defn- move-array [moves-coords]
   "creates a lookup array of  64 squares which have bitboards
    in which moves  have been flaged "
@@ -50,3 +51,24 @@
 
 (def king-attack-array
   (move-array [[1 1][-1 1][-1 -1][1 -1][0 1][0 -1][1 0][-1 0]]))
+
+
+;; sliding moves
+;;
+
+(defn slide-attack-bits [occupied-bits pos]
+  "occupied-bits -  flags the positions of all pieces of a rank,file or diagonal.
+   pos  -  the current square  position of the current piece
+   returns  a  long where the first 8-bits flag the squares to which an piece on position pos
+   can move (including any attacked pieces)
+   Example : (slide-attack-bits 2r10001001 5) -> 2r00001011
+"
+  (let [bit-vect (bit->vector occupied-bits)
+        indexed-bits (filter (fn[[idx bit]] (= 1 bit)) (map-indexed vector bit-vect))
+        nearest-left  (nth (last  (filter (fn [[idx bit]] (< idx pos)) indexed-bits)) 0 0)
+        nearest-right (nth (first (filter (fn [[idx bit]] (> idx pos)) indexed-bits)) 0 9)]
+    (vector->bit (for [idx (range 8)]
+                  (cond (< idx nearest-left)  0
+                        (> idx nearest-right) 0
+                        (= idx pos)           0
+                        :else                 1)))))
