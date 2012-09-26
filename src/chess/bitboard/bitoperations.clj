@@ -45,9 +45,9 @@
     0
     (reduce (fn [x y] 0 (bit-or y (bit-shift-left x 1))) vect)))
 
-(defn bit->vector[bits]
+(defn bit->vector[bits count]
   (loop [result '() n 0]
     (let [bit (if (bit-test bits n) 1 0)]
-      (if (or (= n 40) (= bits (vector->bit result)))
+      (if (= n count)
         (apply vector result)
         (recur (conj result bit) (inc n))))))

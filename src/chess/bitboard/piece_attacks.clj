@@ -63,12 +63,19 @@
    can move (including any attacked pieces)
    Example : (slide-attack-bits 2r10001001 5) -> 2r00001011
 "
-  (let [bit-vect (bit->vector occupied-bits)
+  (let [bit-vect (bit->vector occupied-bits 8)
         indexed-bits (filter (fn[[idx bit]] (= 1 bit)) (map-indexed vector bit-vect))
         nearest-left  (nth (last  (filter (fn [[idx bit]] (< idx pos)) indexed-bits)) 0 0)
         nearest-right (nth (first (filter (fn [[idx bit]] (> idx pos)) indexed-bits)) 0 9)]
     (vector->bit (for [idx (range 8)]
-                  (cond (< idx nearest-left)  0
-                        (> idx nearest-right) 0
-                        (= idx pos)           0
+                   (cond (= idx pos)           0
+                         (< idx nearest-left)  0
+                         (> idx nearest-right) 0
                         :else                 1)))))
+
+(def all-slide-attack-array
+  "an array off rank attacks for all 8 file rows "
+  (to-array-2d
+   (partition 64
+      (for [pos (range 8) occupied (range 64) ]
+        (slide-attack-bits occupied pos)))))
