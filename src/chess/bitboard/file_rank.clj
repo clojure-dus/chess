@@ -2,7 +2,9 @@
 
 (def  lookup-file  ^ints (into-array Integer/TYPE (take 64 (cycle (range 1 9)))))
 
-(def  lookup-rank  ^ints (into-array Integer/TYPE (flatten (map (partial  repeat 8) (range 1 9)))))
+(def rank-squares (mapcat (partial  repeat 8) (range 1 9)))
+
+(def  lookup-rank  ^ints (into-array Integer/TYPE rank-squares))
 
 (defn lookup-file-rank [square] [(aget lookup-file square) (aget lookup-rank square)])
 
@@ -22,5 +24,11 @@
 (defn coords->squares [coords]
    (map (fn [[f r]] ( coord->square f r)) coords))
 
-(def rank-shift-array (into-array Integer/TYPE
-                         (mapcat #(repeat 8 %) (take 8 (iterate (partial + 8) 1)))))
+(def rank-shift-array
+  (into-array Integer/TYPE
+    (mapcat #(repeat 8 %) (take 8 (iterate (partial + 8) 1)))))
+
+(def ^:longs square-rank-row-mask-array
+  "used to get a specific rank row. array has for each"
+  (into-array Long/TYPE
+    (map #(bit-shift-left 2r11111111 (* 8 (- % 1))) rank-squares)))

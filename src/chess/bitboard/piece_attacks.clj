@@ -73,9 +73,21 @@
                          (> idx nearest-right) 0
                         :else                 1)))))
 
-(def all-slide-attack-array
-  "an array off rank attacks for all 8 file rows "
+(def all-slide-attacks
+  "an vector off rank attacks for all 8 file columns   "
+  (partition 64
+             (for [pos (range 8) occupied (range 64) ]
+               (slide-attack-bits occupied pos))))
+
+(def rank-attack-array
   (to-array-2d
-   (partition 64
-      (for [pos (range 8) occupied (range 64) ]
-        (slide-attack-bits occupied pos)))))
+   (map (fn [square]
+          (map #(bit-shift-left % (dec (aget rank-shift-array square )) )
+               (nth all-slide-attacks (dec (aget lookup-file square))))) (range 64))))
+
+
+
+
+
+(comment
+  (clojure.pprint/pprint rank-attack-array))
