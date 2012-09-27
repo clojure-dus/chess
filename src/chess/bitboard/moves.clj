@@ -52,14 +52,11 @@
   (let [allpieces            (:allpieces game-state)
         row                  (bit-and allpieces (aget square-rank-row-mask-array from-sq))
         pieces-row           (bit-shift-right row (aget rank-shift-array from-sq))
-         _ (print-bitmap pieces-row :R)
-
         moves                (aget rank-attack-array from-sq pieces-row)
         not-occupied-squares (bit-not (pieces-by-turn game-state))
         moves                (bit-and moves not-occupied-squares)]
          (for-bitmap [dest-pos moves]
            [piece from-sq dest-pos])))
-
 
 (defn possible-moves [game-state]
   (let [squares  (:board game-state)
@@ -68,10 +65,4 @@
       (find-piece-moves (squares from-sq) from-sq game-state))))
 
 (comment
-  (print-board  (read-fen "8/8/8/8/8/8/8/R7 w KQkq - 0 1"))
-
-  (def t  (read-fen "8/8/8/8/8/8/1R1PPPPP/8 w KQkq - 0 1"))
-
-  (print-board t)
-
-  (possible-moves t))
+  (print-board  (read-fen "8/8/8/8/8/8/8/R7 w KQkq - 0 1")))

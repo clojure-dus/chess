@@ -26,7 +26,7 @@
 
 (def rank-shift-array
   (into-array Integer/TYPE
-    (mapcat #(repeat 8 %) (take 8 (iterate (partial + 8) 1)))))
+    (mapcat #(repeat 8 %) (take 8 (iterate (partial + 8) 0)))))
 
 (def ^:longs square-rank-row-mask-array
   "used to get a specific rank row. array has for each"
