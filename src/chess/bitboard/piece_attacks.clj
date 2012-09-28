@@ -6,18 +6,18 @@
 (defn- move-array [moves-coords]
   "creates a lookup array of  64 squares which have bitboards
    in which moves  have been flaged "
-  (let [result (make-array Long/TYPE 64)
-
-        all-moves  (for [[square file rank] file-rank-squares
+  (let [all-moves  (for [[square file rank] file-rank-squares
                          [x y] moves-coords
                          :let  [f (+ file x) r (+ rank y)]
                          :when (and (> f 0 ) (< f 9) (> r 0) (< r 9))]
                      [square f r])
-        ](doseq [[square f r] all-moves]
-                       (let [b (aget result square)
-                             bit (square->bit (coord->square f r))]
-                         (aset result square (bit-or b bit))))
-         result))
+        result (make-array Long/TYPE 64)
+        ]
+    (doseq [[square f r] all-moves]
+      (let [b (aget result square)   bit (square->bit (coord->square f r))]
+        (aset result square (bit-or b bit))))
+    result
+))
 
 (def knight-attack-array
   "creates a lookup array of  64 squares which have bitboards
