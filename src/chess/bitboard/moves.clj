@@ -64,5 +64,6 @@
     (for-bitmap [from-sq pieces]
       (find-piece-moves (squares from-sq) from-sq game-state))))
 
+
 (comment
   (print-board  (read-fen "8/8/8/8/8/8/8/R7 w KQkq - 0 1")))

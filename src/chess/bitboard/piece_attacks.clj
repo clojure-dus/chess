@@ -2,8 +2,7 @@
   (:use [chess.bitboard.file-rank])
   (:use [chess.bitboard.bitoperations]))
 
-
-(defn- move-array [moves-coords]
+(defn- create-vect-bitboards [moves-coords]
   "creates a lookup array of  64 squares which have bitboards
    in which moves  have been flaged "
   (let [all-moves  (for [[square file rank] file-rank-squares
@@ -11,46 +10,49 @@
                          :let  [f (+ file x) r (+ rank y)]
                          :when (and (> f 0 ) (< f 9) (> r 0) (< r 9))]
                      [square f r])
-        result (make-array Long/TYPE 64)
-        ]
-    (doseq [[square f r] all-moves]
-      (let [b (aget result square)   bit (square->bit (coord->square f r))]
-        (aset result square (bit-or b bit))))
-    result
-))
 
+        bitboard-updater (fn [result [square f r]]
+                           (let [bitboard  (nth result square)
+                                 bit       (bit-set 0 (coord->square f r))]
+                                 (assoc result square (bit-or bitboard bit))))
+
+        empty-board-vect (apply vector (repeat 64 0))]
+    (reduce bitboard-updater empty-board-vect all-moves)))
+
+; result (make-array Long/TYPE 64)
 (def knight-attack-array
   "creates a lookup array of  64 squares which have bitboards
    in which knightattacks have been flaged "
-  (move-array  [[1 2] [2 1] [2 -1] [1 -2] [-1 -2] [-2 -1] [-2 1] [-1 2]] ))
+  (long-array (create-vect-bitboards
+              [[1 2] [2 1] [2 -1] [1 -2] [-1 -2] [-2 -1] [-2 1] [-1 2]] )))
 
-(defn bit-set-in-array [arr idx bit-index]
-  (aset arr idx (bit-or (aget arr idx) (bit-set 0 bit-index))))
+
+(defn update-in-bitboard  [distance bb-vector square]
+     (let [bitboard    (nth bb-vector square)
+           double-move (bit-set 0 (+ distance square))]
+         (assoc bb-vector square (bit-or bitboard double-move))))
+
 
 (def pawn-white-move-array
-  (let [single-moves (move-array [[0 1]])
-        row-2  (coords->squares [[1 2][2 2][3 2][4 2][5 2][6 2][7 2][8 2]])
-        double-move-const 16]
-    (doseq [square row-2]
-      (bit-set-in-array single-moves square (+ square double-move-const)))
-     single-moves))
+  (let [single-moves  (create-vect-bitboards [[0 1]])
+        row-2-squares [8 9 10 11 12 13 14 15]
+        update-double (partial update-in-bitboard 16) ]
+    (long-array (reduce update-double single-moves row-2-squares))))
 
 (def pawn-black-move-array
-  (let [single-moves (move-array [[0 -1]])
-        row-7 (coords->squares [[1 7][2 7][3 7][4 7][5 7][6 7][7 7][8 7]])
-        double-move-const 16]
-    (doseq [square row-7]
-      (bit-set-in-array single-moves square (- square double-move-const)))
-    single-moves))
+  (let [single-moves  (create-vect-bitboards [[0 -1]])
+        row-7-squares [48 49 50 51 52 53 54 55]
+        update-double (partial update-in-bitboard -16) ]
+    (long-array (reduce update-double single-moves row-7-squares))))
 
 (def pawn-white-attack-array
-  (move-array [[1 1] [-1 1]]))
+  (long-array (create-vect-bitboards [[1 1] [-1 1]])))
 
 (def pawn-black-attack-array
-  (move-array [[-1 -1] [1 -1]]))
+  (long-array (create-vect-bitboards [[-1 -1] [1 -1]])))
 
 (def king-attack-array
-  (move-array [[1 1][-1 1][-1 -1][1 -1][0 1][0 -1][1 0][-1 0]]))
+  (long-array (create-vect-bitboards [[1 1][-1 1][-1 -1][1 -1][0 1][0 -1][1 0][-1 0]])))
 
 
 ;; sliding moves
@@ -88,6 +90,3 @@
           (let [shift-fn (partial shift-bits-to-square square)
                 column   (dec (aget lookup-file square))]
           (map shift-fn  (nth all-slide-attacks-8-bits column)))) (range 64))))
-
-  (for [pos (range 1) occupied (range 256)]
-    (slide-attack-8-bits occupied pos))
