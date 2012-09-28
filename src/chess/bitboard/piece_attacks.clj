@@ -3,7 +3,7 @@
   (:use [chess.bitboard.bitoperations]))
 
 (defn- create-vect-bitboards [moves-coords]
-  "creates a lookup array of  64 squares which have bitboards
+  "creates a vector of  64 squares which have bitboards
    in which moves  have been flaged "
   (let [all-moves  (for [[square file rank] file-rank-squares
                          [x y] moves-coords
@@ -34,16 +34,16 @@
 
 
 (def pawn-white-move-array
-  (let [single-moves  (create-vect-bitboards [[0 1]])
-        row-2-squares [8 9 10 11 12 13 14 15]
-        update-double (partial update-in-bitboard 16) ]
-    (long-array (reduce update-double single-moves row-2-squares))))
+  (let [single-moves     (create-vect-bitboards [[0 1]])
+        row-2-squares    [8 9 10 11 12 13 14 15]
+        make-double-move (partial update-in-bitboard 16) ]
+    (long-array (reduce make-double-move single-moves row-2-squares))))
 
 (def pawn-black-move-array
-  (let [single-moves  (create-vect-bitboards [[0 -1]])
-        row-7-squares [48 49 50 51 52 53 54 55]
-        update-double (partial update-in-bitboard -16) ]
-    (long-array (reduce update-double single-moves row-7-squares))))
+  (let [single-moves     (create-vect-bitboards [[0 -1]])
+        row-7-squares    [48 49 50 51 52 53 54 55]
+        make-double-move (partial update-in-bitboard -16) ]
+    (long-array (reduce make-double-move single-moves row-7-squares))))
 
 (def pawn-white-attack-array
   (long-array (create-vect-bitboards [[1 1] [-1 1]])))
