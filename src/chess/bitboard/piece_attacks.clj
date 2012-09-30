@@ -26,12 +26,10 @@
   (long-array (create-vect-bitboards
               [[1 2] [2 1] [2 -1] [1 -2] [-1 -2] [-2 -1] [-2 1] [-1 2]] )))
 
-
 (defn update-in-bitboard  [distance bb-vector square]
      (let [bitboard    (nth bb-vector square)
            double-move (bit-set 0 (+ distance square))]
          (assoc bb-vector square (bit-or bitboard double-move))))
-
 
 (def pawn-white-move-array
   (let [single-moves     (create-vect-bitboards [[0 1]])
@@ -54,17 +52,16 @@
 (def king-attack-array
   (long-array (create-vect-bitboards [[1 1][-1 1][-1 -1][1 -1][0 1][0 -1][1 0][-1 0]])))
 
-
 ;; sliding moves
 ;;
 
-(defn slide-attack-8-bits [occupied-bits pos]
+(defn slide-attack-byte [occupied-bits pos]
   "occupied-bits -  flags the positions of all pieces of a rank,file or diagonal.
    pos  -  the current square  position of the current piece
    returns  a  long where the first 8-bits flag the squares to which an piece on position pos
    can move (including any attacked pieces)
-   Example : (slide-attack-bits 2r10001001 5) -> 2r00001011
-"
+   Example : (slide-attack-bits 2r10001001 5) -> 2r00001011"
+
   (let [bit-vect (bit->vector occupied-bits 8)
         indexed-bits (filter (fn[[idx bit]] (= 1 bit)) (map-indexed vector bit-vect))
         nearest-left  (nth (last  (filter (fn [[idx bit]] (< idx pos)) indexed-bits)) 0 0)
@@ -75,18 +72,31 @@
                            (> idx nearest-right) 0
                            :else                 1))))))
 
-(def all-slide-attacks-8-bits
-  "an vector off  8 file rows  consisting of 256 possible slide attack 8-bits"
-  (partition 256
-             (for [pos (range 8) occupied (range 256)]
-               (slide-attack-8-bits occupied pos))))
+(defn- slide-attack->bitboard[square bits]
+   "shifts bits to square position in a empty bitboard"
+   (bit-shift-left bits (aget rank-shift-array square)))
 
-(defn shift-bits-to-square[square bits]
-    (bit-shift-left bits (aget rank-shift-array square)))
+
+(defn- slide-attack-column->bitboard[square bits]
+   "shifts bits to square position in a empty bitboard"
+   (bit-shift-left bits (square->column square)))
+
 
 (def rank-attack-array
+"2 dim array on square and occupied positions"
   (to-array-2d
    (map (fn [square]
-          (let [shift-fn (partial shift-bits-to-square square)
-                column   (dec (aget lookup-file square))]
-          (map shift-fn  (nth all-slide-attacks-8-bits column)))) (range 64))))
+          (for [occupied (range 256)]
+            (slide-attack->bitboard square
+               (slide-attack-byte occupied (square->column square)))))
+        (range 64))))
+
+(def file-attack-array
+"2 dim array on square and occupied positions"
+  (to-array-2d
+   (map (fn [square]
+          (for [occupied (range 256)]
+            (slide-attack-column->bitboard square
+               (rotate90-bitboard-clockwise
+                (slide-attack-byte occupied (- 7 (square->row square)))))))
+        (range 64))))
