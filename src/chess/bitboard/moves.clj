@@ -1,3 +1,4 @@
+;
 (ns chess.bitboard.moves
   (:use [chess.bitboard.file-rank])
   (:use [chess.bitboard.bitoperations])
@@ -47,16 +48,24 @@
      (for-bitmap [dest-pos moves]
        [piece from-sq dest-pos])))
 
+
 ; for now just rank movement
 (defmethod find-piece-moves :Rook [piece from-sq game-state]
-  (let [allpieces            (:allpieces game-state)
-        row                  (bit-and allpieces (aget square-rank-row-mask-array from-sq))
-        pieces-row           (bit-shift-right row (aget rank-shift-array from-sq))
-        moves                (aget rank-attack-array from-sq pieces-row)
-        not-occupied-squares (bit-not (pieces-by-turn game-state))
-        moves                (bit-and moves not-occupied-squares)]
-         (for-bitmap [dest-pos moves]
+  (let [allpieces          (:allpieces game-state)
+        not-occupied       (bit-not (pieces-by-turn game-state))
+
+        occupied-row       (bit-and allpieces (aget row-masks from-sq))
+        occupied-mask      (bit-shift-right occupied-row (aget rank-shift-array from-sq))
+        slide-moves-rank   (bit-and (aget rank-attack-array from-sq occupied-mask) not-occupied)
+
+        occupied-column    (bit-and allpieces (aget column-masks from-sq))
+        occupied-mask      (shift-column-to-bottom occupied-column (square->column from-sq))
+        slide-moves-file   (bit-and (aget file-attack-array from-sq occupied-mask) not-occupied)
+
+        slide-moves        (bit-or slide-moves-rank slide-moves-file)]
+         (for-bitmap [dest-pos slide-moves]
            [piece from-sq dest-pos])))
+
 
 (defn possible-moves [game-state]
   (let [squares  (:board game-state)
@@ -64,6 +73,4 @@
     (for-bitmap [from-sq pieces]
       (find-piece-moves (squares from-sq) from-sq game-state))))
 
-
-(comment
-  (print-board  (read-fen "8/8/8/8/8/8/8/R7 w KQkq - 0 1")))
+(comment (possible-moves  (read-fen "R7/8/8/3P4/8/3R4/8/8 w KQkq - 0 1")))

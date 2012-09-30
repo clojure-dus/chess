@@ -39,7 +39,6 @@
          (recur (conj result# (do ~@body))
                 (bit-xor pieces# (bit-set 0 ~key)))))))
 
-
 (defn vector->bit [vect]
   (if (empty? vect)
     0
@@ -51,3 +50,43 @@
       (if (= n count)
         result
         (recur (conj result bit) (inc n))))))
+
+
+
+(defn flipVertical[b]
+  (let [h1  0x00FF00FF00FF00FF
+        h2  0x0000FFFF0000FFFF
+        b   (bit-or(bit-and(bit-shift-right b 8) h1)
+                                   (bit-shift-left (bit-and b h1) 8))
+        b   (bit-or(bit-and (bit-shift-right b 16) h2)
+                                     (bit-shift-left (bit-and b h2) 16))
+        b   (bit-or(unsigned-shift-right b 32) (bit-shift-left b 32))] b))
+
+
+(defn flipDiagA8H1[^long b]
+  (let [h1 (unchecked-long 0xAA00AA00AA00AA00)
+        h2 (unchecked-long 0xCCCC0000CCCC0000)
+        h3 (unchecked-long 0xF0F0F0F00F0F0F0F)
+        t  (bit-xor b (bit-shift-left b 36))
+        b  (bit-xor b (bit-and h3 (bit-xor t (bit-shift-right b 36))))
+        t  (bit-and h2 (bit-xor b (bit-shift-left b 18)))
+        b  (bit-xor b (bit-xor t (bit-shift-right t 18)))
+        t  (bit-and h1 (bit-xor b (bit-shift-left b 9)))
+        b  (bit-xor b (bit-xor t  (bit-shift-right t 9)))] b))
+
+
+(defn flipDiagonalA1H8[^long b]
+  (let [h1 (unchecked-long 0x5500550055005500)
+        h2 (unchecked-long 0x3333000033330000)
+        h3 (unchecked-long 0x0F0F0F0F00000000)
+        t  (bit-and h3 (bit-xor b (bit-shift-left b 28)))
+        b  (bit-xor b (bit-xor t (bit-shift-right t 28)))
+        t  (bit-and h2 (bit-xor b (bit-shift-left b 14)))
+        b  (bit-xor b (bit-xor t (bit-shift-right t 14)))
+        t  (bit-and h1 (bit-xor b (bit-shift-left b 7)))
+        b  (bit-xor b (bit-xor t  (bit-shift-right t 7)))] b))
+
+
+
+(defn rotate90-bitboard-clockwise [b]
+  (flipVertical (flipDiagonalA1H8 b)))
