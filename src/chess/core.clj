@@ -9,7 +9,6 @@
                 (vector (vec (repeat 8 :P)) [:R :N :B :Q :K :B :N :R]))),
    :turn :w
    :rochade #{:K :Q :k :q}})
-
 (def white-pieces #{:R :N :B :Q :K :P})
 (def black-pieces #{:r :n :b :q :k :p})
 

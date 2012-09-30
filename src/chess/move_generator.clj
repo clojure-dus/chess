@@ -47,14 +47,14 @@
 
 (defmethod possible-moves :pawn
   [game-state position]
-  (let [[x y] position non-attacks (partial steps-without-attack game-state position) attacks (partial steps-with-attack game-state position)
-        white (white? (piece-at game-state position))]
-    (filter #(not (nil? %))
-            (concat
-             (cond (and white (= y 1)) (non-attacks steps-up 2)
-                (and (not white) (= y 6)) (non-attacks steps-down 2)
-                :else (non-attacks (pawn-non-attack-steps white) 1))
-                (map #(attacks % 1) (pawn-attack-steps white))))))
+  (let [[x y] position non-attacks-fn (partial steps-without-attack game-state position) attacks-fn (partial steps-with-attack game-state position)
+        is-white (white? (piece-at game-state position))]
+    (let [non-attacking-moves (cond (and is-white (= y 1)) (non-attacks-fn steps-up 2)
+                (and (not is-white) (= y 6)) (non-attacks-fn steps-down 2)
+                :else (non-attacks-fn (pawn-non-attack-steps is-white) 1))]
+      (filter #(not (nil? %))
+          (concat non-attacking-moves
+               (map #(attacks-fn % 1 non-attacking-moves) (pawn-attack-steps is-white)))))))
 
 (defmethod possible-moves :queen
   [game-state position]
@@ -64,7 +64,7 @@
   [game-state position]
     (get-moves game-state position all-directions 1))
 
-(defmethod possible-moves :bishop
+(defmethod possible-moves :bishop 
   [game-state position]
     (get-moves game-state position (list steps-up-left steps-up-right steps-down-left steps-down-right) infinite-steps))
 
@@ -74,8 +74,14 @@
           (knight-steps initial-position)))
 
 
+(defn enrich [game-state]
+  (-> game-state (assoc :white-pos (filter-my-positions white? game-state))
+                 (assoc :black-pos (filter-my-positions black? game-state))))
+
+
 (defn generate-moves [game-state]
   "generates all legal moves for the given game-state"
-  (->> (filter #(not (nil? %))
-     (build-all-pairs game-state (fetch-positions game-state)))
-          flatten (partition 2) (partition 2)))
+  (let [enriched-game-state (enrich game-state)]
+    (->> (filter #(not (nil? %))
+                 (build-all-pairs enriched-game-state (fetch-positions enriched-game-state)))
+         flatten (partition 2) (partition 2))))

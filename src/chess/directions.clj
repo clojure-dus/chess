@@ -52,9 +52,9 @@
 
 
 
-(defn empty-moves [f game-state position]
+(defn empty-moves [step-fn game-state position]
   "moves on empty fields"
-  (take-while (fn [pos] (pos-empty? game-state pos)) (f position)))
+  (take-while (fn [pos] (pos-empty? game-state pos)) (step-fn position)))
 
 (def steps-up-left
   (partial steps-diagonal dec inc))
@@ -78,22 +78,24 @@
    params: game-state, position actual position, dir-fn direction function, n number of allowed steps"
     (take n (empty-moves dir-fn game-state position)))
 
-(defn steps-with-attack  [ game-state position dir-fn n ]
+(defn steps-with-attack  [ game-state position step-fn n non-attacking-steps]
   "every step on an enemy field, that isn't blocked by an own piece
    params: gamestate, position=actual position,dk direction function, n number of allowed steps"
   (let [piece (piece-at game-state position)
-        steps (take n (dir-fn position))
+        steps (take n (step-fn position))
+        non-attacks (set non-attacking-steps)
         enemy (first (filter (fn [[a b]] (enemy-on-pos? game-state [a b])) steps))]
-    (when (every? (fn [pos] (= :_ (piece-at game-state pos))) (take-while #(not (= % enemy)) steps)) enemy)))
+    (when (every? #(contains? non-attacks %) (take-while #(not (= % enemy)) steps)) enemy)))
 
 
 (defn all-steps
   "attacking and non-attacking steps"
   [game-state position dir-fn n]
-  (concat (steps-without-attack game-state position dir-fn n) (steps-with-attack game-state position dir-fn n)))
+  (let [non-attacking-steps (steps-without-attack game-state position dir-fn n)]
+  (concat non-attacking-steps (steps-with-attack game-state position dir-fn n non-attacking-steps))))
 
 (defn fetch-positions [game-state]
   "returns all positions/coordinates that are occupied by pieces"
     (if (= :w (:turn game-state))
-      (filter-my-positions white? game-state)
-      (filter-my-positions black? game-state)))
+      (:white-pos game-state)
+      (:black-pos game-state)))
