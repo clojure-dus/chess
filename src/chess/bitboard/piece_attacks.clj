@@ -55,6 +55,9 @@
 ;; sliding moves
 ;;
 
+(defn indexed-bits [func bit-vector]
+ (filter (fn[[idx bit]] (= 1 bit)) (map-indexed func bit-vector)))
+
 (defn slide-attack-byte [occupied-bits pos]
   "occupied-bits -  flags the positions of all pieces of a rank,file or diagonal.
    pos  -  the current square  position of the current piece
@@ -63,16 +66,16 @@
    Example : (slide-attack-bits 2r10001001 5) -> 2r00001011"
 
   (let [bit-vect (bit->vector occupied-bits 8)
-        indexed-bits (filter (fn[[idx bit]] (= 1 bit)) (map-indexed vector bit-vect))
+        indexed-bits (indexed-bits vector bit-vect)
         nearest-left  (nth (last  (filter (fn [[idx bit]] (< idx pos)) indexed-bits)) 0 0)
         nearest-right (nth (first (filter (fn [[idx bit]] (> idx pos)) indexed-bits)) 0 9)]
-    (vector->bit (reverse (for [idx (range 8)]
-                     (cond (= idx pos)           0
-                           (< idx nearest-left)  0
-                           (> idx nearest-right) 0
-                           :else                 1))))))
+    (vector->bit (for [idx (range 8)]
+                             (cond (= idx pos)           0
+                                   (< idx nearest-left)  0
+                                   (> idx nearest-right) 0
+                                   :else                 1)))))
 
-(defn- slide-attack->bitboard[square bits]
+(defn slide-attack->bitboard[square bits]
    "shifts bits to square position in a empty bitboard"
    (bit-shift-left bits (aget rank-shift-array square)))
 
@@ -100,3 +103,29 @@
                (rotate90-bitboard-clockwise
                 (slide-attack-byte occupied (- 7 (square->row square)))))))
         (range 64))))
+
+
+(defn rotate-45-bitboard [bitboard  rotate-fn]
+  (let [bit-vect    (bit->vector bitboard 64)
+        bit-vect    (indexed-bits vector bit-vect)
+        update-vect (map rotate-fn bit-vect)
+        update-vect (filter (fn[diagonal-sq]
+                              (and  (> diagonal-sq -1) (< diagonal-sq 64))) update-vect)
+        result       (apply vector (repeat 64 0))]
+    (vector->bit (reduce (fn [r sq] (assoc r sq 1)) result update-vect))))
+
+(defn square-45-clockwise [rotate-pos]
+   (fn [[square _]]
+     (let [delta (- square rotate-pos)]
+        (+ (* 9 delta) rotate-pos))))
+
+(defn square-45-anticlockwise [rotate-pos]
+   (fn [[square _]]
+     (let [delta (- square rotate-pos)]
+        (+ (* 7 delta) rotate-pos))))
+
+(defn rotate-bitboard-45-clockwise [bitboard rotate-pos]
+  (rotate-45-bitboard bitboard (square-45-clockwise rotate-pos)))
+
+(defn rotate--bitboard-45-anticlockwise [bitboard rotate-pos]
+  (rotate-45-bitboard bitboard (square-45-anticlockwise rotate-pos)))

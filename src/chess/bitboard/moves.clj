@@ -49,7 +49,6 @@
        [piece from-sq dest-pos])))
 
 
-; for now just rank movement
 (defmethod find-piece-moves :Rook [piece from-sq game-state]
   (let [allpieces          (:allpieces game-state)
         not-occupied       (bit-not (pieces-by-turn game-state))
@@ -65,6 +64,8 @@
         slide-moves        (bit-or slide-moves-rank slide-moves-file)]
          (for-bitmap [dest-pos slide-moves]
            [piece from-sq dest-pos])))
+
+
 
 
 (defn possible-moves [game-state]

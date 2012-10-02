@@ -42,7 +42,7 @@
 (defn vector->bit [vect]
   (if (empty? vect)
     0
-    (reduce (fn [x y] 0 (bit-or y (bit-shift-left x 1))) vect)))
+    (reduce (fn [x y] 0 (bit-or y (bit-shift-left x 1))) (reverse vect))))
 
 (defn bit->vector[bits count]
   (loop [result [] n 0]
@@ -62,17 +62,6 @@
                                      (bit-shift-left (bit-and b h2) 16))
         b   (bit-or(unsigned-shift-right b 32) (bit-shift-left b 32))] b))
 
-
-(defn flipDiagA8H1[^long b]
-  (let [h1 (unchecked-long 0xAA00AA00AA00AA00)
-        h2 (unchecked-long 0xCCCC0000CCCC0000)
-        h3 (unchecked-long 0xF0F0F0F00F0F0F0F)
-        t  (bit-xor b (bit-shift-left b 36))
-        b  (bit-xor b (bit-and h3 (bit-xor t (bit-shift-right b 36))))
-        t  (bit-and h2 (bit-xor b (bit-shift-left b 18)))
-        b  (bit-xor b (bit-xor t (bit-shift-right t 18)))
-        t  (bit-and h1 (bit-xor b (bit-shift-left b 9)))
-        b  (bit-xor b (bit-xor t  (bit-shift-right t 9)))] b))
 
 
 (defn flipDiagonalA1H8[^long b]
