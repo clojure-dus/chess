@@ -62,7 +62,7 @@
       (:blackpieces game-state)))
 
 (defn print-board-vector [board-vector]
- (let [abc  "    a  b  b  d  e  f  g  h \n"
+ (let [abc  "    a  b  c  d  e  f  g  h \n"
        rows board-vector
        rows (map (fn[x] (str x " ")) rows)
        rows (partition 8 rows)

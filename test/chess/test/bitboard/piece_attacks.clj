@@ -16,4 +16,3 @@
     (testing "testing pawn move array"
       (is (= 67371008        (aget pawn-white-move-array 10)))
       (is (= 16777216        (aget pawn-white-move-array 16)))))
-(run-tests)

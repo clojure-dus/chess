@@ -28,7 +28,6 @@
              index (unsigned-shift-right (unchecked-multiply term  debruin) 58)]
        (aget index-64 index))))
 
-
 (defmacro for-bitmap [[key bitmap] & body]
 " iterates for each bit set in bitmap. the index is bind to key. returns a vector of body results"
   `(loop [result# []
@@ -38,7 +37,6 @@
        (let [~key (find-first-one-bit pieces#)]
          (recur (conj result# (do ~@body))
                 (bit-xor pieces# (bit-set 0 ~key)))))))
-
 (defn vector->bit [vect]
   (if (empty? vect)
     0
@@ -51,7 +49,8 @@
         result
         (recur (conj result bit) (inc n))))))
 
-
+(defn indexed-bits [func bit-vector]
+ (filter (fn[[idx bit]] (= 1 bit)) (map-indexed func bit-vector)))
 
 (defn flipVertical[b]
   (let [h1  0x00FF00FF00FF00FF
@@ -59,23 +58,46 @@
         b   (bit-or(bit-and(bit-shift-right b 8) h1)
                                    (bit-shift-left (bit-and b h1) 8))
         b   (bit-or(bit-and (bit-shift-right b 16) h2)
-                                     (bit-shift-left (bit-and b h2) 16))
+                                   (bit-shift-left (bit-and b h2) 16))
         b   (bit-or(unsigned-shift-right b 32) (bit-shift-left b 32))] b))
-
-
 
 (defn flipDiagonalA1H8[^long b]
   (let [h1 (unchecked-long 0x5500550055005500)
         h2 (unchecked-long 0x3333000033330000)
         h3 (unchecked-long 0x0F0F0F0F00000000)
         t  (bit-and h3 (bit-xor b (bit-shift-left b 28)))
-        b  (bit-xor b (bit-xor t (bit-shift-right t 28)))
+        b  (bit-xor b  (bit-xor t (bit-shift-right t 28)))
         t  (bit-and h2 (bit-xor b (bit-shift-left b 14)))
-        b  (bit-xor b (bit-xor t (bit-shift-right t 14)))
+        b  (bit-xor b  (bit-xor t (bit-shift-right t 14)))
         t  (bit-and h1 (bit-xor b (bit-shift-left b 7)))
-        b  (bit-xor b (bit-xor t  (bit-shift-right t 7)))] b))
-
-
+        b  (bit-xor b  (bit-xor t (bit-shift-right t 7)))] b))
 
 (defn rotate90-bitboard-clockwise [b]
   (flipVertical (flipDiagonalA1H8 b)))
+
+(defn only-inner-board [sq]
+  (and  (> sq -1) (< sq 64)))
+
+(defn rotate-45-bitboard [bitboard  rotate-fn]
+  (let [bit-vect    (bit->vector bitboard 64)
+        bit-vect    (indexed-bits vector bit-vect)
+        update-vect (map rotate-fn bit-vect)
+        update-vect (filter only-inner-board update-vect)
+        result       (apply vector (repeat 64 0))]
+    (vector->bit (reduce (fn [r sq] (assoc r sq 1)) result update-vect))))
+
+(defn square-45-clockwise [rotate-pos]
+  (fn [[square _]]
+     (let [delta (- rotate-pos square)]
+        (+ (* 7 delta) rotate-pos))))
+
+(defn square-45-anticlockwise [rotate-pos]
+(fn [[square _]]
+     (let [delta (- square rotate-pos)]
+        (+ (* 9 delta) rotate-pos))))
+
+(defn rotate-bitboard-45-clockwise [rotate-pos bitboard]
+  (rotate-45-bitboard bitboard (square-45-clockwise rotate-pos)))
+
+(defn rotate-bitboard-45-anticlockwise [rotate-pos bitboard]
+  (rotate-45-bitboard bitboard (square-45-anticlockwise rotate-pos)))

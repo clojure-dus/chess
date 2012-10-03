@@ -55,9 +55,6 @@
 ;; sliding moves
 ;;
 
-(defn indexed-bits [func bit-vector]
- (filter (fn[[idx bit]] (= 1 bit)) (map-indexed func bit-vector)))
-
 (defn slide-attack-byte [occupied-bits pos]
   "occupied-bits -  flags the positions of all pieces of a rank,file or diagonal.
    pos  -  the current square  position of the current piece
@@ -84,48 +81,42 @@
    "shifts bits to square position in a empty bitboard"
    (bit-shift-left bits (square->column square)))
 
-
-(def rank-attack-array
+(def attack-array-ranks
 "2 dim array on square and occupied positions"
   (to-array-2d
    (map (fn [square]
-          (for [occupied (range 256)]
+          (for [occupied (range 64)]
             (slide-attack->bitboard square
-               (slide-attack-byte occupied (square->column square)))))
+              (slide-attack-byte (bit-shift-left occupied 1) (square->column square)))))
         (range 64))))
 
-(def file-attack-array
+(def attack-array-files
 "2 dim array on square and occupied positions"
   (to-array-2d
    (map (fn [square]
-          (for [occupied (range 256)]
+          (for [occupied (range 64)]
             (slide-attack-column->bitboard square
                (rotate90-bitboard-clockwise
-                (slide-attack-byte occupied (- 7 (square->row square)))))))
+                (slide-attack-byte (bit-shift-left occupied 1) (- 7 (square->row square)))))))
         (range 64))))
 
 
-(defn rotate-45-bitboard [bitboard  rotate-fn]
-  (let [bit-vect    (bit->vector bitboard 64)
-        bit-vect    (indexed-bits vector bit-vect)
-        update-vect (map rotate-fn bit-vect)
-        update-vect (filter (fn[diagonal-sq]
-                              (and  (> diagonal-sq -1) (< diagonal-sq 64))) update-vect)
-        result       (apply vector (repeat 64 0))]
-    (vector->bit (reduce (fn [r sq] (assoc r sq 1)) result update-vect))))
+(def attack-array-diagonal-a1h8
+"2 dim array on square and occupied positions"
+  (to-array-2d
+   (map (fn [square]
+          (for [occupied (range 64)]
+            (rotate-bitboard-45-anticlockwise square
+             (slide-attack->bitboard square
+                (slide-attack-byte (bit-shift-left occupied 1) (square->column square))))))
+        (range 64))))
 
-(defn square-45-clockwise [rotate-pos]
-   (fn [[square _]]
-     (let [delta (- square rotate-pos)]
-        (+ (* 9 delta) rotate-pos))))
-
-(defn square-45-anticlockwise [rotate-pos]
-   (fn [[square _]]
-     (let [delta (- square rotate-pos)]
-        (+ (* 7 delta) rotate-pos))))
-
-(defn rotate-bitboard-45-clockwise [bitboard rotate-pos]
-  (rotate-45-bitboard bitboard (square-45-clockwise rotate-pos)))
-
-(defn rotate--bitboard-45-anticlockwise [bitboard rotate-pos]
-  (rotate-45-bitboard bitboard (square-45-anticlockwise rotate-pos)))
+(def attack-array-diagonal-a8h1
+"2 dim array on square and occupied positions"
+  (to-array-2d
+   (map (fn [square]
+          (for [occupied (range 64)]
+            (rotate-bitboard-45-clockwise square
+             (slide-attack->bitboard square
+               (slide-attack-byte  (bit-shift-left occupied 1) (square->column square))))))
+        (range 64))))
