@@ -30,7 +30,7 @@
 
 (defmacro for-bitmap [[key bitmap] & body]
 " iterates for each bit set in bitmap. the index is bind to key. returns a vector of body results"
-  `(loop [result# []
+  `(loop [result# '()
           pieces#  ~bitmap]
      (if (= 0 pieces#)
        result#

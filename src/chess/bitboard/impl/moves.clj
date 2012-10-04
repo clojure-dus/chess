@@ -84,19 +84,22 @@
          (for-bitmap [dest-pos slide-moves]
            [piece from-sq dest-pos])))
 
+(defmethod find-piece-moves :Queen  [piece from-sq game-state]
+  (concat (find-piece-moves  :r from-sq game-state)
+           (find-piece-moves :b from-sq game-state)))
+
 
 (defn generate-moves [game-state]
   (let [squares  (:board game-state)
         pieces   (pieces-by-turn game-state)]
-    (apply concat
-           (for-bitmap [from-sq pieces]
-             (find-piece-moves (squares from-sq) from-sq game-state)))))
+    (for-bitmap [from-sq pieces]
+      (find-piece-moves (squares from-sq) from-sq game-state))))
 
 (defn print-generate-moves [game-state]
   (print-board
     (create-board-fn
         (map (fn [[p x y]] [p y])
-             (generate-moves game-state))) ))
+             (apply concat (generate-moves game-state)))) ))
 
 
 (comment (print-generate-moves  (read-fen "8/8/8/8/8/1B6/8/8 w KQkq - 0 1")))

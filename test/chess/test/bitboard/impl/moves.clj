@@ -2,7 +2,7 @@
  (:use [chess.bitboard.impl.chessboard])
   (:use [chess.bitboard.impl.moves])
   (:use [clojure.test]))
-(deftest test-find-first-one-bit
+(deftest test-generate-moves
   (testing "some moves")
 
   (=[[[:R 0 1] [:R 0 2] [:R 0 3] [:R 0 4] [:R 0 5] [:R 0 6] [:R 0 7]]]
