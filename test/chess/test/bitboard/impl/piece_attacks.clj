@@ -1,8 +1,8 @@
-(ns chess.test.core
- (:use [chess.bitboard.chessboard])
- (:use [chess.bitboard.piece-attacks])
- (:use [chess.bitboard.chessboard])
- (:use [chess.bitboard.bitoperations])
+(ns chess.test.bitboard.impl.piece-attacks
+ (:use [chess.bitboard.impl.chessboard])
+ (:use [chess.bitboard.impl.piece-attacks])
+ (:use [chess.bitboard.impl.chessboard])
+ (:use [chess.bitboard.impl.bitoperations])
   (:use [clojure.test]))
 
 (deftest test-knight-attack-array
@@ -16,3 +16,4 @@
     (testing "testing pawn move array"
       (is (= 67371008        (aget pawn-white-move-array 10)))
       (is (= 16777216        (aget pawn-white-move-array 16)))))
+(comment (run-tests))

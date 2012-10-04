@@ -1,5 +1,5 @@
-(ns chess.bitboard.file-rank
-  ( :use [chess.bitboard.bitoperations]))
+(ns chess.bitboard.impl.file-rank
+  ( :use [chess.bitboard.impl.bitoperations]))
 
 (def file-squares  (take 64 (cycle (range 1 9))))
 

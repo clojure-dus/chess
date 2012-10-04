@@ -1,6 +1,6 @@
-(ns chess.bitboard.piece-attacks
-  (:use [chess.bitboard.file-rank])
-  (:use [chess.bitboard.bitoperations]))
+(ns chess.bitboard.impl.piece-attacks
+  (:use [chess.bitboard.impl.file-rank])
+  (:use [chess.bitboard.impl.bitoperations]))
 
 (defn- create-vect-bitboards [moves-coords]
   "creates a vector of  64 squares which have bitboards

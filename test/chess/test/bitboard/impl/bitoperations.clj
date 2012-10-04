@@ -1,5 +1,5 @@
-(ns chess.test.core
-  (:use [chess.bitboard.bitoperations])
+(ns chess.test.bitboard.impl.bitoperations
+  (:use [chess.bitboard.impl.bitoperations])
   (:use [clojure.test]))
 
 (deftest test-find-first-one-bit
@@ -14,3 +14,4 @@
                (unchecked-long 2r1111111111111111111111111111111111111111111111111111111111111111))))
     (is (= 4 (find-first-one-bit
               (unchecked-long 2r1111111111111111111111111111111111111111111111111111111111110000)))))
+(comment (run-tests))

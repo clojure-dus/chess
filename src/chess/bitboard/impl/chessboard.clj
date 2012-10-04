@@ -1,7 +1,7 @@
-(ns chess.bitboard.chessboard
-  (:use [chess.bitboard.bitoperations])
-  (:use [chess.bitboard.file-rank])
-  (:use [chess.bitboard.piece-attacks])
+(ns chess.bitboard.impl.chessboard
+  (:use [chess.bitboard.impl.bitoperations])
+  (:use [chess.bitboard.impl.file-rank])
+  (:use [chess.bitboard.impl.piece-attacks])
   (:use [chess.fen :rename {read-fen other-impl-read-fen}]))
 
 (def empty-board
@@ -30,6 +30,15 @@
           (assoc-in it [:blackpieces] (reduce #(bit-or %1 (%2 it)) 0 [:r :n :b :q :k :p]))
             (assoc-in it [:allpieces] (bit-or (:whitepieces it) (:blackpieces it)))))
 
+(defn move-piece [game-state piece from dest]
+  (let [captured (get-in game-state [:board dest])]
+    (-> game-state
+        (assoc-in [:board from] :_)
+           (update-in [piece] bit-xor (bit-set 0 from))
+              (assoc-in [captured] (bit-xor (game-state captured) (bit-set 0 dest)))
+              (set-piece piece dest))))
+
+
 (defn create-board-fn [coll]
   (reduce #(set-piece %1 (first %2) (second %2)) empty-board coll))
 
@@ -48,13 +57,6 @@
         squares (map reverse squares)
         ] (create-board-fn squares)))
 
-(defn move-piece [game-state piece from dest]
-  (let [captured (get-in game-state [:board dest])]
-    (-> game-state
-        (assoc-in [:board from] :_)
-           (update-in [piece] bit-xor (bit-set 0 from))
-              (assoc-in [captured] (bit-xor (game-state captured) (bit-set 0 dest)))
-               (set-piece piece dest))))
 
 (defn pieces-by-turn [game-state]
   (if (= (game-state :turn) :w)

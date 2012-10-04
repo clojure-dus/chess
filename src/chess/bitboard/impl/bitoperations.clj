@@ -1,5 +1,5 @@
-(ns chess.bitboard.bitoperations)
-(import 'chess.bitboard.BitOps)
+(ns chess.bitboard.impl.bitoperations)
+(import 'chess.bitboard.impl.BitOps)
 
 (defn unsigned-shift-right[x n]
   (BitOps/unsignedShiftRight x n))
