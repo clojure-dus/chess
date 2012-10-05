@@ -1,6 +1,6 @@
 (ns chess.benchmark
   (:use [chess.fen])
-  (:use [chess.move-generator])
+  (:use [chess.moves-api])
   (:require [chess.bitboard.api :as bb])
   (:import [chess.bitboard.impl.BitOps])
   (:use [chess.move-selection]))
@@ -18,4 +18,4 @@
   (measure 1000 bb/generate-moves))
 
 (defn measure-rating []
-  (measure 10 select-move))
+  (measure 10 select-moves))

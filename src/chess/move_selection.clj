@@ -1,5 +1,5 @@
 (ns chess.move-selection
-  (:use [chess.move-generator :only (generate-moves)])
+  (:require [chess.moves-api :only (generate-moves) :as moves])
   (:use [chess.board-rating :only (rate)])
   (:use [chess.core :only (move-piece pos-of-piece piece-at)]))
 
@@ -23,7 +23,7 @@
 
 (defn check? [game-state]
   "checks if the given board is in check"
-  (let [opponent-moves (generate-moves (change-turn game-state))
+  (let [opponent-moves (moves/generate-moves (change-turn game-state))
         king           (if (whites-turn? game-state) :K :k)
         kings-pos      (pos-of-piece game-state king)]
      (true? (some (fn [[_ to]] (= king (piece-at game-state to))) opponent-moves))))
@@ -33,19 +33,19 @@
   "checks if the given board is checkmated"
   (if (not (check? game-state))
     false
-    (let [new-boards (moves2boards (generate-moves game-state) game-state)]
+    (let [new-boards (moves2boards (moves/generate-moves game-state) game-state)]
       (every? check? new-boards))))
 
 (defn select-max-rate  [game-state]
   "returns the best rate for all possible moves on the given board"
-  (let [possible-moves  (generate-moves game-state)
+  (let [possible-moves  (moves/generate-moves game-state)
         possible-states (moves2boards possible-moves game-state)
         ratedstates     (map rate possible-states)
         max-rate        (apply max ratedstates)]
         max-rate))
 
 (defn rate-recursive [game-state depth max-depth]
-  (let [result-boards (moves2boards (generate-moves game-state) game-state)]
+  (let [result-boards (moves2boards (moves/generate-moves game-state) game-state)]
     (if (= depth max-depth)
       (select-max-rate (change-turn game-state))
       (let [rates (pmap (fn [board] (rate-recursive (change-turn board) (inc depth) max-depth)) result-boards)]
@@ -63,9 +63,7 @@
         (ffirst (filter #(= max-rate (val %)) moves2rates))))
 
 (def min-max
-  (partial min-max-generic generate-moves moves2boards rate-recursive))
+  (partial min-max-generic moves/generate-moves moves2boards rate-recursive))
  
 (defn select-move [game-state]
   (min-max game-state 2))
-
-
