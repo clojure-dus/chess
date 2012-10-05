@@ -41,8 +41,10 @@
        [piece from-sq dest-pos])))
 
  (defmethod find-piece-moves :King [piece from-sq game-state]
-   (let [moves    (aget king-attack-array from-sq)
-           ; todo castle move
+   (let [moves              (aget king-attack-array from-sq)
+         not-occupied       (bit-not (pieces-by-turn game-state))
+         moves              (bit-and moves not-occupied)
+         ; todo castle move
          ]
      (for-bitmap [dest-pos moves]
        [piece from-sq dest-pos])))
@@ -92,14 +94,14 @@
 (defn generate-moves [game-state]
   (let [squares  (:board game-state)
         pieces   (pieces-by-turn game-state)]
-    (for-bitmap [from-sq pieces]
-      (find-piece-moves (squares from-sq) from-sq game-state))))
+    (apply concat (for-bitmap [from-sq pieces]
+                    (find-piece-moves (squares from-sq) from-sq game-state)))))
 
 (defn print-generate-moves [game-state]
   (print-board
     (create-board-fn
         (map (fn [[p x y]] [p y])
-             (apply concat (generate-moves game-state)))) ))
+             (generate-moves game-state))) ))
 
 
 (comment (print-generate-moves  (read-fen "8/8/8/8/8/1B6/8/8 w KQkq - 0 1")))
