@@ -23,20 +23,36 @@
        [piece from-sq dest-pos])))
 
  (defmethod find-piece-moves :WhitePawn [piece from-sq game-state]
-   (let [moves    (aget pawn-white-move-array from-sq)
-         occupied (bit-and (:allpieces game-state) moves)
-         moves    (bit-xor moves occupied)
+   (let [moves          (aget pawn-white-move-array from-sq)
+         all-pieces     (:allpieces game-state)
+         occupied       (bit-and all-pieces moves)
+         moves          (bit-xor moves occupied)
+
+         double-moves   (aget pawn-white-double-move-array from-sq)
+         occupied-4-row (bit-and all-pieces double-moves)
+         occupied-3-row (bit-and (bit-shift-left all-pieces 8) double-moves)
+         double-moves   (bit-xor double-moves (bit-or occupied-3-row occupied-4-row))
+
          attacks  (bit-and (:blackpieces game-state) (aget pawn-white-attack-array from-sq))
-         moves    (bit-or moves attacks)]
+         moves    (bit-or moves double-moves attacks)
+         ]
      (for-bitmap [dest-pos moves]
        [piece from-sq dest-pos])))
 
+
 (defmethod find-piece-moves :BlackPawn [piece from-sq game-state]
   (let [moves    (aget pawn-black-move-array from-sq)
-        occupied (bit-and (:allpieces game-state) moves)
+        all-pieces     (:allpieces game-state)
+        occupied (bit-and all-pieces moves)
         moves    (bit-xor moves occupied)
+
+        double-moves   (aget pawn-black-double-move-array from-sq)
+        occupied-5-row (bit-and all-pieces double-moves)
+        occupied-6-row (bit-and (bit-shift-right  all-pieces 8) double-moves)
+        double-moves   (bit-xor double-moves (bit-or occupied-5-row occupied-6-row))
+
         attacks  (bit-and (:whitepieces game-state) (aget pawn-black-attack-array from-sq))
-        moves    (bit-or moves attacks)]
+        moves    (bit-or moves double-moves attacks)]
      (for-bitmap [dest-pos moves]
        [piece from-sq dest-pos])))
 

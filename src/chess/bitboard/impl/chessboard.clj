@@ -63,6 +63,7 @@
       (:whitepieces game-state)
       (:blackpieces game-state)))
 
+
 (defn print-board-vector [board-vector]
  (let [abc  "    a  b  c  d  e  f  g  h \n"
        rows board-vector

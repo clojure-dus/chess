@@ -1,6 +1,6 @@
 (ns chess.bitboard.api
   (:require [chess.bitboard.impl.chessboard
-         :only (move-piece initial-board read-fen)
+         :only (move-piece initial-board read-fen print-board)
          :as chessboard])
   (:use [chess.bitboard.impl.file-rank
          :only (lookup-file lookup-rank)])
@@ -14,10 +14,10 @@
 (defn- square->coord [square]
   [(dec (aget lookup-file square)) (dec (aget lookup-rank square))])
 
-(defn move-piece [game-state from dest]
+(defn move-piece [game-state from-coord dest-coord]
    "move piece by coordinates from and dest"
-   (let [from-sq (coord->square from)
-         dest-sq (coord->square dest)
+   (let [from-sq (coord->square from-coord)
+         dest-sq (coord->square dest-coord)
          piece   (nth (:board game-state) from-sq)]
      (chessboard/move-piece game-state piece from-sq dest-sq)))
 
@@ -29,9 +29,13 @@
 (defn possible-moves [game-state coord]
   (let [square (coord->square coord)
         piece  (nth (:board game-state) square)]
-    (map  (fn[[_ _ dest]] (square->coord dest))  (moves/find-piece-moves piece square game-state))))
+    (map  (fn[[_ _ dest]] (square->coord dest))
+          (moves/find-piece-moves piece square game-state))))
 
 (def initial-board chessboard/initial-board)
 
 (defn read-fen [str]
   (chessboard/read-fen str))
+
+(defn print-board [game-state]
+  (chessboard/print-board game-state))

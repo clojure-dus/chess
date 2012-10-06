@@ -26,22 +26,23 @@
   (long-array (create-vect-bitboards
               [[1 2] [2 1] [2 -1] [1 -2] [-1 -2] [-2 -1] [-2 1] [-1 2]] )))
 
-(defn update-in-bitboard  [distance bb-vector square]
-     (let [bitboard    (nth bb-vector square)
-           double-move (bit-set 0 (+ distance square))]
-         (assoc bb-vector square (bit-or bitboard double-move))))
+ (def pawn-white-move-array
+   (long-array  (create-vect-bitboards [[0 1]])))
 
-(def pawn-white-move-array
-  (let [single-moves     (create-vect-bitboards [[0 1]])
-        row-2-squares    [8 9 10 11 12 13 14 15]
-        make-double-move (partial update-in-bitboard 16) ]
-    (long-array (reduce make-double-move single-moves row-2-squares))))
+ (def pawn-white-double-move-array
+   (let [row-4-squares [24 25 26 27 28 29 30 31]]
+     (long-array (concat (repeat 8 0)
+                         (map #(bit-set 0 %) row-4-squares)
+                         (repeat 48 0)))))
 
 (def pawn-black-move-array
-  (let [single-moves     (create-vect-bitboards [[0 -1]])
-        row-7-squares    [48 49 50 51 52 53 54 55]
-        make-double-move (partial update-in-bitboard -16) ]
-    (long-array (reduce make-double-move single-moves row-7-squares))))
+  (long-array  (create-vect-bitboards [[0 -1]])))
+
+ (def pawn-black-double-move-array
+   (let [row-5-squares [32 33 34 35 36 37 38 39]]
+     (long-array (concat (repeat 48 0)
+                         (map #(bit-set 0 %) row-5-squares)
+                         (repeat 8 0)))))
 
 (def pawn-white-attack-array
   (long-array (create-vect-bitboards [[1 1] [-1 1]])))
