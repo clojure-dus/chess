@@ -44,10 +44,10 @@
 
 (def initial-board
   (create-board-fn
-          '([:r 63] [:n 62] [:b 61] [:q 60] [:k 59] [:b 58] [:n 57] [:r 56]
+          '([:r 63] [:n 62] [:b 61] [:k 59] [:q 60] [:b 58] [:n 57] [:r 56]
             [:p 55] [:p 54] [:p 53] [:p 52] [:p 51] [:p 50] [:p 49] [:p 48]
             [:P 15] [:P 14] [:P 13] [:P 12] [:P 11] [:P 10] [:P  9] [:P  8]
-            [:R  7] [:N  6] [:B  5] [:Q  4] [:K  3] [:B  2] [:N  1] [:R  0])))
+            [:R  7] [:N  6] [:B  5] [:K  4] [:Q  3][:B  2] [:N  1] [:R  0])))
 
 (defn read-fen [fen-str]
   (let [
@@ -81,7 +81,7 @@
 
 (defn bitmap->board-vector [board-vector piece bitmap]
   "adds a bitmap to a board. board is a vector of piece keyowrds"
-  (let [indexes (for-bitmap[idx bitmap] idx)
+  (let [indexes (for-bitmap [idx bitmap] idx)
         update-fn (fn [board-vector idx] (assoc board-vector idx piece))]
      (reduce update-fn board-vector indexes)))
 
