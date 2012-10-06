@@ -4,7 +4,7 @@
   (:use [chess.bitboard.impl.chessboard])
   (:use [chess.bitboard.impl.piece-attacks])
   (:use [clojure.pprint]))
-
+(comemnt (set! *warn-on-reflection* true))
 (defmulti find-piece-moves (fn[piece _ _]
                        (case piece
                          (:N :n):Knight
@@ -16,24 +16,24 @@
                          :p      :BlackPawn)))
 
  (defmethod find-piece-moves :Knight [piece from-sq game-state]
-   (let [piece-move-bitset    (aget knight-attack-array from-sq)
+   (let [piece-move-bitset    (aget ^longs knight-attack-array from-sq)
          not-occupied-squares (bit-not (pieces-by-turn game-state))
          moves                (bit-and piece-move-bitset not-occupied-squares)]
      (for-bitmap [dest-pos moves]
        [piece from-sq dest-pos])))
 
  (defmethod find-piece-moves :WhitePawn [piece from-sq game-state]
-   (let [moves          (aget pawn-white-move-array from-sq)
+   (let [moves          (aget ^longs pawn-white-move-array from-sq)
          all-pieces     (:allpieces game-state)
          occupied       (bit-and all-pieces moves)
          moves          (bit-xor moves occupied)
 
-         double-moves   (aget pawn-white-double-move-array from-sq)
+         double-moves   (aget ^longs pawn-white-double-move-array from-sq)
          occupied-4-row (bit-and all-pieces double-moves)
          occupied-3-row (bit-and (bit-shift-left all-pieces 8) double-moves)
          double-moves   (bit-xor double-moves (bit-or occupied-3-row occupied-4-row))
 
-         attacks  (bit-and (:blackpieces game-state) (aget pawn-white-attack-array from-sq))
+         attacks  (bit-and (:blackpieces game-state) (aget ^longs pawn-white-attack-array from-sq))
          moves    (bit-or moves double-moves attacks)
          ]
      (for-bitmap [dest-pos moves]
@@ -41,23 +41,23 @@
 
 
 (defmethod find-piece-moves :BlackPawn [piece from-sq game-state]
-  (let [moves    (aget pawn-black-move-array from-sq)
+  (let [moves    (aget ^longs pawn-black-move-array from-sq)
         all-pieces     (:allpieces game-state)
         occupied (bit-and all-pieces moves)
         moves    (bit-xor moves occupied)
 
-        double-moves   (aget pawn-black-double-move-array from-sq)
+        double-moves   (aget ^longs pawn-black-double-move-array from-sq)
         occupied-5-row (bit-and all-pieces double-moves)
         occupied-6-row (bit-and (bit-shift-right  all-pieces 8) double-moves)
         double-moves   (bit-xor double-moves (bit-or occupied-5-row occupied-6-row))
 
-        attacks  (bit-and (:whitepieces game-state) (aget pawn-black-attack-array from-sq))
+        attacks  (bit-and (:whitepieces game-state) (aget ^longs pawn-black-attack-array from-sq))
         moves    (bit-or moves double-moves attacks)]
      (for-bitmap [dest-pos moves]
        [piece from-sq dest-pos])))
 
  (defmethod find-piece-moves :King [piece from-sq game-state]
-   (let [moves              (aget king-attack-array from-sq)
+   (let [moves              (aget ^longs king-attack-array from-sq)
          not-occupied       (bit-not (pieces-by-turn game-state))
          moves              (bit-and moves not-occupied)
          ; todo castle move
@@ -72,12 +72,13 @@
         occupied-row       (bit-and allpieces (aget masks-row from-sq))
         occupied-mask      (unsigned-shift-right occupied-row
                                                  (inc (aget rank-shift-array from-sq)))
-        slide-moves-rank   (bit-and (aget attack-array-ranks from-sq occupied-mask) not-occupied)
+        slide-moves-rank   (bit-and (aget ^longs attack-array-ranks from-sq occupied-mask)
+                                    not-occupied)
 
-        occupied-column    (bit-and allpieces (aget masks-column from-sq))
+        occupied-column    (bit-and allpieces (aget ^longs masks-column from-sq))
         occupied-mask      (shift-rank-to-bottom occupied-column from-sq)
 
-        slide-moves-file   (bit-and (aget attack-array-files from-sq occupied-mask) not-occupied)
+        slide-moves-file   (bit-and (aget ^longs attack-array-files from-sq occupied-mask) not-occupied)
 
         slide-moves        (bit-or slide-moves-rank slide-moves-file) ]
 
@@ -88,14 +89,14 @@
   (let [allpieces          (:allpieces game-state)
         not-occupied       (bit-not (pieces-by-turn game-state))
 
-        occupied-diagonal  (bit-and allpieces (aget masks-diagonal-a1h8 from-sq))
+        occupied-diagonal  (bit-and allpieces (aget ^longs masks-diagonal-a1h8 from-sq))
 
         occupied-mask      (shift-diagonal-a1h8-to-bottom occupied-diagonal from-sq)
-        slide-diagonal-a1  (bit-and (aget attack-array-diagonal-a1h8
+        slide-diagonal-a1  (bit-and (aget ^longs attack-array-diagonal-a1h8
                                             from-sq occupied-mask) not-occupied)
-        occupied-diagonal  (bit-and allpieces (aget masks-diagonal-a8h1 from-sq))
+        occupied-diagonal  (bit-and allpieces (aget ^longs masks-diagonal-a8h1 from-sq))
         occupied-mask      (shift-diagonal-a8h1-to-bottom occupied-diagonal from-sq)
-        slide-diagonal-a8  (bit-and (aget attack-array-diagonal-a8h1
+        slide-diagonal-a8  (bit-and (aget ^longs attack-array-diagonal-a8h1
                                           from-sq occupied-mask) not-occupied)
 
         slide-moves        (bit-or slide-diagonal-a1 slide-diagonal-a8)]

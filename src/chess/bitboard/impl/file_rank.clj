@@ -137,17 +137,17 @@
 (defmacro shift-rank-to-bottom[bitboard square]
   `(~'unsigned-shift-right
     (unchecked-multiply (unchecked-long ~bitboard)
-                        (unchecked-long (aget magics-file ~square))) 57))
+                        (unchecked-long (aget  magics-file ~square))) 57))
 
 
 (defmacro shift-diagonal-a1h8-to-bottom[bitboard square]
   `(~'unsigned-shift-right
     (unchecked-multiply (unchecked-long ~bitboard)
-                        (unchecked-long (aget magics-diagonal-a1h8 ~square))) 57))
+                        (unchecked-long (aget  magics-diagonal-a1h8 ~square))) 57))
 
 
 
 (defmacro shift-diagonal-a8h1-to-bottom[bitboard square]
   `(~'unsigned-shift-right
     (unchecked-multiply (unchecked-long ~bitboard)
-                        (unchecked-long (aget magics-diagonal-a8h1 ~square))) 57))
+                        (unchecked-long (aget  magics-diagonal-a8h1 ~square))) 57))

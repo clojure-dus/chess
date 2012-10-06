@@ -82,9 +82,27 @@
    "shifts bits to square position in a empty bitboard"
    (bit-shift-left bits (square->column square)))
 
+
+(defn to-long-array-2d
+  "Returns a (potentially-ragged) 2-dimensional array of Objects
+  containing the contents of coll, which can be any Collection of any
+  Collection."
+  {:tag "[[Ljava.lang.Object;"
+   :added "1.0"
+   :static true}
+  [^java.util.Collection coll]
+    (let [ret (make-array Long/TYPE (. coll (size)) 64)]
+      (loop [i 0 xs (seq coll)]
+        (when xs
+          (aset ret i (long-array (first xs)))
+          (recur (inc i) (next xs))))
+      ret))
+
+
+
 (def attack-array-ranks
 "2 dim array on square and occupied positions"
-  (to-array-2d
+  (to-long-array-2d
    (map (fn [square]
           (for [occupied (range 64)]
             (slide-attack->bitboard square
@@ -93,7 +111,7 @@
 
 (def attack-array-files
 "2 dim array on square and occupied positions"
-  (to-array-2d
+  (to-long-array-2d
    (map (fn [square]
           (for [occupied (range 64)]
             (slide-attack-column->bitboard square
@@ -104,7 +122,7 @@
 
 (def attack-array-diagonal-a1h8
 "2 dim array on square and occupied positions"
-  (to-array-2d
+  (to-long-array-2d
    (map (fn [square]
           (for [occupied (range 64)]
             (rotate-bitboard-45-anticlockwise square
@@ -114,7 +132,7 @@
 
 (def attack-array-diagonal-a8h1
 "2 dim array on square and occupied positions"
-  (to-array-2d
+  (to-long-array-2d
    (map (fn [square]
           (for [occupied (range 64)]
             (rotate-bitboard-45-clockwise square
