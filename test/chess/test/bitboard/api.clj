@@ -4,7 +4,7 @@
 
 
 (deftest test-possible-moves
-  (is (= '((2 2) (0 2)) (possible-moves initial-board [1 0]))))
+  (is (= '((0 2) (2 2)) (possible-moves initial-board [1 0]))))
 
 (deftest test-generate-moves
   (is (=  (apply hash-set '(((0 1) (0 2)) ((0 1) (0 3)) ((1 0) (2 2)) ((1 0) (0 2))
