@@ -41,7 +41,7 @@
   (let [possible-moves  (moves/generate-moves game-state)
         possible-states (moves2boards possible-moves game-state)
         ratedstates     (map rate possible-states)
-        max-rate        (apply max ratedstates)]
+        max-rate        (if (checkmated? game-state) 9999999 (apply max ratedstates))]
         max-rate))
 
 (defn rate-recursive [game-state depth max-depth]
@@ -52,7 +52,6 @@
          (if (= 0 (mod depth 2))
            (apply max rates)
            (apply min rates))))))
-
 
 (defn min-max-generic [move-fn move2gamestate-fn rate-fn game-state max-depth]
   (let [possible-moves  (move-fn game-state)

@@ -4,6 +4,8 @@
         [chess.move-selection]
         [clojure.test]))
 
+(def checkmated-board "r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 1")
+
 (deftest test-min-max
   (is
     (= '((7 4) (7 6))
@@ -24,5 +26,9 @@
 
 
 (deftest test-check-mated?
-  (is (checkmated? (read-fen "r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 1")))
+  (is (checkmated? (read-fen checkmated-board )))
   (is (not(checkmated? initial-board))))
+
+
+(deftest test-checkmated-rating
+  (is (= 9999999 (select-max-rate (read-fen checkmated-board)))))

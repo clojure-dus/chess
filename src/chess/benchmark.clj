@@ -28,4 +28,4 @@
   (measure 400 rate allboards))
 
 (defn measure-move-selection []
-  (measure 10 select-move allboards))
+  (measure 1 select-move allboards))
