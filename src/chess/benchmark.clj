@@ -22,6 +22,5 @@
 (defn measure-bitmap-moves []
   (measure 1000 bb/generate-moves allboards-bb))
 
-(comment
-  (defn measure-rating []
-    (measure 10 select-moves allboards)))
+(defn measure-rating []
+    (measure 10 select-move allboards))
