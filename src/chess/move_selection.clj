@@ -29,19 +29,23 @@
      (true? (some (fn [[_ to]] (= king (piece-at game-state to))) opponent-moves))))
 
 
-(defn checkmated? [game-state]
-  "checks if the given board is checkmated"
-  (if (not (check? game-state))
-    false
-    (let [new-boards (moves2boards (moves/generate-moves game-state) game-state)]
-      (every? check? new-boards))))
+(defn checkmated?
+  ([game-state]
+   (let [new-boards (moves2boards (moves/generate-moves game-state) game-state)]
+      (checkmated? game-state new-boards)))
+  ([game-state new-boards]
+   (if (not (check? game-state))
+    false 
+    (every? check? new-boards))))
 
+
+  
 (defn select-max-rate  [game-state]
   "returns the best rate for all possible moves on the given board"
   (let [possible-moves  (moves/generate-moves game-state)
         possible-states (moves2boards possible-moves game-state)
         ratedstates     (map rate possible-states)
-        max-rate        (if (checkmated? game-state) 9999999 (apply max ratedstates))]
+        max-rate        (if (checkmated? game-state possible-states) 9999999 (apply max ratedstates))]
         max-rate))
 
 (defn rate-recursive [game-state depth max-depth]
