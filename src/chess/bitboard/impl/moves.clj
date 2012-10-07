@@ -4,7 +4,7 @@
   (:use [chess.bitboard.impl.chessboard])
   (:use [chess.bitboard.impl.piece-attacks])
   (:use [clojure.pprint]))
-(comemnt (set! *warn-on-reflection* true))
+(comment (set! *warn-on-reflection* true))
 (defmulti find-piece-moves (fn[piece _ _]
                        (case piece
                          (:N :n):Knight
