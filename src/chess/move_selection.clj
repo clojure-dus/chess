@@ -3,6 +3,8 @@
   (:use [chess.board-rating :only (rate)])
   (:use [chess.core :only (move-piece pos-of-piece piece-at)]))
 
+(def CHECKMATED 9999999)
+
 (defn moves2boards [moves game-state]
   "creates new game-states for the given boards"
   (map (fn [[pos1 pos2]] (move-piece game-state pos1 pos2)) moves))
@@ -38,14 +40,12 @@
     false 
     (every? check? new-boards))))
 
-
-  
 (defn select-max-rate  [game-state]
   "returns the best rate for all possible moves on the given board"
   (let [possible-moves  (moves/generate-moves game-state)
         possible-states (moves2boards possible-moves game-state)
         ratedstates     (map rate possible-states)
-        max-rate        (if (checkmated? game-state possible-states) 9999999 (apply max ratedstates))]
+        max-rate        (if (checkmated? game-state possible-states) CHECKMATED (apply max ratedstates))]
         max-rate))
 
 (defn rate-recursive [game-state depth max-depth]

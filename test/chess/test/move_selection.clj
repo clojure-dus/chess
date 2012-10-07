@@ -30,5 +30,5 @@
   (is (not(checkmated? initial-board))))
 
 
-(deftest test-checkmated-rating
-  (is (= 9999999 (select-max-rate (read-fen checkmated-board)))))
+(deftest test-select-max-rate
+  (is (= CHECKMATED (select-max-rate (read-fen checkmated-board)))))
