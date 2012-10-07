@@ -73,6 +73,7 @@
                                    (> idx nearest-right) 0
                                    :else                 1)))))
 
+
 (defn slide-attack->bitboard[square bits]
    "shifts bits to square position in a empty bitboard"
    (bit-shift-left bits (aget rank-shift-array square)))
@@ -127,7 +128,7 @@
           (for [occupied (range 64)]
             (rotate-bitboard-45-anticlockwise square
              (slide-attack->bitboard square
-                (slide-attack-byte (bit-shift-left occupied 1) (square->column square))))))
+                (slide-attack-byte (bit-shift-left occupied 1) (square->row square))))))
         (range 64))))
 
 (def attack-array-diagonal-a8h1

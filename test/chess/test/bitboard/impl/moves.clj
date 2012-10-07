@@ -61,10 +61,8 @@
                        (assoc :turn :b)
                        (api/move-piece [3 6] [1 1])
                        (api/move-piece [5 6] [1 1]))]
-    (is (=  #{[5 4] [4 5] [3 6] [0 5] [7 2] [6 3]}
+    (is (=  #{[5 4] [4 5] [3 6]  [7 2] [6 3]}
             (apply hash-set (api/possible-moves game-state [2 7]))))))
 
 (deftest test-knight-moves
   (is (= #{[2 2] [0 2]} (apply hash-set (api/possible-moves api/initial-board [1 0]))))
-
-  (comment (run-all-tests)))

@@ -75,12 +75,13 @@
         slide-moves-rank   (bit-and (aget ^longs attack-array-ranks from-sq occupied-mask)
                                     not-occupied)
 
-        occupied-column    (bit-and allpieces (aget ^longs masks-column from-sq))
+        occupied-column    (bit-and allpieces (aget  masks-column from-sq))
         occupied-mask      (shift-rank-to-bottom occupied-column from-sq)
 
-        slide-moves-file   (bit-and (aget ^longs attack-array-files from-sq occupied-mask) not-occupied)
+        slide-moves-file   (bit-and
+                            (aget ^longs attack-array-files from-sq occupied-mask) not-occupied)
 
-        slide-moves        (bit-or slide-moves-rank slide-moves-file) ]
+        slide-moves        (bit-or slide-moves-rank slide-moves-file)]
 
     (for-bitmap [dest-pos slide-moves]
       [piece from-sq dest-pos])))
@@ -90,7 +91,6 @@
         not-occupied       (bit-not (pieces-by-turn game-state))
 
         occupied-diagonal  (bit-and allpieces (aget ^longs masks-diagonal-a1h8 from-sq))
-
         occupied-mask      (shift-diagonal-a1h8-to-bottom occupied-diagonal from-sq)
         slide-diagonal-a1  (bit-and (aget ^longs attack-array-diagonal-a1h8
                                             from-sq occupied-mask) not-occupied)
@@ -102,6 +102,7 @@
         slide-moves        (bit-or slide-diagonal-a1 slide-diagonal-a8)]
          (for-bitmap [dest-pos slide-moves]
            [piece from-sq dest-pos])))
+
 
 (defmethod find-piece-moves :Queen  [piece from-sq game-state]
   (concat (find-piece-moves  :r from-sq game-state)

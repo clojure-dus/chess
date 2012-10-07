@@ -46,7 +46,8 @@
 (def ^:longs masks-diagonal-a1h8
   (into-array Long/TYPE
      (map-indexed (fn [sq bits] (rotate-bitboard-45-anticlockwise sq bits)) (row-masks-vector))))
- (aget masks-diagonal-a1h8 18)
+
+
 (def ^:longs masks-diagonal-a8h1
   (into-array Long/TYPE
     (map-indexed (fn [sq bits] (rotate-bitboard-45-clockwise sq bits)) (row-masks-vector))))
@@ -66,24 +67,13 @@
                                  (unchecked-long 0x0201008040201008)
                                  (unchecked-long 0x0100804020100804)]))))
 
-(def lookup-diagonal-a1h8-old [
-        7  8  9 10 11 12 13 14
-        6  7  8  9 10 11 12 13
-        5  6  7  8  9 10 11 12
-        4  5  6  7  8  9 10 11
-        3  4  5  6  7  8  9 10
-        2  3  4  5  6  7  8  9
-        1  2  3  4  5  6  7  8
-        0  1  2  3  4  5  6  7
-                           ])
-
 (def magics-diagonal-a8h1
   (into-array Long/TYPE
               (let [magics [0x0                  ;a1
                             0x0
                             0x0101010101010100   ;a2-b1
                             0x0101010101010100
-                            0x0101010101010100
+                            0x0101010101010100   ;a5-e1
                             0x0101010101010100
                             0x0101010101010100
                             0x0101010101010100
@@ -112,9 +102,9 @@
                             0x0101010101010100   ;a6-c8
                             0x0101010101010100
                             0x0101010101010100
-                            0x0101010101010100
-                            0x0101010101010100
-                            0x0101010101010100
+                            0x0101010101010100   ;a3-f8
+                            0x0101010101010100  ;a2-g8
+                            0x0101010101010100  ;a1-h8
                             0x0080808080808080  ;b1-h7
                             0x0040404040404040
                             0x2020202020000000  ;d1-h5
@@ -124,14 +114,14 @@
                             0x0]]
 
                 (map #(nth magics %)
-                     [ 7   6  5  4  3  2  1  0
-                       8   7  6  5  4  3  2  1
-                       9   8  7  6  5  4  3  2
-                      10   9  8  7  6  5  4  3
-                      11  10  9  8  7  6  5  4
-                      12  11 10  9  8  7  6  5
-                      13  12 11 10  9  8  7  6
-                      14  13 12 11 10  9  8  7]))))
+                     [ 7   8  9 10 11 12 13 14
+                       6   7  8  9 10 11 12 13
+                       5   6  7  8  9 10 11 12
+                       4   5  6  7  8  9 10 11
+                       3   4  5  6  7  8  9 10
+                       2   3  4  5  6  7  8  9
+                       1   2  3  4  5  6  7  8
+                       0   1  2  3  4  5  6  7]))))
 
 
 (defmacro shift-rank-to-bottom[bitboard square]
@@ -144,8 +134,6 @@
   `(~'unsigned-shift-right
     (unchecked-multiply (unchecked-long ~bitboard)
                         (unchecked-long (aget  magics-diagonal-a1h8 ~square))) 57))
-
-
 
 (defmacro shift-diagonal-a8h1-to-bottom[bitboard square]
   `(~'unsigned-shift-right
