@@ -29,19 +29,14 @@
     (is (= #{'(0 2) '(0 3) '(1 2)}
            (apply hash-set (api/possible-moves
                             (api/move-piece api/initial-board [1 6] [1 2]) [0 1]))))))
-
-(deftest test-queen-moves
-  (let [game-state (-> api/initial-board
-                       (api/move-piece [3 1] [4 4])
-                       (api/move-piece [2 1] [2 2]))]
-    (is (= #{[2 1] [1 2] [0 3] [3 1] [3 2] [3 3] [3 4] [3 5] [3 6]}
-           (apply hash-set (api/possible-moves game-state [3 0]))))))
-
 (deftest test-king-moves
   (let [game-state (-> api/initial-board
                        (api/move-piece [4 1] [4 2])
                        (api/move-piece [5 1] [5 2]))]
     (is (= #{[5 1] [4 1]} (apply hash-set (api/possible-moves game-state [4 0]))))))
+
+(deftest test-knight-moves
+  (is (= #{[2 2] [0 2]} (apply hash-set (api/possible-moves api/initial-board [1 0])))))
 
 (deftest test-rook-moves
   (let [game-state (-> api/initial-board
@@ -62,7 +57,30 @@
                        (api/move-piece [3 6] [1 1])
                        (api/move-piece [5 6] [1 1]))]
     (is (=  #{[5 4] [4 5] [3 6]  [7 2] [6 3]}
-            (apply hash-set (api/possible-moves game-state [2 7]))))))
+            (apply hash-set (api/possible-moves game-state [2 7]))))
 
-(deftest test-knight-moves
-  (is (= #{[2 2] [0 2]} (apply hash-set (api/possible-moves api/initial-board [1 0]))))
+    (is (= #{[3 6] [2 5] [1 4] [0 3]} (apply hash-set
+                   (api/possible-moves
+                    (read-fen "4B3/5P2/8/8/8/8/8/8 w KQkq - 0 1") [4 7]))))
+
+    (is (= #{[3 6] [2 5] [1 4] [0 3]} (apply hash-set
+                   (api/possible-moves
+                    (read-fen "4B3/5P2/6P1/8/8/8/8/8 w KQkq - 0 1") [4 7]))))
+
+    (is (= #{[3 6] [2 5] [1 4] [0 3] [5 6]} (apply hash-set
+                   (api/possible-moves
+                    (read-fen "4B3/5p2/6P1/8/8/8/8/8 w KQkq - 0 1") [4 7]))))
+
+
+    (is (= #{[4 1][3 2][2 3][1 4][0 5]} (apply hash-set
+                   (api/possible-moves
+                    (read-fen "8/8/8/8/8/8/6P1/5B2 w KQkq - 0 1") [5 0]))))))
+
+(deftest test-queen-moves
+  (let [game-state (-> api/initial-board
+                       (api/move-piece [3 1] [4 4])
+                       (api/move-piece [2 1] [2 2]))]
+    (is (= #{[2 1] [1 2] [0 3] [3 1] [3 2] [3 3] [3 4] [3 5] [3 6]}
+           (apply hash-set (api/possible-moves game-state [3 0]))))))
+
+(comment(run-tests))
