@@ -128,7 +128,7 @@
           (for [occupied (range 64)]
             (rotate-bitboard-45-anticlockwise square
              (slide-attack->bitboard square
-                (slide-attack-byte (bit-shift-left occupied 1) (square->row square))))))
+                (slide-attack-byte (bit-shift-left occupied 1) (square->column square))))))
         (range 64))))
 
 (def attack-array-diagonal-a8h1
@@ -138,5 +138,5 @@
           (for [occupied (range 64)]
             (rotate-bitboard-45-clockwise square
              (slide-attack->bitboard square
-               (slide-attack-byte  (bit-shift-left occupied 1) (square->column square))))))
+               (slide-attack-byte  (bit-shift-left occupied 1) (- 7 (square->row square)))))))
         (range 64))))

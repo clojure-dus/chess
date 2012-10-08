@@ -92,10 +92,12 @@
 
         occupied-diagonal  (bit-and allpieces (aget ^longs masks-diagonal-a1h8 from-sq))
         occupied-mask      (shift-diagonal-a1h8-to-bottom occupied-diagonal from-sq)
+
         slide-diagonal-a1  (bit-and (aget ^longs attack-array-diagonal-a1h8
                                             from-sq occupied-mask) not-occupied)
         occupied-diagonal  (bit-and allpieces (aget ^longs masks-diagonal-a8h1 from-sq))
         occupied-mask      (shift-diagonal-a8h1-to-bottom occupied-diagonal from-sq)
+
         slide-diagonal-a8  (bit-and (aget ^longs attack-array-diagonal-a8h1
                                           from-sq occupied-mask) not-occupied)
 
@@ -121,5 +123,4 @@
         (map (fn [[p x y]] [p y])
              (generate-moves game-state))) ))
 
-
-(comment (print-generate-moves  (read-fen "8/8/8/8/8/1B6/8/8 w KQkq - 0 1")))
+(comment (print-generate-moves  (read-fen "8/8/8/8/P7/1B6/8/8 w KQkq - 0 1")))
