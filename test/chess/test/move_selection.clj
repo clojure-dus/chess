@@ -2,6 +2,7 @@
   (:use [chess.core :only (initial-board move-piece)]
         [chess.fen :only [read-fen]]
         [chess.move-selection]
+        [clojure.pprint]
         [clojure.test]))
 
 (def checkmated-board "r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 1")
@@ -32,3 +33,7 @@
 
 (deftest test-select-max-rate
   (is (= CHECKMATED (select-max-rate (read-fen checkmated-board)))))
+
+(deftest test-build-tree
+  (let [tree (build-tree (read-fen checkmated-board) 2)]
+  (is (= 9 (:score tree)))))
