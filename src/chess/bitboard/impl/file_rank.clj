@@ -9,24 +9,24 @@
 
 (def  lookup-rank  ^ints (into-array Integer/TYPE rank-squares))
 
-(defn lookup-file-rank [square] [(aget lookup-file square) (aget lookup-rank square)])
+(defn lookup-file-rank [square] [(aget ^ints lookup-file square) (aget ^ints lookup-rank square)])
 
 (def file-rank-squares
-  (map #(let [file (aget lookup-file %)
-              rank (aget lookup-rank %)]
+  (map #(let [file (aget ^ints lookup-file %)
+              rank (aget ^ints lookup-rank %)]
                 [% file rank ])(range 64)))
 
 (defn coord->square [file rank]
     (- (+ (* 8 rank) file) 9))
 
 (defn square->coord [square]
-  [( aget lookup-file square) (aget lookup-rank square)])
+  [( aget ^ints lookup-file square) (aget ^ints lookup-rank square)])
 
 (defn coords->squares [coords]
    (map (fn [[f r]] ( coord->square f r)) coords))
-(defn square->column[square] (dec (aget lookup-file square)))
+(defn square->column[square] (dec (aget ^ints lookup-file square)))
 
-(defn square->row[square] (dec (aget lookup-rank square)))
+(defn square->row[square] (dec (aget ^ints lookup-rank square)))
 
 (def rank-shift-array
   (into-array Integer/TYPE

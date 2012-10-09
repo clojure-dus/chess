@@ -12,7 +12,7 @@
   (- (+ (* 8 (inc rank)) (inc file)) 9))
 
 (defn- square->coord [square]
-  [(dec (aget lookup-file square)) (dec (aget lookup-rank square))])
+  [(dec (aget ^ints lookup-file square)) (dec (aget ^ints lookup-rank square))])
 
 (defn move-piece [game-state from-coord dest-coord]
    "move piece by coordinates from and dest"

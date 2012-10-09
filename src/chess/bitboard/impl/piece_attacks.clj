@@ -75,7 +75,7 @@
 
 (defn slide-attack->bitboard[square bits]
    "shifts bits to square position in a empty bitboard"
-   (bit-shift-left bits (aget rank-shift-array square)))
+   (bit-shift-left bits (aget ^ints rank-shift-array square)))
 
 
 (defn- slide-attack-column->bitboard[square bits]
