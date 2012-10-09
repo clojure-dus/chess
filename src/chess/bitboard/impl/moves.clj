@@ -123,4 +123,8 @@
         (map (fn [[p x y]] [p y])
              (generate-moves game-state))) ))
 
-(comment (print-generate-moves  (read-fen "8/8/8/8/P7/1B6/8/8 w KQkq - 0 1")))
+
+(comment
+  (print-bitmap 2 :L)
+  (print-generate-moves
+   (read-fen "8/2B5/8/8/8/8/8/8 w KQkq - 0 1")))

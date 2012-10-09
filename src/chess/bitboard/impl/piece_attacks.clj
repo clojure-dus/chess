@@ -55,7 +55,6 @@
 
 ;; sliding moves
 ;;
-
 (defn slide-attack-byte [occupied-bits pos]
   "occupied-bits -  flags the positions of all pieces of a rank,file or diagonal.
    pos  -  the current square  position of the current piece
@@ -63,7 +62,8 @@
    can move (including any attacked pieces)
    Example : (slide-attack-bits 2r10001001 5) -> 2r00001011"
 
-  (let [bit-vect (bit->vector occupied-bits 8)
+  (let [occupied-bits (bit-shift-left occupied-bits 1)
+        bit-vect (bit->vector occupied-bits 8)
         indexed-bits (indexed-bits vector bit-vect)
         nearest-left  (nth (last  (filter (fn [[idx bit]] (< idx pos)) indexed-bits)) 0 0)
         nearest-right (nth (first (filter (fn [[idx bit]] (> idx pos)) indexed-bits)) 0 9)]
@@ -72,7 +72,6 @@
                                    (< idx nearest-left)  0
                                    (> idx nearest-right) 0
                                    :else                 1)))))
-
 
 (defn slide-attack->bitboard[square bits]
    "shifts bits to square position in a empty bitboard"
@@ -99,15 +98,13 @@
           (recur (inc i) (next xs))))
       ret))
 
-
-
 (def attack-array-ranks
 "2 dim array on square and occupied positions"
   (to-long-array-2d
    (map (fn [square]
           (for [occupied (range 64)]
             (slide-attack->bitboard square
-              (slide-attack-byte (bit-shift-left occupied 1) (square->column square)))))
+              (slide-attack-byte occupied (square->column square)))))
         (range 64))))
 
 (def attack-array-files
@@ -117,26 +114,35 @@
           (for [occupied (range 64)]
             (slide-attack-column->bitboard square
                (rotate90-bitboard-clockwise
-                (slide-attack-byte (bit-shift-left occupied 1) (- 7 (square->row square)))))))
+                (slide-attack-byte occupied (- 7 (square->row square)))))))
         (range 64))))
 
+(defn make-attack-diagonal [square occupied diagonal-row-getter]
+  (let [diag-row    (diagonal-row-getter square)
+        position    (.indexOf diag-row square)
+        attack-bits (slide-attack-byte occupied position)
+        attack-vect (bit->vector attack-bits 8)
+        update-vect (partition 2 (interleave diag-row attack-vect))]
+     (reduce (fn [bitmap [sq bit]]
+               (if (= 1 bit) (bit-set bitmap sq) bitmap)) 0
+               update-vect)))
+
+(comment
+  (print-bitmap (make-attack-diagonal 27 0 get-diagonal-a1h8) :G))
 
 (def attack-array-diagonal-a1h8
-"2 dim array on square and occupied positions"
-  (to-long-array-2d
+  "2 dim array on square and occupied positions"
+ (to-long-array-2d
    (map (fn [square]
-          (for [occupied (range 64)]
-            (rotate-bitboard-45-anticlockwise square
-             (slide-attack->bitboard square
-                (slide-attack-byte (bit-shift-left occupied 1) (square->column square))))))
-        (range 64))))
+      (for [occupied (range 64)]
+         (make-attack-diagonal square occupied get-diagonal-a1h8)))
+           (range 64))))
+
 
 (def attack-array-diagonal-a8h1
 "2 dim array on square and occupied positions"
   (to-long-array-2d
    (map (fn [square]
           (for [occupied (range 64)]
-            (rotate-bitboard-45-clockwise square
-             (slide-attack->bitboard square
-               (slide-attack-byte  (bit-shift-left occupied 1) (- 7 (square->row square)))))))
+            (make-attack-diagonal square occupied get-diagonal-a8h1)))
         (range 64))))

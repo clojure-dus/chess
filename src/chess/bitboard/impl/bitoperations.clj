@@ -78,26 +78,27 @@
 (defn only-inner-board [sq]
   (and  (> sq -1) (< sq 64)))
 
-(defn rotate-45-bitboard [bitboard  rotate-fn]
-  (let [bit-vect    (bit->vector bitboard 64)
-        bit-vect    (indexed-bits vector bit-vect)
-        update-vect (map rotate-fn bit-vect)
-        update-vect (filter only-inner-board update-vect)
-        result       (apply vector (repeat 64 0))]
-    (vector->bit (reduce (fn [r sq] (assoc r sq 1)) result update-vect))))
 
-(defn square-45-clockwise [rotate-pos]
-  (fn [[square _]]
-     (let [delta (- rotate-pos square)]
-        (+ (* 7 delta) rotate-pos))))
+(defn print-board-vector [board-vector]
+ (let [abc  "    a  b  c  d  e  f  g  h \n"
+       rows board-vector
+       rows (map (fn[x] (str x " ")) rows)
+       rows (partition 8 rows)
+       rows (map (fn[rank row] (vec (cons (str " " rank "  ") row)))  (range 1 9) rows)
+       rows (map (fn [x] (conj x "\n")) rows)
+       rows (reverse rows)
+       rows (apply str (flatten rows))]
+   (println)
+   (print rows abc)))
 
-(defn square-45-anticlockwise [rotate-pos]
-(fn [[square _]]
-     (let [delta (- square rotate-pos)]
-        (+ (* 9 delta) rotate-pos))))
 
-(defn rotate-bitboard-45-clockwise [rotate-pos bitboard]
-  (rotate-45-bitboard bitboard (square-45-clockwise rotate-pos)))
+(defn bitmap->board-vector [board-vector piece bitmap]
+  "adds a bitmap to a board. board is a vector of piece keyowrds"
+  (let [indexes (for-bitmap [idx bitmap] idx)
+        update-fn (fn [board-vector idx] (assoc board-vector idx piece))]
+     (reduce update-fn board-vector indexes)))
 
-(defn rotate-bitboard-45-anticlockwise [rotate-pos bitboard]
-  (rotate-45-bitboard bitboard (square-45-anticlockwise rotate-pos)))
+(defn print-bitmap [bitmap piece]
+  (println  "\nVal:" bitmap ",Bitmap :" (Long/toBinaryString bitmap))
+  (let [board-vector  (mapv #(if (< % 10) (str 0 %)  %) (range 64))]
+    (print-board-vector (bitmap->board-vector board-vector piece bitmap))))

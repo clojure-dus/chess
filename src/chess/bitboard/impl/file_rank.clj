@@ -24,18 +24,17 @@
 
 (defn coords->squares [coords]
    (map (fn [[f r]] ( coord->square f r)) coords))
+(defn square->column[square] (dec (aget lookup-file square)))
+
+(defn square->row[square] (dec (aget lookup-rank square)))
 
 (def rank-shift-array
   (into-array Integer/TYPE
               (mapcat #(repeat 8 %) (take 8 (iterate (partial + 8) 0)))))
 
-(defn- row-masks-vector[]
-  (map #(bit-shift-left 2r01111110 (* 8 (dec %))) rank-squares))
-
 (def ^:longs masks-row
   "used to get a specific rank row. array has for each"
-  (into-array Long/TYPE (row-masks-vector)))
-
+  (into-array Long/TYPE (map #(bit-shift-left 2r01111110 (* 8 (dec %))) rank-squares)))
 
 (def ^:longs masks-column
   "used to get a specific rank row. array has for each"
@@ -43,18 +42,71 @@
       (let [left-column 2r0000000000000001000000010000000100000001000000010000000100000000]
          (map #(bit-shift-left left-column  (dec % )) file-squares))))
 
-(def ^:longs masks-diagonal-a1h8
-  (into-array Long/TYPE
-     (map-indexed (fn [sq bits] (rotate-bitboard-45-anticlockwise sq bits)) (row-masks-vector))))
+(def diagonals-a8h1 [ [0]
+                      [8 1]
+                      [16 9 2]
+                      [24 17 10 3]
+                      [32 25 18 11 4]
+                      [40 33 26 19 12 5]
+                      [48 41 34 27 20 13 6]
+                      [56 49 42 35 28 21 14 7]
+                      [57 50 43 36 29 22 15]
+                      [58 51 44 37 30 23]
+                      [59 52 45 38 31]
+                      [60 53 46 39]
+                      [61 54 47]
+                      [62 55]
+                      [63]])
 
+
+(def diagonals-a1h8[[56]
+                    [48 57]
+                    [40 49 58]
+                    [32 41 50 59]
+                    [24 33 42 51 60]
+                    [16 25 34 43 52 61]
+                    [8 17 26 35 44 53 62]
+                    [0 9 18 27 36 45 54 63]
+                    [1 10 19 28 37 46 55]
+                    [2 11 20 29 38 47]
+                    [3 12 21 30 39]
+                    [4 13 22 31]
+                    [5 14 23]
+                    [6 15]
+                    [7]])
+
+(defn get-diagonal-a8h1 [sq]
+  (first (filter #(>(.indexOf % sq) -1) diagonals-a8h1) ))
+
+(defn get-diagonal-a1h8 [sq]
+  (first (filter #(>(.indexOf % sq) -1) diagonals-a1h8)))
+
+
+(defn board-frame? [sq] (contains? #{ 0 1 2 3 4 5 6 7
+                                   15 23 31 39 47 55 63
+                                   62 61 60 59 58 57 56
+                                    48 40 32 24 16 8} sq))
 
 (def ^:longs masks-diagonal-a8h1
+    (into-array Long/TYPE
+                (let [find-diag (fn [[sq file rank]]
+                                  (let [index      (- (+ file rank) 2)
+                                        diagonal   (reverse (nth  diagonals-a8h1 index))
+                                        inner-diag (filter (complement board-frame?) diagonal)]
+                                    (reduce #(bit-set %1 %2) 0 inner-diag)))]
+
+                  (map find-diag file-rank-squares))))
+
+(def ^:longs masks-diagonal-a1h8
   (into-array Long/TYPE
-    (map-indexed (fn [sq bits] (rotate-bitboard-45-clockwise sq bits)) (row-masks-vector))))
+              (let [find-diag (fn [[sq file rank]]
+                                (let [index (+ (- file rank) 7)
+                                      diagonal (reverse (nth  diagonals-a1h8 index))
+                                      inner-diag (filter (complement board-frame?) diagonal)]
+                                  (reduce #(bit-set %1 %2) 0 inner-diag)))]
 
-(defn square->column[square] (dec (aget lookup-file square)))
+                (map find-diag file-rank-squares))))
 
-(defn square->row[square] (dec (aget lookup-rank square)))
 
 (def magics-file
   (into-array Long/TYPE
@@ -123,12 +175,10 @@
                        1   2  3  4  5  6  7  8
                        0   1  2  3  4  5  6  7]))))
 
-
 (defmacro shift-rank-to-bottom[bitboard square]
   `(~'unsigned-shift-right
     (unchecked-multiply (unchecked-long ~bitboard)
                         (unchecked-long (aget  magics-file ~square))) 57))
-
 
 (defmacro shift-diagonal-a1h8-to-bottom[bitboard square]
   `(~'unsigned-shift-right

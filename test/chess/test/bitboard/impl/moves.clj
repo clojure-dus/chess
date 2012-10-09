@@ -83,4 +83,5 @@
     (is (= #{[2 1] [1 2] [0 3] [3 1] [3 2] [3 3] [3 4] [3 5] [3 6]}
            (apply hash-set (api/possible-moves game-state [3 0]))))))
 
+
 (comment(run-tests))
