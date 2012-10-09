@@ -1,6 +1,6 @@
 (ns chess.bitboard.impl.bitoperations)
 (import 'chess.bitboard.impl.BitOps)
-
+(comment (set! *warn-on-reflection* true))
 (defn unsigned-shift-right[x n]
   (BitOps/unsignedShiftRight x n))
 
@@ -26,7 +26,7 @@
              debruin 0x07EDD5E59A4E28C2
              term  (bit-and bb (unchecked-negate bb))
              index (unsigned-shift-right (unchecked-multiply term  debruin) 58)]
-       (aget index-64 index))))
+       (aget ^ints index-64 index))))
 
 (defmacro for-bitmap [[key bitmap] & body]
 " iterates for each bit set in bitmap. the index is bind to key. returns a vector of body results"
@@ -102,3 +102,11 @@
   (println  "\nVal:" bitmap ",Bitmap :" (Long/toBinaryString bitmap))
   (let [board-vector  (mapv #(if (< % 10) (str 0 %)  %) (range 64))]
     (print-board-vector (bitmap->board-vector board-vector piece bitmap))))
+
+(defmacro deep-aget
+ "page 440 Clojure Programming"
+  ([array idx]`(aget ~array ~idx))
+  ([array idx & idxs]
+     (let [a-sym (gensym "a")]
+       `(let [~a-sym (aget ~(vary-meta array assoc :tag 'objects) ~idx)]
+          (deep-aget ~(with-meta a-sym {:tag (-> array meta :tag)})~@ idxs)))))

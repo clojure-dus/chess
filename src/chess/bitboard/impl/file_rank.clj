@@ -108,7 +108,7 @@
                 (map find-diag file-rank-squares))))
 
 
-(def magics-file
+(def ^:longs magics-file
   (into-array Long/TYPE
               (apply concat (repeat 8 [(unchecked-long 0x8040201008040200)
                                  (unchecked-long 0x4020100804020100)
@@ -178,14 +178,14 @@
 (defmacro shift-rank-to-bottom[bitboard square]
   `(~'unsigned-shift-right
     (unchecked-multiply (unchecked-long ~bitboard)
-                        (unchecked-long (aget  magics-file ~square))) 57))
+                        (unchecked-long (aget  ~'^longs magics-file ~square))) 57))
 
 (defmacro shift-diagonal-a1h8-to-bottom[bitboard square]
   `(~'unsigned-shift-right
     (unchecked-multiply (unchecked-long ~bitboard)
-                        (unchecked-long (aget  magics-diagonal-a1h8 ~square))) 57))
+                        (unchecked-long (aget  ~'^longs magics-diagonal-a1h8 ~square))) 57))
 
 (defmacro shift-diagonal-a8h1-to-bottom[bitboard square]
   `(~'unsigned-shift-right
     (unchecked-multiply (unchecked-long ~bitboard)
-                        (unchecked-long (aget  magics-diagonal-a8h1 ~square))) 57))
+                        (unchecked-long (aget   ~'^longs magics-diagonal-a8h1 ~square))) 57))

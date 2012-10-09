@@ -65,21 +65,22 @@
      (for-bitmap [dest-pos moves]
        [piece from-sq dest-pos])))
 
+
 (defmethod find-piece-moves :Rook [piece from-sq game-state]
   (let [allpieces          (:allpieces game-state)
         not-occupied       (bit-not (pieces-by-turn game-state))
 
-        occupied-row       (bit-and allpieces (aget masks-row from-sq))
+        occupied-row       (bit-and allpieces (aget ^longs masks-row from-sq))
         occupied-mask      (unsigned-shift-right occupied-row
-                                                 (inc (aget rank-shift-array from-sq)))
-        slide-moves-rank   (bit-and (aget ^longs attack-array-ranks from-sq occupied-mask)
+                                                 (inc (aget ^ints rank-shift-array from-sq)))
+        slide-moves-rank   (bit-and (deep-aget ^longs attack-array-ranks from-sq occupied-mask)
                                     not-occupied)
 
-        occupied-column    (bit-and allpieces (aget  masks-column from-sq))
+        occupied-column    (bit-and allpieces (aget  ^longs masks-column from-sq))
         occupied-mask      (shift-rank-to-bottom occupied-column from-sq)
 
         slide-moves-file   (bit-and
-                            (aget ^longs attack-array-files from-sq occupied-mask) not-occupied)
+                            (deep-aget ^longs attack-array-files from-sq occupied-mask) not-occupied)
 
         slide-moves        (bit-or slide-moves-rank slide-moves-file)]
 
@@ -93,12 +94,12 @@
         occupied-diagonal  (bit-and allpieces (aget ^longs masks-diagonal-a1h8 from-sq))
         occupied-mask      (shift-diagonal-a1h8-to-bottom occupied-diagonal from-sq)
 
-        slide-diagonal-a1  (bit-and (aget ^longs attack-array-diagonal-a1h8
+        slide-diagonal-a1  (bit-and (deep-aget ^longs attack-array-diagonal-a1h8
                                             from-sq occupied-mask) not-occupied)
         occupied-diagonal  (bit-and allpieces (aget ^longs masks-diagonal-a8h1 from-sq))
         occupied-mask      (shift-diagonal-a8h1-to-bottom occupied-diagonal from-sq)
 
-        slide-diagonal-a8  (bit-and (aget ^longs attack-array-diagonal-a8h1
+        slide-diagonal-a8  (bit-and (deep-aget ^longs attack-array-diagonal-a8h1
                                           from-sq occupied-mask) not-occupied)
 
         slide-moves        (bit-or slide-diagonal-a1 slide-diagonal-a8)]
