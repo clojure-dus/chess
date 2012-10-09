@@ -5,7 +5,7 @@
 
 (def  lookup-file  ^ints (into-array Integer/TYPE file-squares))
 
-(def rank-squares (mapcat (partial  repeat 8) (range 1 9)))
+(def   rank-squares (mapcat (partial  repeat 8) (range 1 9)))
 
 (def  lookup-rank  ^ints (into-array Integer/TYPE rank-squares))
 
@@ -23,7 +23,8 @@
   [( aget ^ints lookup-file square) (aget ^ints lookup-rank square)])
 
 (defn coords->squares [coords]
-   (map (fn [[f r]] ( coord->square f r)) coords))
+  (map (fn [[f r]] ( coord->square f r)) coords))
+
 (defn square->column[square] (dec (aget ^ints lookup-file square)))
 
 (defn square->row[square] (dec (aget ^ints lookup-rank square)))
@@ -94,7 +95,6 @@
                                         diagonal   (reverse (nth  diagonals-a8h1 index))
                                         inner-diag (filter (complement board-frame?) diagonal)]
                                     (reduce #(bit-set %1 %2) 0 inner-diag)))]
-
                   (map find-diag file-rank-squares))))
 
 (def ^:longs masks-diagonal-a1h8
@@ -104,7 +104,6 @@
                                       diagonal (reverse (nth  diagonals-a1h8 index))
                                       inner-diag (filter (complement board-frame?) diagonal)]
                                   (reduce #(bit-set %1 %2) 0 inner-diag)))]
-
                 (map find-diag file-rank-squares))))
 
 
@@ -185,7 +184,7 @@
     (unchecked-multiply (unchecked-long ~bitboard)
                         (unchecked-long (aget  ~'^longs magics-diagonal-a1h8 ~square))) 57))
 
-(defmacro shift-diagonal-a8h1-to-bottom[bitboard square]
+(defmacro shift-diagonal-a8h1-to-bottom[bitboard  square]
   `(~'unsigned-shift-right
     (unchecked-multiply (unchecked-long ~bitboard)
                         (unchecked-long (aget   ~'^longs magics-diagonal-a8h1 ~square))) 57))

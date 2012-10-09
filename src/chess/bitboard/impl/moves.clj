@@ -7,7 +7,7 @@
 (comment (set! *warn-on-reflection* true))
 (defmulti find-piece-moves (fn[piece _ _]
                        (case piece
-                         (:N :n):Knight
+                         (:N :n) :Knight
                          (:R :r) :Rook
                          (:B :b) :Bishop
                          (:Q :q) :Queen
@@ -67,50 +67,50 @@
 
 
 (defmethod find-piece-moves :Rook [piece from-sq game-state]
-  (let [allpieces          (:allpieces game-state)
-        not-occupied       (bit-not (pieces-by-turn game-state))
+  (let [
+        ^long allpieces        (:allpieces game-state)
+        not-occupied           (bit-not (pieces-by-turn game-state))
 
-        occupied-row       (bit-and allpieces (aget ^longs masks-row from-sq))
-        occupied-mask      (unsigned-shift-right occupied-row
-                                                 (inc (aget ^ints rank-shift-array from-sq)))
-        slide-moves-rank   (bit-and (deep-aget ^longs attack-array-ranks from-sq occupied-mask)
+        occupied-row           (bit-and allpieces (aget ^longs masks-row from-sq))
+        ^long occupied-mask    (unsigned-shift-right occupied-row
+                                      (inc (aget ^ints rank-shift-array from-sq)))
+        slide-moves-rank      (bit-and
+                                   (deep-aget ^longs attack-array-ranks from-sq occupied-mask)
                                     not-occupied)
 
-        occupied-column    (bit-and allpieces (aget  ^longs masks-column from-sq))
-        occupied-mask      (shift-rank-to-bottom occupied-column from-sq)
+        occupied-column        (bit-and allpieces (aget  ^longs masks-column from-sq))
+        ^long occupied-mask    (shift-rank-to-bottom occupied-column from-sq)
+        slide-moves-file       (bit-and
+                                 (deep-aget ^longs attack-array-files from-sq occupied-mask)
+                                 not-occupied)
 
-        slide-moves-file   (bit-and
-                            (deep-aget ^longs attack-array-files from-sq occupied-mask) not-occupied)
-
-        slide-moves        (bit-or slide-moves-rank slide-moves-file)]
+        slide-moves            (bit-or slide-moves-rank slide-moves-file)]
 
     (for-bitmap [dest-pos slide-moves]
       [piece from-sq dest-pos])))
 
 (defmethod find-piece-moves :Bishop [piece from-sq game-state]
-  (let [allpieces          (:allpieces game-state)
-        not-occupied       (bit-not (pieces-by-turn game-state))
+  (let [^long allpieces      (:allpieces game-state)
+        not-occupied         (bit-not (pieces-by-turn game-state))
 
-        occupied-diagonal  (bit-and allpieces (aget ^longs masks-diagonal-a1h8 from-sq))
-        occupied-mask      (shift-diagonal-a1h8-to-bottom occupied-diagonal from-sq)
+        occupied-diagonal    (bit-and allpieces (aget ^longs masks-diagonal-a1h8 from-sq))
+        ^long occupied-mask  (shift-diagonal-a1h8-to-bottom occupied-diagonal from-sq)
 
-        slide-diagonal-a1  (bit-and (deep-aget ^longs attack-array-diagonal-a1h8
+        slide-diagonal-a1    (bit-and (deep-aget ^longs attack-array-diagonal-a1h8
                                             from-sq occupied-mask) not-occupied)
-        occupied-diagonal  (bit-and allpieces (aget ^longs masks-diagonal-a8h1 from-sq))
-        occupied-mask      (shift-diagonal-a8h1-to-bottom occupied-diagonal from-sq)
+        occupied-diagonal    (bit-and allpieces (aget ^longs masks-diagonal-a8h1 from-sq))
+        ^long occupied-mask  (shift-diagonal-a8h1-to-bottom occupied-diagonal from-sq)
 
-        slide-diagonal-a8  (bit-and (deep-aget ^longs attack-array-diagonal-a8h1
+        slide-diagonal-a8    (bit-and (deep-aget ^longs attack-array-diagonal-a8h1
                                           from-sq occupied-mask) not-occupied)
 
         slide-moves        (bit-or slide-diagonal-a1 slide-diagonal-a8)]
          (for-bitmap [dest-pos slide-moves]
            [piece from-sq dest-pos])))
 
-
 (defmethod find-piece-moves :Queen  [piece from-sq game-state]
   (concat (find-piece-moves  :r from-sq game-state)
            (find-piece-moves :b from-sq game-state)))
-
 
 (defn generate-moves [game-state]
   (let [squares  (:board game-state)
@@ -123,9 +123,3 @@
     (create-board-fn
         (map (fn [[p x y]] [p y])
              (generate-moves game-state))) ))
-
-
-(comment
-  (print-bitmap 2 :L)
-  (print-generate-moves
-   (read-fen "8/2B5/8/8/8/8/8/8 w KQkq - 0 1")))
