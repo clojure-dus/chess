@@ -9,8 +9,7 @@
         (recur  (conj bitmasks (bit-shift-left (last bitmasks) 1)) (inc n))))]
   (defn square->bit ^long [x] (bit-vec x)))
 
-
-(let [ index-64 (into-array Integer/TYPE [
+(let [index-64 (into-array Integer/TYPE [
             63,  0, 58,  1, 59, 47, 53,  2,
             60, 39, 48, 27, 54, 33, 42,  3,
             61, 51, 37, 40, 49, 18, 28, 20,
@@ -20,16 +19,15 @@
             56, 45, 25, 31, 35, 16,  9, 12,
             44, 24, 15,  8, 23,  7,  6,  5
                                        ])]
-  (defn find-first-one-bit[^long bb]
+  (defn ^int find-first-one-bit[^long bb]
     " return index of least significant one-bit. bb assumed to be 64 bit"
-       (let [
-             debruin 0x07EDD5E59A4E28C2
+       (let [debruin 0x07EDD5E59A4E28C2
              term  (bit-and bb (unchecked-negate bb))
-             index (unsigned-shift-right (unchecked-multiply term  debruin) 58)]
+             index (unsigned-shift-right (unchecked-multiply term debruin) 58)]
        (aget ^ints index-64 index))))
 
 (defmacro for-bitmap [[key bitmap] & body]
-" iterates for each bit set in bitmap. the index is bind to key. returns a vector of body results"
+"iterates for each bit set in bitmap. the index is bind to key. returns a vector of body results"
   `(loop [result# []
           pieces#  ~bitmap]
      (if (= 0 pieces#)
@@ -37,20 +35,20 @@
        (let [~key (find-first-one-bit pieces#)]
          (recur (conj result# (do ~@body))
                 (bit-xor pieces# (bit-set 0 ~key)))))))
+
 (defn vector->bit [vect]
+"converts a vector consisting of only zeros and ones to a 64 bitboard."
   (if (empty? vect)
     0
     (reduce (fn [x y] 0 (bit-or y (bit-shift-left x 1))) (reverse vect))))
 
 (defn bit->vector[bits count]
+  "converts a bitboard to a vector of ones and zeros."
   (loop [result [] n 0]
     (let [bit (if (bit-test bits n) 1 0)]
       (if (= n count)
         result
         (recur (conj result bit) (inc n))))))
-
-(defn indexed-bits [func bit-vector]
- (filter (fn[[idx bit]] (= 1 bit)) (map-indexed func bit-vector)))
 
 (defn flipVertical[b]
   (let [h1  0x00FF00FF00FF00FF
@@ -77,6 +75,16 @@
 
 (defn only-inner-board [sq]
   (and  (> sq -1) (< sq 64)))
+
+(defn to-long-array-2d
+  "creates a 2 dim array where each array contains 64 longs"
+  [^java.util.Collection coll]
+    (let [ret (make-array Long/TYPE (. coll (size)) 64)]
+      (loop [i 0 xs (seq coll)]
+        (when xs
+          (aset ret i (long-array (first xs)))
+          (recur (inc i) (next xs))))
+      ret))
 
 
 (defn print-board-vector [board-vector]

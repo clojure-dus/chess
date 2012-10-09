@@ -51,11 +51,11 @@
 
 (defn read-fen [fen-str]
   (let [
-        other-board-impl (other-impl-read-fen fen-str)
-        squares (flatten  (reverse (:board other-board-impl)))
+        other   (other-impl-read-fen fen-str)
+        squares (flatten  (reverse (:board other)))
         squares (map-indexed vector squares)
         squares (map reverse squares)
-        ] (create-board-fn squares)))
+        ] (assoc (create-board-fn squares) :turn (:turn other) :rochade (:rochade other))))
 
 
 (defn pieces-by-turn [game-state]
