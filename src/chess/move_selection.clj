@@ -2,13 +2,17 @@
   (:require [chess.moves-api :only (generate-moves) :as moves])
   (:use [chess.board-rating :only (rate)])
   (:use [chess.core :only (move-piece pos-of-piece piece-at)])
+  (:use [clojure.java.io])
   (:use [clojure.pprint]))
 
 (def CHECKMATED 9999999)
 
+(defn move2board [[pos1 pos2] game-state]
+  (move-piece game-state pos1 pos2))
+
 (defn moves2boards [moves game-state]
   "creates new game-states for the given boards"
-  (map (fn [[pos1 pos2]] (move-piece game-state pos1 pos2)) moves))
+  (map #(move2board % game-state) moves))
 
 (defn pprint-move [[from to]]
   (let [chars (seq "abcdefgh")
@@ -67,27 +71,26 @@
 
 
 (defn build-tree
-  ([game-state max-depth] (build-tree game-state 0 max-depth []))
-  ([game-state depth max-depth r]
-     (cond (= depth max-depth) {(select-max-rate game-state) nil}
-           (= depth 0)
-              (let [possible-moves (moves/generate-moves game-state)
-                 possible-states (moves2boards possible-moves game-state)
-                 subtree  (map #(build-tree % (inc depth) max-depth []) possible-states)
-                 rates    (flatten (map :score subtree))
-                 max-rate (apply max rates)
-                 moves2rates  (zipmap possible-moves rates)
-                 max-step (ffirst (filter #(= max-rate (val %)) moves2rates))]
-                  { :score max-rate :step max-step :tree subtree})
-           :else 
+  ([game-state max-depth] (build-tree game-state 0 max-depth [] nil))
+  ([game-state depth max-depth r step]
+     (if (= depth max-depth) {:score (select-max-rate game-state) :game-state game-state :former-step step}
               (let [possible-moves (moves/generate-moves game-state)
                     possible-states (moves2boards possible-moves game-state)
-                    subtree (map #(build-tree % (inc depth) max-depth []) possible-states)
-                    rates   (flatten (map keys subtree))]
-                    { :score (min-or-max rates depth) :tree subtree}))))
+                    subtree  (pmap #(build-tree (change-turn (move2board % game-state)) (inc depth) max-depth [] %) possible-moves)
+                    rates    (flatten (map :score subtree))
+                    max-rate (apply max rates)
+                    moves2rates  (zipmap possible-moves rates)
+                    max-step (ffirst (filter #(= max-rate (val %)) moves2rates))]
+                { :score max-rate :max-step max-step :game-state game-state  :former-step step :tree subtree}))))
+
+(defn trace-tree [game-state max-depth]
+  (with-open [w (writer "tree.trace")]
+    (pprint (build-tree game-state max-depth) w)))
 
 (defn min-max [game-state max-depth]
-  (:step (build-tree game-state max-depth)))
+  (:max-step (build-tree game-state max-depth)))
 
 (defn select-move [game-state]
   (min-max game-state 2))
+
+

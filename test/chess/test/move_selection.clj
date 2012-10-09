@@ -9,7 +9,7 @@
 
 (deftest test-min-max
   (is
-    (= '((7 4) (7 6))
+    (= '((7 4) (5 6))
        (min-max (read-fen "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1") 2))))
 
 (deftest test-check?
@@ -30,10 +30,9 @@
   (is (checkmated? (read-fen checkmated-board )))
   (is (not(checkmated? initial-board))))
 
-
 (deftest test-select-max-rate
   (is (= CHECKMATED (select-max-rate (read-fen checkmated-board)))))
 
 (deftest test-build-tree
   (let [tree (build-tree (read-fen checkmated-board) 2)]
-  (is (= 9 (:score tree)))))
+  (is (= CHECKMATED (:score tree)))))
