@@ -12,7 +12,7 @@
 (deftest test-min-max
   (is
     (= '((7 4) (5 6))
-       (min-max (read-fen checkmated-in-one-turn) 1))))
+       (min-max (read-fen checkmated-in-one-turn) 2))))
 
 (deftest test-check?
   (are [x y] (= x y)
@@ -36,5 +36,5 @@
   (is (= CHECKMATED (rate-board (read-fen checkmated-board)))))
 
 (deftest test-build-tree
-  (let [tree (build-tree (read-fen checkmated-in-one-turn) 1)]
+  (let [tree (build-tree (read-fen checkmated-in-one-turn) 2)]
   (is (= CHECKMATED (:score tree)))))
