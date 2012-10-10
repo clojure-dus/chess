@@ -35,7 +35,6 @@
         kings-pos      (pos-of-piece game-state king)]
      (true? (some (fn [[_ to]] (= king (piece-at game-state to))) opponent-moves))))
 
-
 (defn checkmated?
   ([game-state]
    (let [new-boards (moves2boards (moves/generate-moves game-state) game-state)]
@@ -45,19 +44,22 @@
     false 
     (every? check? new-boards))))
 
-
 (defn rate-board [game-state]
   (if (checkmated? game-state)
     MAXRATING
     (rate game-state)))
 
-
-(defn min-or-max [c depth is-checkmated]
-  (if (not is-checkmated)
-    (if (= 0 (mod depth 2))
-      (apply max c)
-      (apply min c))
-    MAXRATING))
+(defn min-or-max
+  ([c depth is-checkmated]
+     (if (not is-checkmated)
+       (min-or-max c depth)
+       (if (= 0 (mod depth 2))
+         (* -1 MAXRATING)
+         MAXRATING)))
+  ([c depth]
+     (if (= 0 (mod depth 2))
+       (apply max c)
+       (apply min c))))
 
 (defn build-tree
   ([game-state max-depth] (build-tree game-state 0 max-depth [] nil))
