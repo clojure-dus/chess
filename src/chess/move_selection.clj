@@ -5,7 +5,7 @@
   (:use [clojure.java.io])
   (:use [clojure.pprint]))
 
-(def CHECKMATED 9999999)
+(def MAXRATING 9999999)
 
 (defn move2board [[pos1 pos2] game-state]
   (move-piece game-state pos1 pos2))
@@ -48,7 +48,7 @@
 
 (defn rate-board [game-state]
   (if (checkmated? game-state)
-    CHECKMATED
+    MAXRATING
     (rate game-state)))
 
 
@@ -57,7 +57,7 @@
     (if (= 0 (mod depth 2))
       (apply max c)
       (apply min c))
-    CHECKMATED))
+    MAXRATING))
 
 (defn build-tree
   ([game-state max-depth] (build-tree game-state 0 max-depth [] nil))

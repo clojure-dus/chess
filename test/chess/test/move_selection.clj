@@ -33,8 +33,8 @@
   (is (not(checkmated? initial-board))))
 
 (deftest test-rate-board
-  (is (= CHECKMATED (rate-board (read-fen checkmated-board)))))
+  (is (= MAXRATING (rate-board (read-fen checkmated-board)))))
 
 (deftest test-build-tree
   (let [tree (build-tree (read-fen checkmated-in-one-turn) 2)]
-  (is (= CHECKMATED (:score tree)))))
+  (is (= MAXRATING (:score tree)))))
