@@ -7,10 +7,12 @@
 
 (def checkmated-board "r1bqkb1r/pppp1Qpp/2n2n2/4p3/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 0 1")
 
+(def checkmated-in-one-turn "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1")
+
 (deftest test-min-max
   (is
     (= '((7 4) (5 6))
-       (min-max (read-fen "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1") 2))))
+       (min-max (read-fen checkmated-in-one-turn) 1))))
 
 (deftest test-check?
   (are [x y] (= x y)
@@ -26,13 +28,13 @@
        false (check? (read-fen "8/5k2/8/8/2R5/8/B7/2K5 b - - 0 1"))))
 
 
-(deftest test-check-mated?
+(deftest test-checkmated?
   (is (checkmated? (read-fen checkmated-board )))
   (is (not(checkmated? initial-board))))
 
-(deftest test-select-max-rate
-  (is (= CHECKMATED (select-max-rate (read-fen checkmated-board)))))
+(deftest test-rate-board
+  (is (= CHECKMATED (rate-board (read-fen checkmated-board)))))
 
 (deftest test-build-tree
-  (let [tree (build-tree (read-fen checkmated-board) 2)]
+  (let [tree (build-tree (read-fen checkmated-in-one-turn) 1)]
   (is (= CHECKMATED (:score tree)))))
