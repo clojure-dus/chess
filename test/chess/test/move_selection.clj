@@ -1,4 +1,5 @@
 (ns chess.test.move-selection
+  (:require [chess.moves-api :only (generate-moves) :as moves])
   (:use [chess.core :only (initial-board move-piece)]
         [chess.fen :only [read-fen]]
         [chess.move-selection]
@@ -12,7 +13,9 @@
 (deftest test-min-max
   (is
     (= '((7 4) (5 6))
-       (min-max (read-fen checkmated-in-one-turn) 2))))
+       (min-max (read-fen checkmated-in-one-turn) 2)))
+  (is (= '((3 4) (4 6))
+       (min-max (read-fen "5rk1/5pp1/8/R2N4/8/6K1/8/8 w - - 0 1") 3))))
 
 (deftest test-check?
   (are [x y] (= x y)
@@ -37,4 +40,10 @@
 
 (deftest test-build-tree
   (let [tree (build-tree (read-fen checkmated-in-one-turn) 2)]
-  (is (= MAXRATING (:score tree)))))
+    (is (= MAXRATING (:score tree)))))
+
+
+(deftest test-filter-non-check-moves
+  (let [game-state (read-fen "5rk1/4Npp1/8/R7/8/6K1/8/8 b - - 0 1")
+        moves (moves/generate-moves game-state)]
+  (is (= '(((6 7) (7 6)) ((6 7) (7 7))) (filter-non-check-moves game-state moves true)))))

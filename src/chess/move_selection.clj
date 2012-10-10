@@ -40,9 +40,11 @@
    (let [new-boards (moves2boards (moves/generate-moves game-state) game-state)]
       (checkmated? game-state new-boards)))
   ([game-state new-boards]
-   (if (not (check? game-state))
-    false 
-    (every? check? new-boards))))
+     (checkmated? game-state new-boards (check? game-state)))
+  ([game-state new-boards is-check]
+     (if (not is-check)
+       false
+       (every? check? new-boards))))
 
 (defn rate-board [game-state]
   (if (checkmated? game-state)
@@ -61,12 +63,18 @@
        (apply max c)
        (apply min c))))
 
+(defn filter-non-check-moves [game-state possible-moves is-check]
+  (if is-check
+    (filter #(not (check? (move2board % game-state))) possible-moves)
+    possible-moves))
+
 (defn build-tree
   ([game-state max-depth] (build-tree game-state 0 max-depth [] nil))
   ([game-state depth max-depth r step]
      (if (= depth max-depth)
        {:score (rate-board game-state) :game-state game-state :former-step step}
-       (let [possible-moves (moves/generate-moves game-state)
+       (let [is-check (check? game-state)
+             possible-moves (filter-non-check-moves game-state (moves/generate-moves game-state) is-check)
              possible-states (moves2boards possible-moves game-state)
              is-checkmated (checkmated? game-state possible-states)
              subtree  (if (not is-checkmated) (pmap #(build-tree (change-turn (move2board % game-state)) (inc depth) max-depth [] %) possible-moves) nil)
