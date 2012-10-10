@@ -76,7 +76,7 @@
        (let [is-check (check? game-state)
              possible-moves (filter-non-check-moves game-state (moves/generate-moves game-state) is-check)
              possible-states (moves2boards possible-moves game-state)
-             is-checkmated (checkmated? game-state possible-states)
+             is-checkmated (and is-check (empty? possible-moves))
              subtree  (if (not is-checkmated) (pmap #(build-tree (change-turn (move2board % game-state)) (inc depth) max-depth [] %) possible-moves) nil)
              rates    (flatten (map :score subtree))
              max-rate (min-or-max rates depth is-checkmated)
