@@ -14,6 +14,8 @@
   (are [x y z] (= x (min-max (read-fen y) z))
        '((7 4) (5 6)) checkmated-in-one-turn 2
        '((7 4) (5 6)) checkmated-in-one-turn 1
+       '((0 7) (2 5)) "B7/8/8/8/k5K1/2Q5/8/8 w - - 0 0" 1
+       '((2 6) (6 6)) "5nkr/1QR3pp/5p2/8/1r2q3/8/3R2PP/B5K1 w - - 0 0" 1
        '((3 4) (4 6)) "5rk1/5pp1/8/R2N4/8/6K1/8/8 w - - 0 1" 3))
 
 (deftest test-check?
