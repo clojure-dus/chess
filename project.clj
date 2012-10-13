@@ -4,7 +4,8 @@
                  [org.clojure/math.combinatorics "0.0.2"]
                  [ring "1.1.0"] ; http basics
                  [compojure "1.1.0"] ; http routing
-                 [hiccup "1.0.1"]] ; generating html
+                 [hiccup "1.0.1"] ; generating html
+                 [org.clojure/data.json "0.2.0"]]
   :dev-dependencies [[swank-clojure "1.4.0"]]
   :plugins [[lein-cljsbuild "0.2.6"]] ; see https://github.com/emezeske/lein-cljsbuild
   :cljsbuild {:builds [{:source-path "src-cljs"

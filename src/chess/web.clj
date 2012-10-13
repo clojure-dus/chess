@@ -1,4 +1,5 @@
 (ns chess.web
+  (:require [clojure.data.json :as json])
   (:use [ring.adapter.jetty :only [run-jetty]]
         [ring.util.response :only [response content-type redirect]]
         [ring.middleware.resource :only [wrap-resource]]
@@ -10,7 +11,7 @@
         [hiccup.form :only [form-to submit-button]]
         [chess.core :only [initial-board]]))
 
-(def games (atom {}))
+(defonce games (atom {}))
 
 (defn create-game []
   (let [id (str (java.util.UUID/randomUUID))]
@@ -45,7 +46,10 @@
         (redirect (str "/games/" (create-game))))
   (GET "/games/:id" [id]
        (when (contains? @games id)
-         (show-html (game-page id)))))
+         (show-html (game-page id))))
+  (GET "/gamestates/:id" [id]
+       (when-let [gamestate (get @games id)]
+         (json/write-str gamestate))))
 
 (def webapp 
   (-> chess
