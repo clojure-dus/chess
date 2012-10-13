@@ -1,29 +1,54 @@
 (ns chess.web
   (:use [ring.adapter.jetty :only [run-jetty]]
-        [ring.util.response :only [response content-type]]
+        [ring.util.response :only [response content-type redirect]]
         [ring.middleware.resource :only [wrap-resource]]
         [ring.middleware.file-info :only [wrap-file-info]]
         [ring.middleware.reload :only [wrap-reload]]
-        [compojure.core :only [defroutes GET]]
+        [compojure.core :only [defroutes GET POST]]
         [compojure.handler :only [api]]
-        [hiccup.page :only [html5]]))
+        [hiccup.page :only [html5]]
+        [hiccup.form :only [form-to submit-button]]
+        [chess.core :only [initial-board]]))
 
-(def client-page
+(def games (atom {}))
+
+(defn create-game []
+  (let [id (str (java.util.UUID/randomUUID))]
+    (swap! games assoc id initial-board)
+    id))
+
+(defn page [& body]
   (list
    [:head
     [:link {:rel "stylesheet" :type "text/css" :href "/css/chess.css"}]
     [:title "chess"]]
-   [:body
-    [:div#chess-board]
-    [:script {:src "/js/chess.js" :type "text/javascript"}]]))
+   [:body body]))
 
-(defroutes chess-client
-  (GET "/chess" []
-       (-> (response (html5 client-page))
-           (content-type "text/html"))))
+(def index-page
+  (page
+   (form-to [:post "/games"]
+            (submit-button "new game"))))
 
-(def webapp
-  (-> chess-client
+(defn game-page [game-id]
+  (page
+   [:div#chess-board {:data-game-id game-id}]
+   [:script {:src "/js/chess.js" :type "text/javascript"}]))
+
+(defn show-html [content]
+  (-> (response (html5 content))
+      (content-type "text/html")))
+
+(defroutes chess
+  (GET "/" []
+       (show-html index-page))
+  (POST "/games" []
+        (redirect (str "/games/" (create-game))))
+  (GET "/games/:id" [id]
+       (when (contains? @games id)
+         (show-html (game-page id)))))
+
+(def webapp 
+  (-> chess
       (wrap-reload ["src"])
       (wrap-resource "public")
       wrap-file-info))
