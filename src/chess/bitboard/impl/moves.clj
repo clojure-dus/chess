@@ -34,27 +34,36 @@
          double-moves   (bit-xor double-moves (bit-or occupied-3-row occupied-4-row))
 
          attacks  (bit-and (:blackpieces game-state) (aget ^longs pawn-white-attack-array from-sq))
-         moves    (bit-or moves double-moves attacks)
-         ]
+         moves    (bit-or moves double-moves attacks)]
      (for-bitmap [dest-pos moves]
-       [piece from-sq dest-pos])))
-
+       (if (<  dest-pos 56)
+         [piece from-sq dest-pos]
+         (concat [[piece from-sq dest-pos :Q] ; means last row so pawn gets promoted
+                  [piece from-sq dest-pos :R]
+                  [piece from-sq dest-pos :B]
+                  [piece from-sq dest-pos :N]])))))
 
 (defmethod find-piece-moves :BlackPawn [piece from-sq game-state]
-  (let [moves    (aget ^longs pawn-black-move-array from-sq)
+  (let [moves          (aget ^longs pawn-black-move-array from-sq)
         all-pieces     (:allpieces game-state)
-        occupied (bit-and all-pieces moves)
-        moves    (bit-xor moves occupied)
+        occupied       (bit-and all-pieces moves)
+        moves          (bit-xor moves occupied)
 
         double-moves   (aget ^longs pawn-black-double-move-array from-sq)
         occupied-5-row (bit-and all-pieces double-moves)
         occupied-6-row (bit-and (bit-shift-right  all-pieces 8) double-moves)
         double-moves   (bit-xor double-moves (bit-or occupied-5-row occupied-6-row))
 
-        attacks  (bit-and (:whitepieces game-state) (aget ^longs pawn-black-attack-array from-sq))
-        moves    (bit-or moves double-moves attacks)]
+        attacks       (bit-and (:whitepieces game-state)
+                      (aget ^longs pawn-black-attack-array from-sq))
+        moves         (bit-or moves double-moves attacks)]
      (for-bitmap [dest-pos moves]
-       [piece from-sq dest-pos])))
+       (if (> dest-pos 7)
+         [piece from-sq dest-pos]
+          [[piece from-sq dest-pos :q] ; means last row so pawn gets promoted
+                   [piece from-sq dest-pos :r]
+                   [piece from-sq dest-pos :b]
+                   [piece from-sq dest-pos :n]]))))
 
  (defmethod find-piece-moves :King [piece from-sq game-state]
    (let [moves              (aget ^longs king-attack-array from-sq)
@@ -117,6 +126,8 @@
         pieces   (pieces-by-turn game-state)]
     (apply concat (for-bitmap [from-sq pieces]
                     (find-piece-moves (squares from-sq) from-sq game-state)))))
+
+(generate-moves (read-fen "8/P7/8/8/8/8/P7/8 w KQkq - 0 1"))
 
 (defn print-generate-moves [game-state]
   (print-board

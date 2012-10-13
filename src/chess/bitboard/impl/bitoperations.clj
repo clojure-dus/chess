@@ -28,12 +28,12 @@
 
 (defmacro for-bitmap [[key bitmap] & body]
 "iterates for each bit set in bitmap. the index is bind to key. returns a vector of body results"
-  `(loop [result# []
+`(loop [result# (transient [])
           pieces#  ~bitmap]
      (if (= 0 pieces#)
-       result#
+       (persistent! result#)
        (let [~key (find-first-one-bit pieces#)]
-         (recur (conj result# (do ~@body))
+         (recur (conj! result# (do ~@body))
                 (bit-xor pieces# (bit-set 0 ~key)))))))
 
 (defn vector->bit [vect]
