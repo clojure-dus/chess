@@ -5,7 +5,7 @@
   (:use [chess.bitboard.impl.file-rank
          :only (lookup-file lookup-rank)])
   (:require  [chess.bitboard.impl.moves
-         :only  (generate-moves find-piece-moves)
+         :only  (generate-moves find-piece-moves check?)
          :as moves]))
 
 (defn- coord->square [[file rank]]
@@ -36,6 +36,8 @@
 (defn piece-at [game-state coord]
   (get-in chessboard/initial-board [:board (coord->square coord) ]))
 
+(defn check? [game-state]
+  (true? (moves/check? game-state)))
 
 (def initial-board chessboard/initial-board)
 

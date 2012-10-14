@@ -40,6 +40,12 @@
                       (bit-and? (bit-or (:B game-state) (:Q game-state))
                                 (get-attack-diagonal-a8h1 game-state sq)))) mask-sq))
 
+(defn check? [game-state]
+ (if (= :w (:turn game-state))
+      (attacked-by-black? (:K game-state) game-state)
+      (attacked-by-white? (:k game-state) game-state)))
+
+
 (defmulti find-piece-moves (fn[piece _ _]
                        (case piece
                          (:N :n) :Knight
