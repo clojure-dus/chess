@@ -21,10 +21,11 @@
          piece   (nth (:board game-state) from-sq)]
      (chessboard/move-piece game-state piece from-sq dest-sq)))
 
-
 (defn generate-moves [game-state]
-  (map (fn [[p from dest]] (list (square->coord from) (square->coord dest)))
-       (filter #(not (empty? %)) (moves/generate-moves game-state))))
+  (map (fn [[p from dest]]
+         (list (square->coord from) (square->coord dest)))
+       (apply concat (filter #(not (empty? %)) (moves/generate-moves game-state)))))
+
 
 (defn possible-moves [game-state coord]
   (let [square (coord->square coord)

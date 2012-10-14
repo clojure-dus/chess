@@ -58,7 +58,7 @@
         ] (assoc (create-board-fn squares) :turn (:turn other) :rochade (:rochade other))))
 
 
-(defn pieces-by-turn [game-state]
+(defn ^Long pieces-by-turn [game-state]
   (if (= (game-state :turn) :w)
       (:whitepieces game-state)
       (:blackpieces game-state)))

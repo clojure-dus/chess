@@ -83,5 +83,36 @@
     (is (= #{[2 1] [1 2] [0 3] [3 1] [3 2] [3 3] [3 4] [3 5] [3 6]}
            (apply hash-set (api/possible-moves game-state [3 0]))))))
 
+(deftest test-rochade
+(testing "some rochade (with attacks ")
+  (let [game-state (-> api/initial-board
+                       (api/move-piece [4 1] [4 3])
+                       (api/move-piece [5 0] [4 1])
+                       (api/move-piece [6 0] [5 2])
+                       (api/move-piece [3 0] [3 2])
+                       (api/move-piece [2 0] [3 1])
+                       (api/move-piece [2 1] [2 2])
+                       (api/move-piece [3 0] [2 1])
+                       (api/move-piece [1 0] [0 2]) )]
+    (is (= #{[6 0] [5 0] [3 0] [2 0]}
+           (apply hash-set (api/possible-moves game-state [4 0])))))
+(let [game-state (-> api/initial-board
+                       (api/move-piece [6 6] [6 5])
+                       (api/move-piece [5 7] [6 6])
+                       (api/move-piece [6 7] [5 5])
+                       (api/move-piece [4 6] [4 5])
+                       (api/move-piece [3 7] [4 6])
+                       (api/move-piece [3 6] [3 5])
+                       (api/move-piece [2 7] [3 6])
+                       (api/move-piece [1 7] [2 5]))
+       game-state (assoc game-state :turn :b)]
+    (is (= #{[2 7] [3 7] [5 7] [6 7]}
+           (apply hash-set (api/possible-moves game-state [4 7]))))
+    (is (= #{[3 7] [5 7]}
+           (apply hash-set (api/possible-moves
+                            (read-fen "r3k2r/pppppppp/1N5N/8/8/8/8/8 b KQkq - 0 1") [4 7]))))
+     (is (= #{[5 6] [2 7] [3 7] [5 7]}
+           (apply hash-set (api/possible-moves
+                            (read-fen "r3k2r/ppppp1pp/8/8/5R2/8/8/8 b KQkq - 0 1") [4 7]))))))
 
 (comment(run-tests))

@@ -125,6 +125,13 @@
                  (slide-attack-byte occupied (square->column square))))))
         (range 64))))
 
+(defn ^long get-attack-rank [game-state  ^long from-sq]
+  (let [^long allpieces        (:allpieces game-state)
+        occupied-row           (bit-and allpieces (aget ^longs masks-row from-sq))
+        ^long occupied-mask    (unsigned-shift-right occupied-row
+                                      (inc (aget ^ints rank-shift-array from-sq)))]
+        (deep-aget ^longs attack-array-ranks from-sq occupied-mask)))
+
 (def attack-array-files
   "2 dimensinal array [square][occupied] in which all vertical slide positions
    have been flaged. occupied is a 6-bit (0..64) mask having 1 bit flags
@@ -138,6 +145,13 @@
                   (slide-attack-byte occupied (- 7 (square->row square))))))))
         (range 64))))
 
+(defn ^long get-attack-file [game-state ^long from-sq]
+  (let [^long allpieces        (:allpieces game-state)
+        occupied-column        (bit-and allpieces (aget ^longs masks-column from-sq))
+        ^long occupied-mask    (shift-rank-to-bottom occupied-column from-sq)]
+    (deep-aget ^longs attack-array-files from-sq occupied-mask)))
+
+
 (def attack-array-diagonal-a1h8
    "2 dimensinal array [square][occupied] in which all diagonal slide positions from
   a1 to h8 have been flaged. occupied is a 6-bit (0..64) mask having 1 bit flags
@@ -148,6 +162,12 @@
          (make-attack-diagonal square occupied get-diagonal-a1h8)))
            (range 64))))
 
+(defn ^long get-attack-diagonal-a1h8 [game-state ^long from-sq]
+   (let [^long allpieces        (:allpieces game-state)
+         occupied-diagonal      (bit-and allpieces (aget ^longs masks-diagonal-a1h8 from-sq))
+         ^long occupied-mask    (shift-diagonal-a1h8-to-bottom occupied-diagonal from-sq)]
+     (deep-aget ^longs attack-array-diagonal-a1h8 from-sq occupied-mask)))
+
 (def attack-array-diagonal-a8h1
    "2 dimensinal array [square][occupied] in which all diagonal slide positions from
   a8 to h1 have been flaged. occupied is a 6-bit (0..64) mask having 1 bit flags
@@ -157,3 +177,9 @@
           (for [occupied (range 64)]
             (make-attack-diagonal square occupied get-diagonal-a8h1)))
         (range 64))))
+
+(defn ^long get-attack-diagonal-a8h1 [game-state ^long from-sq]
+  (let [^long allpieces      (:allpieces game-state)
+        occupied-diagonal    (bit-and allpieces (aget ^longs masks-diagonal-a8h1 from-sq))
+        ^long occupied-mask  (shift-diagonal-a8h1-to-bottom occupied-diagonal from-sq)]
+             (deep-aget ^longs attack-array-diagonal-a8h1 from-sq occupied-mask)))

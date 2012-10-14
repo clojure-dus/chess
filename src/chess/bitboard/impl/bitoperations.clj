@@ -26,15 +26,29 @@
              index (unsigned-shift-right (unchecked-multiply term debruin) 58)]
        (aget ^ints index-64 index))))
 
+(defmacro bit-and? [& rest]
+  `(not= 0 (bit-and ~@rest )))
+
 (defmacro for-bitmap [[key bitmap] & body]
 "iterates for each bit set in bitmap. the index is bind to key. returns a vector of body results"
-`(loop [result# (transient [])
+`(loop [result# []
           pieces#  ~bitmap]
      (if (= 0 pieces#)
-       (persistent! result#)
+       result#
        (let [~key (find-first-one-bit pieces#)]
-         (recur (conj! result# (do ~@body))
+         (recur (conj result# (do ~@body))
                 (bit-xor pieces# (bit-set 0 ~key)))))))
+
+
+
+(defmacro some-bitmap [pred bitmap]
+  "iterates over all bitmaps 1s (squares)
+ and applies pred  (one arg fn which takes a square)  to each set square. stops at the first
+ pred == true. similar to core/some"
+  `(loop [pieces#  ~bitmap]
+     (when (not= 0 pieces#)
+       (let [square# (find-first-one-bit pieces#)]
+         (or (~pred square#)  (recur (bit-xor pieces# (bit-set 0 square#))))))))
 
 (defn vector->bit [vect]
 "converts a vector consisting of only zeros and ones to a 64 bitboard."

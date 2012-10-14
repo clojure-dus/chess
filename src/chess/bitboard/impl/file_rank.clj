@@ -43,6 +43,26 @@
       (let [left-column 2r0000000000000001000000010000000100000001000000010000000100000000]
          (map #(bit-shift-left left-column  (dec % )) file-squares))))
 
+
+(def ^:const ^long mask-rochade-white-king  2r01100000)
+(def ^:const ^long mask-rochade-white-queen 2r00001100)
+(def ^:const ^long mask-rochade-black-king
+  2r0110000000000000000000000000000000000000000000000000000000000000)
+(def ^:const ^long mask-rochade-black-queen
+  2r0000110000000000000000000000000000000000000000000000000000000000)
+
+(def ^:const ^long move-rochade-white-king  2r00000100)
+
+(def ^:const ^long move-rochade-white-queen 2r01000000)
+
+
+(def ^:const ^long move-rochade-black-queen
+  2r0000010000000000000000000000000000000000000000000000000000000000)
+(def ^:const ^long move-rochade-black-king
+  2r0100000000000000000000000000000000000000000000000000000000000000)
+
+
+
 (def diagonals-a8h1 [ [0]
                       [8 1]
                       [16 9 2]
