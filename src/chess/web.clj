@@ -27,8 +27,10 @@
 
 (def index-page
   (page
-   (form-to [:post "/games"]
-            (submit-button "new game"))))
+   (form-to {:id "new-game-form"}
+            [:post "/games"]
+            (submit-button "new game"))
+   [:script "document.getElementById('new-game-form').submit();"]))
 
 (defn game-page [game-id]
   (page
@@ -38,6 +40,11 @@
 (defn show-html [content]
   (-> (response (html5 content))
       (content-type "text/html")))
+
+(defn json [m]
+  (-> (json/write-str m)
+      response
+      (content-type "application/json")))
 
 (defroutes chess
   (GET "/" []
@@ -49,7 +56,7 @@
          (show-html (game-page id))))
   (GET "/gamestates/:id" [id]
        (when-let [gamestate (get @games id)]
-         (json/write-str gamestate))))
+         (json gamestate))))
 
 (def webapp 
   (-> chess
