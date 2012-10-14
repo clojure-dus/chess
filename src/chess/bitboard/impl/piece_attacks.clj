@@ -24,7 +24,7 @@
 (defn indexed-bits [bit-vector]
   "gets the one bits from a vector of zero/ones into a vector of [pos 1]
   For example [1 0 1] -> [[0 1] [2 1]]"
- (filter (fn[[idx bit]] (= 1 bit)) (map-indexed vector  bit-vector)))
+  (keep-indexed #(when (== %2 1) [%1 %2]) bit-vector))
 
 (defn slide-attack-byte [occupied-bits pos]
   "occupied-bits -  flags the positions of all pieces of a rank,file or diagonal.
@@ -65,7 +65,6 @@
 ;; Pre-calculated attack and move arrays for each chess piece
 ;; which  are used by move.clj to calculate possible of an piece
 ;;--------------------------------------------------------------------
-
 (def knight-attack-array
   "creates a lookup array of 64 squares which have bitboards
    in which knight-attacks have been flaged "
