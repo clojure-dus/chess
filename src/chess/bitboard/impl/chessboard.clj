@@ -30,7 +30,7 @@
           (assoc-in it [:blackpieces] (reduce #(bit-or %1 (%2 it)) 0 [:r :n :b :q :k :p]))
             (assoc-in it [:allpieces] (bit-or (:whitepieces it) (:blackpieces it)))))
 
-(defn move-piece [game-state piece from dest]
+(defn move-piece [game-state piece from dest & promotion]
   (let [captured (get-in game-state [:board dest])]
     (-> game-state
         (assoc-in [:board from] :_)

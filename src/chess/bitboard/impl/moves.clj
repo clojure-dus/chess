@@ -80,7 +80,6 @@
           [piece from-sq dest-pos :B]
           [piece from-sq dest-pos :N]]))))
 
-
 (defmethod find-piece-moves :BlackPawn [piece from-sq game-state]
   (let [moves          (aget ^longs pawn-black-move-array from-sq)
         all-pieces     (:allpieces game-state)
@@ -99,9 +98,9 @@
        (if (> dest-pos 7)
          [piece from-sq dest-pos]
          [[piece from-sq dest-pos :q] ; means last row so pawn gets promoted
-           [piece from-sq dest-pos :r]
-           [piece from-sq dest-pos :b]
-           [piece from-sq dest-pos :n]]))))
+          [piece from-sq dest-pos :r]
+          [piece from-sq dest-pos :b]
+          [piece from-sq dest-pos :n]]))))
 
 (defn  ^Long get-rochade-moves  [game-state kind]
   (let [rochade  (:rochade game-state )
@@ -118,11 +117,11 @@
      :k (if (and (:k rochade)
                  (not (bit-and? mask-rochade-black-king occupied))
                  (not (attacked-by-white? mask-rochade-black-king game-state)))
-          move-rochade-black-king 0)
+           move-rochade-black-king 0)
      :q (if (and (:q rochade)
                  (not (bit-and? mask-rochade-black-queen occupied))
                  (not (attacked-by-white? mask-rochade-black-queen game-state)))
-          move-rochade-black-queen 0))))
+           move-rochade-black-queen 0))))
 
  (defmethod find-piece-moves :WhiteKing [piece from-sq game-state]
    (let [moves             (aget ^longs king-attack-array from-sq)
@@ -148,7 +147,7 @@
 
 (defmethod find-piece-moves :Rook [piece from-sq game-state]
   (let [not-occupied       (bit-not (pieces-by-turn game-state))
-        slide-moves-rank    (bit-and (get-attack-rank game-state from-sq) not-occupied)
+        slide-moves-rank   (bit-and (get-attack-rank game-state from-sq) not-occupied)
         slide-moves-file   (bit-and (get-attack-file  game-state from-sq) not-occupied)
         slide-moves        (bit-or slide-moves-rank slide-moves-file)]
     (for-bitmap [dest-pos slide-moves]
@@ -176,4 +175,4 @@
   (print-board
     (create-board-fn
         (map (fn [[p x y]] [p y])
-             (generate-moves game-state))) ))
+             (apply concat (filter #(not (empty? %)) (generate-moves game-state))) ))))

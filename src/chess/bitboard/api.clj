@@ -33,6 +33,10 @@
     (map  (fn[[_ _ dest]] (square->coord dest))
           (moves/find-piece-moves piece square game-state))))
 
+(defn piece-at [game-state coord]
+  (get-in chessboard/initial-board [:board (coord->square coord) ]))
+
+
 (def initial-board chessboard/initial-board)
 
 (defn read-fen [str]
