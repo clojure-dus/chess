@@ -1,5 +1,6 @@
 (ns chess.client.core
-  (:require [chess.core :as chess]
+  (:require [goog.net.XhrIo]
+            [chess.core :as chess]
             [chess.client.drawing :as d]))
 
 (defn log [& stuff]
@@ -139,17 +140,46 @@
     (.setAttribute "width" width)
     (.setAttribute "height" height)))
 
+(defn board-elem []
+  (-> js/document
+      (.getElementById "chess-board")))
+
+(defn keywordize-rochade [state]
+  (update-in state [:rochade] #(map keyword %)))
+
+(defn keywordize-board [state]
+  (update-in state [:board] #(map (fn [row]
+                                    (map keyword row))
+                                  %)))
+
+(defn keywordize-turn [state]
+  (update-in state [:turn] keyword))
+
+(defn get-gamestate [id callback]
+  (let [url (str "/gamestates/" id)]
+    (.send goog.net.XhrIo url (fn [response]
+                                (-> response
+                                    .-target
+                                    .getResponseJson
+                                    (js->clj :keywordize-keys true)
+                                    keywordize-rochade
+                                    keywordize-board
+                                    keywordize-turn
+                                    callback)))))
+
 (let [canvas (create-canvas BOARD-SIZE BOARD-SIZE)
+      game-id (.getAttribute (board-elem) "data-game-id")
       context (.getContext canvas "2d")
       state (atom nil)]
-  (-> js/document
-      (.getElementById "chess-board")
-      (.appendChild canvas))
-  (d/listen-for-mouse-move context (fn [pos]
-                                     (swap! state handle-mouse-move pos)))
-  (d/listen-for-mouse-down context (fn [pos]
-                                     (swap! state handle-mouse-down pos)))
-  (add-watch state :draw-board (fn [k r o n]
-                                 (d/draw o n context)))
-  (reset! state (-> chess/initial-board
-                    (assoc :player-color :white))))
+  (get-gamestate game-id
+                 (fn [gamestate]
+                   (-> (board-elem)
+                       (.appendChild canvas))
+                   (d/listen-for-mouse-move context (fn [pos]
+                                                      (swap! state handle-mouse-move pos)))
+                   (d/listen-for-mouse-down context (fn [pos]
+                                                      (swap! state handle-mouse-down pos)))
+                   (add-watch state :draw-board (fn [k r o n]
+                                                  (d/draw o n context)))
+                   (reset! state (-> gamestate
+                                     (assoc :player-color :white))))))
