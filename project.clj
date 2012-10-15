@@ -17,6 +17,6 @@
   :warn-on-reflection false
   :jvm-opts ["-Xmx1024M" "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
   :main chess.web
-  :java-source-path "src/chess/bitboard/impl"
+  :java-source-paths ["src/chess/bitboard/impl"]
   ;:extra-classpath-dirs ["/usr/lib/jvm/java-6-sun/lib/tools.jar"]
   )
