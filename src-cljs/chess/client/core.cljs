@@ -144,13 +144,13 @@
   (-> js/document
       (.getElementById "chess-board")))
 
-(defn keywordize-rochade [state]
-  (update-in state [:rochade] #(map keyword %)))
+(defn keywordize-rochade-vec [state]
+  (update-in state [:rochade] #(vec (map keyword %))))
 
-(defn keywordize-board [state]
-  (update-in state [:board] #(map (fn [row]
-                                    (map keyword row))
-                                  %)))
+(defn keywordize-board-vec [state]
+  (update-in state [:board] #(vec (map (fn [row]
+                                         (vec (map keyword row)))
+                                       %))))
 
 (defn keywordize-turn [state]
   (update-in state [:turn] keyword))
@@ -162,8 +162,8 @@
                                     .-target
                                     .getResponseJson
                                     (js->clj :keywordize-keys true)
-                                    keywordize-rochade
-                                    keywordize-board
+                                    keywordize-rochade-vec
+                                    keywordize-board-vec
                                     keywordize-turn
                                     callback)))))
 
