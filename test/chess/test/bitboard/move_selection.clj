@@ -11,7 +11,7 @@
 (def checkmated-in-one-turn "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1")
 
 (deftest test-min-max
-  (are [x y z] (= x (min-max (read-fen y) z))
+  (are [x y z] (= x   (first (native->coords (list(min-max (read-fen y) z)))))
        '((7 4) (5 6)) checkmated-in-one-turn 2
        '((7 4) (5 6)) checkmated-in-one-turn 1
        '((0 7) (2 5)) "B7/8/8/8/k5K1/2Q5/8/8 w - - 0 0" 1
@@ -47,7 +47,8 @@
 
 (deftest test-filter-non-check-moves
   (let [game-state (read-fen "5rk1/4Npp1/8/R7/8/6K1/8/8 b - - 0 1")
-        moves (generate-moves game-state)]
-  (is (= '(((6 7) (7 6)) ((6 7) (7 7))) (filter-non-check-moves game-state moves true)))))
+        moves (native-generate-moves game-state)]
+    (is (= '(((6 7) (7 6)) ((6 7) (7 7))) (native->coords
+                                           (filter-non-check-moves game-state moves true))))))
 
-(comment (run-tests))
+(comment (time (run-tests)))

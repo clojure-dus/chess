@@ -2,6 +2,7 @@
 (import 'chess.bitboard.impl.BitOps)
 (comment (set! *warn-on-reflection* true))
 (defn unsigned-shift-right[x n]
+  "needed because clojure 1.4 doesn't support unsigned right shift"
   (BitOps/unsignedShiftRight x n))
 
 (let [bit-vec  (loop [bitmasks (vector-of :long 2r1) n 0]
@@ -27,6 +28,7 @@
        (aget ^ints index-64 index))))
 
 (defmacro bit-and? [& rest]
+  "return true on bit-anded bitmaps"
   `(not= 0 (bit-and ~@rest )))
 
 (defmacro for-bitmap [[key bitmap] & body]
@@ -65,6 +67,7 @@
         (recur (conj result bit) (inc n))))))
 
 (defn flipVertical[b]
+  "flips all bits of a 8 bit mask to their vertical position"
   (let [h1  0x00FF00FF00FF00FF
         h2  0x0000FFFF0000FFFF
         b   (bit-or(bit-and(bit-shift-right b 8) h1)
@@ -85,6 +88,7 @@
         b  (bit-xor b  (bit-xor t (bit-shift-right t 7)))] b))
 
 (defn rotate90-bitboard-clockwise [b]
+  "rotates a horizontal 8bit mask to its vertical position"
   (flipVertical (flipDiagonalA1H8 b)))
 
 (defn only-inner-board [sq]
@@ -126,7 +130,8 @@
     (print-board-vector (bitmap->board-vector board-vector piece bitmap))))
 
 (defmacro deep-aget
- "page 440 Clojure Programming"
+  "page 440 Clojure Programming. ensures that an aget on a multi-dim array
+ is performed with the propertype hints set"
   ([array idx]`(aget ~array ~idx))
   ([array idx & idxs]
      (let [a-sym (gensym "a")]

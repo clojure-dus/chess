@@ -8,8 +8,8 @@
 
 (def MAXRATING 9999999)
 
-(defn move2board [[pos1 pos2] game-state]
-  (move-piece game-state pos1 pos2))
+(defn move2board [[piece pos1 pos2 promotion] game-state]
+  (native-move-piece game-state piece pos1 pos2 promotion))
 
 (defn moves2boards [moves game-state]
   "creates new game-states for the given boards"
@@ -31,7 +31,7 @@
 
 (defn checkmated?
   ([game-state]
-   (let [new-boards (moves2boards (generate-moves game-state) game-state)]
+   (let [new-boards (moves2boards (native-generate-moves game-state) game-state)]
       (checkmated? game-state new-boards)))
   ([game-state new-boards]
      (checkmated? game-state new-boards (check? game-state)))
@@ -71,7 +71,7 @@
      (if (= depth max-depth)
        {:score (rate-board game-state depth) :game-state game-state :former-step step}
        (let [is-check (check? game-state)
-             possible-moves (filter-non-check-moves game-state (generate-moves game-state) is-check)
+             possible-moves (filter-non-check-moves game-state (native-generate-moves game-state) is-check)
              possible-states (moves2boards possible-moves game-state)
              is-checkmated (and is-check (empty? possible-moves))
              subtree  (if (not is-checkmated) (pmap #(build-tree (change-turn (move2board % game-state)) (inc depth) max-depth [] %) possible-moves) nil)

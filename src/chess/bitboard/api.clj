@@ -14,6 +14,11 @@
 (defn- square->coord [square]
   [(dec (aget ^ints lookup-file square)) (dec (aget ^ints lookup-rank square))])
 
+(defn native->coords [col]
+  (mapv (fn [[piece from-sq dest-sq & promotion]]
+         (vector (square->coord from-sq) (square->coord dest-sq))
+         ) col))
+
 (defn move-piece [game-state from-coord dest-coord]
    "move piece by coordinates from and dest"
    (let [from-sq (coord->square from-coord)
@@ -25,6 +30,16 @@
   (map (fn [[p from dest]]
          (list (square->coord from) (square->coord dest)))
        (apply concat (filter #(not (empty? %)) (moves/generate-moves game-state)))))
+
+(defn native-generate-moves [game-state]
+  " returns moves in the form ([:P 56 57].....)"
+  (apply concat (filter #(not (empty? %)) (moves/generate-moves game-state))))
+
+
+(defn native-move-piece [game-state piece from-sq dest-sq promotion]
+   "move by squares"
+   (chessboard/move-piece game-state piece from-sq dest-sq promotion))
+
 
 
 (defn possible-moves [game-state coord]

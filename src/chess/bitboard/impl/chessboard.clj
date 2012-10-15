@@ -35,9 +35,8 @@
     (-> game-state
         (assoc-in [:board from] :_)
            (update-in [piece] bit-xor (bit-set 0 from))
-              (assoc-in [captured] (bit-xor (game-state captured) (bit-set 0 dest)))
+           (assoc-in [captured] (bit-xor (game-state captured) (bit-set 0 dest)))
               (set-piece piece dest))))
-
 
 (defn create-board-fn [coll]
   (reduce #(set-piece %1 (first %2) (second %2)) empty-board coll))
@@ -50,12 +49,11 @@
             [:R  7] [:N  6] [:B  5] [:K  4] [:Q  3] [:B  2] [:N  1] [:R  0])))
 
 (defn read-fen [fen-str]
-  (let [
-        other   (other-impl-read-fen fen-str)
+  (let [other   (other-impl-read-fen fen-str)
         squares (flatten  (reverse (:board other)))
         squares (map-indexed vector squares)
-        squares (map reverse squares)
-        ] (assoc (create-board-fn squares) :turn (:turn other) :rochade (:rochade other))))
+        squares (map reverse squares)]
+    (assoc (create-board-fn squares) :turn (:turn other) :rochade (:rochade other))))
 
 
 (defn ^Long pieces-by-turn [game-state]

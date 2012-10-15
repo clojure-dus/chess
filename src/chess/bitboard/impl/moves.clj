@@ -100,7 +100,7 @@
         attacks        (bit-and (:whitepieces game-state)
                                (aget ^longs pawn-black-attack-array from-sq))
         moves          (bit-or moves double-moves attacks)]
-     (for-bitmap [dest-pos moves]
+    (for-bitmap [dest-pos moves]
        (if (> dest-pos 7)
          [piece from-sq dest-pos]
          [[piece from-sq dest-pos :q] ; means last row so pawn gets promoted
@@ -157,6 +157,7 @@
         slide-moves-file   (bit-and (get-attack-file  game-state from-sq) not-occupied)
         slide-moves        (bit-or slide-moves-rank slide-moves-file)]
     (for-bitmap [dest-pos slide-moves]
+
       [piece from-sq dest-pos])))
 
 (defmethod find-piece-moves :Bishop [piece from-sq game-state]
@@ -164,18 +165,25 @@
         slide-diagonal-a1  (bit-and (get-attack-diagonal-a1h8 game-state from-sq) not-occupied)
         slide-diagonal-a8  (bit-and (get-attack-diagonal-a8h1 game-state from-sq) not-occupied)
         slide-moves        (bit-or slide-diagonal-a1 slide-diagonal-a8)]
-         (for-bitmap [dest-pos slide-moves]
+    (for-bitmap [dest-pos slide-moves]
            [piece from-sq dest-pos])))
 
 (defmethod find-piece-moves :Queen  [piece from-sq game-state]
-  (concat (find-piece-moves  :r from-sq game-state)
-           (find-piece-moves :b from-sq game-state)))
+  (let [not-occupied       (bit-not (pieces-by-turn game-state))
+        slide-moves-rank   (bit-and (get-attack-rank game-state from-sq) not-occupied)
+        slide-moves-file   (bit-and (get-attack-file  game-state from-sq) not-occupied)
+        slide-moves-rook   (bit-or slide-moves-rank slide-moves-file)
+        slide-diagonal-a1  (bit-and (get-attack-diagonal-a1h8 game-state from-sq) not-occupied)
+        slide-diagonal-a8  (bit-and (get-attack-diagonal-a8h1 game-state from-sq) not-occupied)
+        slide-moves        (bit-or slide-diagonal-a1 slide-diagonal-a8 slide-moves-rook)]
+    (for-bitmap [dest-pos slide-moves]
+      [piece from-sq dest-pos])))
 
 (defn generate-moves [game-state]
   (let [squares  (:board game-state)
         pieces   (pieces-by-turn game-state)]
     (for-bitmap [from-sq pieces]
-                     (find-piece-moves (squares from-sq) from-sq game-state))))
+        (find-piece-moves (squares from-sq) from-sq game-state))))
 
 (defn print-generate-moves [game-state]
   (print-board

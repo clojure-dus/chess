@@ -36,7 +36,7 @@
    occupied-bits can be between 0 and 64 which means that 6-bits are sufficient to
    represent all occupied states of any row,column or diagonal of a chessboard.
    The 2 outer bits a1 and h1 are not needed because they depend on b1 and g1.
-   thats why six bits are sufficeient."
+   thats why six bits are sufficent."
 
   (let [occupied-bits (bit-shift-left occupied-bits 1)
         bit-vect (bit->vector occupied-bits 8)
@@ -51,7 +51,11 @@
 
 
 (defn make-attack-diagonal [square occupied diagonal-row-getter]
-"returns a diagonal sliding attack mask"
+  "returns a diagonal sliding attack mask.
+  It does this by first the determining the member squares and square-pos of the
+  wanted diagonal. Then a horizontal slide attack mask is generated using
+  the given occupied bits and square pos.
+  This horizotal is finally mapped back to the wanted diagonal and returnd"
   (let [diag-row    (diagonal-row-getter square)
         position    (.indexOf diag-row square)
         attack-bits (slide-attack-byte occupied position)

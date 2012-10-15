@@ -1,28 +1,37 @@
 (ns chess.bitboard.impl.file-rank
   ( :use [chess.bitboard.impl.bitoperations]))
 
-(def file-squares  (take 64 (cycle (range 1 9))))
+(def file-squares
+  "vector where each item shows the column number"
+  (take 64 (cycle (range 1 9))))
 
 (def  lookup-file  ^ints (into-array Integer/TYPE file-squares))
 
-(def   rank-squares (mapcat (partial  repeat 8) (range 1 9)))
+(def   rank-squares
+"vector where each item shows rank number"
+  (mapcat (partial  repeat 8) (range 1 9)))
 
 (def  lookup-rank  ^ints (into-array Integer/TYPE rank-squares))
 
-(defn lookup-file-rank [square] [(aget ^ints lookup-file square) (aget ^ints lookup-rank square)])
+(defn lookup-file-rank [square]
+"maps a square 0 63 to a coord. for example 63 -> [8 8]"
+[(aget ^ints lookup-file square) (aget ^ints lookup-rank square)])
 
 (def file-rank-squares
+  "vect of [square file rank]"
   (map #(let [file (aget ^ints lookup-file %)
               rank (aget ^ints lookup-rank %)]
                 [% file rank ])(range 64)))
 
 (defn coord->square [file rank]
+  "map coord to square [8 8] -> 63"
     (- (+ (* 8 rank) file) 9))
-
 (defn square->coord [square]
+  "map square to coord 63 -> [8 8]"
   [( aget ^ints lookup-file square) (aget ^ints lookup-rank square)])
 
 (defn coords->squares [coords]
+  "map vect of coords to seq of sqaures"
   (map (fn [[f r]] ( coord->square f r)) coords))
 
 (defn square->column[square] (dec (aget ^ints lookup-file square)))
@@ -30,17 +39,24 @@
 (defn square->row[square] (dec (aget ^ints lookup-rank square)))
 
 (def rank-shift-array
+  "lookup the number to shift a row to the bottom"
   (into-array Integer/TYPE
               (mapcat #(repeat 8 %) (take 8 (iterate (partial + 8) 0)))))
 
 (def ^:longs masks-row
-  "used to get a specific rank row. array has for each"
+  "used to get a specific rank row. array has for each square a maskof six bits set.
+   (only using six bits is a optimization since the outer 2 bits do not count in
+    attack calculation)"
   (into-array Long/TYPE (map #(bit-shift-left 2r01111110 (* 8 (dec %))) rank-squares)))
 
 (def ^:longs masks-column
-  "used to get a specific rank row. array has for each"
+  "used to get a specific file column. array has for each sqaure the column bit set
+ (only using six inner  bits is a optimization since the outer 2 bits do not count in
+    attack calculation)"
   (into-array Long/TYPE
-      (let [left-column 2r0000000000000001000000010000000100000001000000010000000100000000]
+              (let
+                  [left-column
+                   2r0000000000000001000000010000000100000001000000010000000100000000]
          (map #(bit-shift-left left-column  (dec % )) file-squares))))
 
 
@@ -52,9 +68,7 @@
   2r0000110000000000000000000000000000000000000000000000000000000000)
 
 (def ^:const ^long move-rochade-white-king  2r00000100)
-
 (def ^:const ^long move-rochade-white-queen 2r01000000)
-
 
 (def ^:const ^long move-rochade-black-queen
   2r0000010000000000000000000000000000000000000000000000000000000000)
@@ -63,7 +77,9 @@
 
 
 
-(def diagonals-a8h1 [ [0]
+(def diagonals-a8h1
+  "gives for each diagonal numbered 0..14 to the member squares "
+                     [[0]
                       [8 1]
                       [16 9 2]
                       [24 17 10 3]
@@ -80,7 +96,9 @@
                       [63]])
 
 
-(def diagonals-a1h8[[56]
+(def diagonals-a1h8
+  "gives for each diagonal numbered 0..14 to the member squares "
+                   [[56]
                     [48 57]
                     [40 49 58]
                     [32 41 50 59]
@@ -97,18 +115,24 @@
                     [7]])
 
 (defn get-diagonal-a8h1 [sq]
-  (first (filter #(>(.indexOf % sq) -1) diagonals-a8h1) ))
+    "returns vect all  sqaures  belonging to the same diagonal as sq is on"
+    (first (filter #(>(.indexOf % sq) -1) diagonals-a8h1) ))
+(get-diagonal-a8h1 30)
 
 (defn get-diagonal-a1h8 [sq]
+      "returns vect all  sqaures  belonging to the same diagonal as sq is on"
   (first (filter #(>(.indexOf % sq) -1) diagonals-a1h8)))
 
 
-(defn board-frame? [sq] (contains? #{ 0 1 2 3 4 5 6 7
+(defn board-frame?
+    "returns true if sq is on the outer border of the chess board"
+  [sq] (contains? #{ 0 1 2 3 4 5 6 7
                                    15 23 31 39 47 55 63
                                    62 61 60 59 58 57 56
                                     48 40 32 24 16 8} sq))
 
 (def ^:longs masks-diagonal-a8h1
+  "gets for wach square a  diagonal mask where all 6 attack  relevant bits are set"
     (into-array Long/TYPE
                 (let [find-diag (fn [[sq file rank]]
                                   (let [index      (- (+ file rank) 2)
@@ -118,6 +142,7 @@
                   (map find-diag file-rank-squares))))
 
 (def ^:longs masks-diagonal-a1h8
+    "gets for wach square a  diagonal mask where all 6 attack  relevant bits are set"
   (into-array Long/TYPE
               (let [find-diag (fn [[sq file rank]]
                                 (let [index (+ (- file rank) 7)
@@ -128,6 +153,7 @@
 
 
 (def ^:longs magics-file
+  "used to slide a set of column 6 bits to the the horizontal bottom of the board"
   (into-array Long/TYPE
               (apply concat (repeat 8 [(unchecked-long 0x8040201008040200)
                                  (unchecked-long 0x4020100804020100)
@@ -139,6 +165,7 @@
                                  (unchecked-long 0x0100804020100804)]))))
 
 (def magics-diagonal-a8h1
+    "used to slide a set of diagonal 6  bits to the the horizontal bottom of the board"
   (into-array Long/TYPE
               (let [magics [0x0                  ;a1
                             0x0
@@ -167,6 +194,7 @@
                       7  8  9 10 11 12 13 14]))))
 
 (def magics-diagonal-a1h8
+      "used to slide a set of diagonal 6  bits to the the horizontal bottom of the board"
   (into-array Long/TYPE
               (let [magics [0x0                  ;a8
                             0x0
