@@ -30,13 +30,23 @@
           (assoc-in it [:blackpieces] (reduce #(bit-or %1 (%2 it)) 0 [:r :n :b :q :k :p]))
             (assoc-in it [:allpieces] (bit-or (:whitepieces it) (:blackpieces it)))))
 
-(defn move-piece [game-state piece from dest & promotion]
-  (let [captured (get-in game-state [:board dest])]
+(defn promote [game-state square before-piece new-piece]
+  (-> game-state
+      (update-in [before-piece] bit-xor (bit-set 0 square))
+         (set-piece new-piece square)))
+
+(defn move-piece [game-state piece from dest & data]
+  (let [captured         (get-in game-state [:board dest])
+        check-promotion  (fn[game-state]
+                          (if-let [promotion (first data)]
+                           (promote game-state dest piece promotion)
+                            game-state))]
     (-> game-state
         (assoc-in [:board from] :_)
            (update-in [piece] bit-xor (bit-set 0 from))
-           (assoc-in [captured] (bit-xor (game-state captured) (bit-set 0 dest)))
-              (set-piece piece dest))))
+              (assoc-in [captured] (bit-xor (game-state captured) (bit-set 0 dest)))
+                 (set-piece piece dest)
+                    (check-promotion))))
 
 (defn create-board-fn [coll]
   (reduce #(set-piece %1 (first %2) (second %2)) empty-board coll))

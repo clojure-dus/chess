@@ -26,10 +26,14 @@
          piece   (nth (:board game-state) from-sq)]
      (chessboard/move-piece game-state piece from-sq dest-sq)))
 
+(defn- flatten-until-vect [moves]
+  (filter #(and (sequential? %) (not-any? sequential? %))
+    (rest (tree-seq #(and (sequential? %) (some sequential? %)) seq moves))))
+
 (defn generate-moves [game-state]
-  (map (fn [[p from dest]]
+  (map (fn [[p from dest & data]]
          (list (square->coord from) (square->coord dest)))
-       (apply concat (filter #(not (empty? %)) (moves/generate-moves game-state)))))
+       (flatten-until-vect (filter #(not (empty? %)) (moves/generate-moves game-state)))))
 
 (defn native-generate-moves [game-state]
   " returns moves in the form ([:P 56 57].....)"
