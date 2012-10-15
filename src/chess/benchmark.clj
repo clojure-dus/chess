@@ -20,8 +20,8 @@
   (measure 400 generate-moves allboards))
 
 
-(defn measure-bitmap-moves [])
-(measure 400 bb/native-generate-moves allboards-bb)
+(defn measure-bitmap-moves []
+  (measure 400 bb/native-generate-moves allboards-bb))
 
 
 (defn measure-rating []
