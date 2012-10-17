@@ -1,5 +1,5 @@
 (ns chess.moves-impl 
-  (:use [chess.core :only (white? black? piece-at filter-my-positions pos-on-board? pos-empty? piece)])
+  (:use [chess.core :only (white? black? piece-at filter-my-positions pos-on-board? pos-empty? piece move-piece)])
   (:use [chess.directions]))
 
 (defn- knight-steps
@@ -79,9 +79,18 @@
                  (assoc :black-pos (filter-my-positions black? game-state))))
 
 
-(defn generate-moves [game-state]
+(defn generate-moves
   "generates all legal moves for the given game-state"
+  [game-state]
   (let [enriched-game-state (enrich game-state)]
     (->> (filter #(not (nil? %))
                  (build-all-pairs enriched-game-state (fetch-positions enriched-game-state)))
          flatten (partition 2) (partition 2))))
+
+(defn make-move
+  "Attempts to move the piece from pos 'from' to pos 'to'.
+   'from' and 'to' are x/y coordinates relative to lower left corner.
+   Returns nil if the move is not allowed."
+  [game-state from to]
+  (when (some #{to} (possible-moves game-state from))
+    (move-piece game-state from to)))
