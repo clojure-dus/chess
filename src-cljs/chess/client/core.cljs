@@ -23,10 +23,10 @@
      :not-moving)
    (let [piece (piece-at state pos)
          piece-color (cond
-                      (chess/white? piece) :white
-                      (chess/black? piece) :black
+                      (chess/white? piece) :w
+                      (chess/black? piece) :b
                       :else nil)
-         player-color (:player-color state)]
+         player-color (:turn state)]
      (cond
       (nil? piece) :off-board
       (nil? piece-color) :empty-field
@@ -64,13 +64,6 @@
 (defn chess-pos [[x y]]
   [x (- 7 y)])
 
-(defn swap-player [state]
-  (let [current (:player-color state)
-        next (condp = current
-               :white :black
-               :black :white)]
-    (assoc state :player-color next)))
-
 (defmulti handle-mouse-down moving-and-field-type)
 
 (defmethod handle-mouse-down :default
@@ -94,7 +87,7 @@
       (set-marker pos :field-focus)
       (chess/move-piece (chess-pos (move-from-pos state))
                         (chess-pos pos))
-      swap-player))
+      chess/change-turn))
 
 (defmethod handle-mouse-down [:moving :enemy-field]
   [state pos]
@@ -103,7 +96,7 @@
       (set-marker pos :field-focus)
       (chess/move-piece (chess-pos (move-from-pos state))
                         (chess-pos pos))
-      swap-player))
+      chess/change-turn))
 
 (defmulti handle-mouse-move moving-and-field-type)
 
@@ -181,5 +174,4 @@
                                                       (swap! state handle-mouse-down pos)))
                    (add-watch state :draw-board (fn [k r o n]
                                                   (d/draw o n context)))
-                   (reset! state (-> gamestate
-                                     (assoc :player-color :white))))))
+                   (reset! state gamestate))))
