@@ -67,3 +67,13 @@
 (defn pos-of-piece [game-state p]
   "returns the positions [x y] of the given piece on the board"
   (filter (fn [pos] (= p (piece-at game-state pos))) all-positions))
+
+(defn whites-turn? [game-state]
+  (= :w (:turn game-state)))
+
+(defn change-turn
+  "changes the turn to the next player"
+  [game-state]
+  (if (whites-turn? game-state)
+    (assoc game-state :turn :b)
+    (assoc game-state :turn :w)))

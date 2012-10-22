@@ -21,13 +21,10 @@
 
 (declare possible-moves)
 
-
 (defn- build-all-pairs [game-state positions]
   (map (fn [x] (let [moves (possible-moves game-state x)]
                  (when (seq moves)
                    (build-pair x moves)))) positions))
-
-
 
 (defmulti possible-moves piece)
 
@@ -73,11 +70,9 @@
   (filter (fn [position] (and (pos-on-board? position) (let [piece (piece-at game-state position)] (or (= :_ piece) (enemy-on-pos? game-state position)))))
           (knight-steps initial-position)))
 
-
 (defn enrich [game-state]
   (-> game-state (assoc :white-pos (filter-my-positions white? game-state))
                  (assoc :black-pos (filter-my-positions black? game-state))))
-
 
 (defn generate-moves
   "generates all legal moves for the given game-state"
@@ -92,5 +87,8 @@
    'from' and 'to' are x/y coordinates relative to lower left corner.
    Returns nil if the move is not allowed."
   [game-state from to]
-  (when (some #{to} (possible-moves game-state from))
+  (when (and
+         (or (and (= :w (:turn game-state)) (white? (piece-at game-state from)))
+             (and (= :b (:turn game-state)) (black? (piece-at game-state from))))
+         (some #{to} (possible-moves game-state from)))
     (move-piece game-state from to)))

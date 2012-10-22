@@ -9,7 +9,9 @@
         [compojure.handler :only [api]]
         [hiccup.page :only [html5]]
         [hiccup.form :only [form-to submit-button]]
-        [chess.core :only [initial-board]]))
+        [chess.core :only [initial-board change-turn]]
+        [chess.moves-api :only [make-move]]
+        [chess.move-selection :only [select-move]]))
 
 (defonce games (atom {}))
 
@@ -46,6 +48,11 @@
       response
       (content-type "application/json")))
 
+(defn bad-request [msg]
+  (-> msg
+      response
+      (assoc :status 400)))
+
 (defroutes chess
   (GET "/" []
        (show-html index-page))
@@ -56,7 +63,26 @@
          (show-html (game-page id))))
   (GET "/gamestates/:id" [id]
        (when-let [gamestate (get @games id)]
-         (json gamestate))))
+         (json gamestate)))
+  (POST "/gamestates/:id/move" {json-stream :body
+                                {:keys [id]} :params
+                                :as request}
+        (when-let [gamestate (get @games id)]
+          (let [{:keys [from to]} (json/read-str (slurp json-stream) :key-fn keyword)]
+            (if-let [new-gamestate (make-move gamestate from to)]
+              (do
+                (swap! games assoc id new-gamestate)
+                (json new-gamestate))
+              (bad-request "move not allowed")))))
+  (POST "/gamestates/:id/next" [id]
+        (when-let [gamestate (get @games id)]
+          (let [[from to] (select-move gamestate)
+                new-gamestate (-> gamestate
+                                  (make-move from to)
+                                  change-turn)]
+            (do
+              (swap! games assoc id new-gamestate)
+              (json new-gamestate))))))
 
 (def webapp 
   (-> chess

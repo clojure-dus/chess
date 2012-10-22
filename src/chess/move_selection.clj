@@ -1,7 +1,7 @@
 (ns chess.move-selection
   (:require [chess.moves-api :only (generate-moves) :as moves])
   (:use [chess.board-rating :only (rate)])
-  (:use [chess.core :only (move-piece pos-of-piece piece-at)])
+  (:use [chess.core :only (move-piece pos-of-piece piece-at change-turn whites-turn?)])
   (:use [clojure.java.io])
   (:use [clojure.pprint]))
 
@@ -19,14 +19,7 @@
         f (fn [[x y]] (str (nth chars x) (inc y))) ]
     (str (f from) "->" (f to))))
      
-(defn whites-turn? [game-state]
-  (= :w (:turn game-state)))
 
-(defn change-turn [game-state]
-  "changes the turn to the next player"
-  (if (whites-turn? game-state)
-    (assoc game-state :turn :b)
-    (assoc game-state :turn :w)))
 
 (defn check? [game-state]
   "checks if the given board is in check"
@@ -85,7 +78,7 @@
              max-rate (min-or-max rates depth is-checkmated)
              rates2moves  (zipmap rates possible-moves)
              max-step (get rates2moves (first (filter #(= max-rate %) rates)))]
-             { :score max-rate :max-step max-step :game-state game-state  :former-step step :tree subtree}))))
+             {:score max-rate :max-step max-step :game-state game-state :former-step step :tree subtree}))))
 
 (defn trace-tree [game-state max-depth]
   (with-open [w (writer "tree.trace")]
@@ -94,7 +87,10 @@
 (defn min-max [game-state max-depth]
   (:max-step (build-tree game-state max-depth)))
 
-(defn select-move [game-state]
+(defn select-move
+  "Generates the next move for the given game-state.
+   Returns seq with two positions 'from' and 'two'."
+  [game-state]
   (min-max game-state 2))
 
 
