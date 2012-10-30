@@ -1,7 +1,7 @@
 (ns chess.client.core
-  (:require [goog.net.XhrIo]
-            [chess.core :as chess]
-            [chess.client.drawing :as d]))
+  (:require [chess.core :as chess]
+            [chess.client.drawing :as d]
+            [chess.client.remote :as r]))
 
 (defn log [& stuff]
   (doseq [s stuff]
@@ -64,6 +64,23 @@
 (defn chess-pos [[x y]]
   [x (- 7 y)])
 
+(defn block-input [state]
+  (assoc state :blocked true))
+
+(defn unblock-input [state]
+  (assoc state :blocked false))
+
+(defn input-blocked? [state]
+  (:blocked state))
+
+(defn move [state from to]
+  ;;(fire :move {:from (chess-pos from)
+  ;;             :to (chess-pos to)})
+  (-> state
+      stop-moving
+      (set-marker to :field-focus)
+      block-input))
+
 (defmulti handle-mouse-down moving-and-field-type)
 
 (defmethod handle-mouse-down :default
@@ -82,21 +99,11 @@
 
 (defmethod handle-mouse-down [:moving :empty-field]
   [state pos]
-  (-> state
-      stop-moving
-      (set-marker pos :field-focus)
-      (chess/move-piece (chess-pos (move-from-pos state))
-                        (chess-pos pos))
-      chess/change-turn))
+  (move state (move-from-pos state) pos))
 
 (defmethod handle-mouse-down [:moving :enemy-field]
   [state pos]
-  (-> state
-      stop-moving
-      (set-marker pos :field-focus)
-      (chess/move-piece (chess-pos (move-from-pos state))
-                        (chess-pos pos))
-      chess/change-turn))
+  (move state (move-from-pos state) pos))
 
 (defmulti handle-mouse-move moving-and-field-type)
 
@@ -137,41 +144,24 @@
   (-> js/document
       (.getElementById "chess-board")))
 
-(defn keywordize-rochade-vec [state]
-  (update-in state [:rochade] #(vec (map keyword %))))
-
-(defn keywordize-board-vec [state]
-  (update-in state [:board] #(vec (map (fn [row]
-                                         (vec (map keyword row)))
-                                       %))))
-
-(defn keywordize-turn [state]
-  (update-in state [:turn] keyword))
-
-(defn get-gamestate [id callback]
-  (let [url (str "/gamestates/" id)]
-    (.send goog.net.XhrIo url (fn [response]
-                                (-> response
-                                    .-target
-                                    .getResponseJson
-                                    (js->clj :keywordize-keys true)
-                                    keywordize-rochade-vec
-                                    keywordize-board-vec
-                                    keywordize-turn
-                                    callback)))))
-
 (let [canvas (create-canvas BOARD-SIZE BOARD-SIZE)
       game-id (.getAttribute (board-elem) "data-game-id")
       context (.getContext canvas "2d")
       state (atom nil)]
-  (get-gamestate game-id
+  (r/get-gamestate game-id
                  (fn [gamestate]
                    (-> (board-elem)
                        (.appendChild canvas))
                    (d/listen-for-mouse-move context (fn [pos]
-                                                      (swap! state handle-mouse-move pos)))
+                                                      (swap! state (fn [current-state]
+                                                                     (if-not (input-blocked? current-state)
+                                                                       (handle-mouse-move current-state pos)
+                                                                       state)))))
                    (d/listen-for-mouse-down context (fn [pos]
-                                                      (swap! state handle-mouse-down pos)))
+                                                      (swap! state (fn [current-state]
+                                                                     (if-not (input-blocked? current-state)
+                                                                       (handle-mouse-down current-state pos)
+                                                                       state)))))
                    (add-watch state :draw-board (fn [k r o n]
                                                   (d/draw o n context)))
                    (reset! state gamestate))))
