@@ -1,12 +1,13 @@
 (ns chess.bitboard.api
+  (:require  [chess.bitboard.impl.moves
+         :only  (generate-moves find-piece-moves check?)
+         :as moves])
   (:require [chess.bitboard.impl.chessboard
          :only (move-piece initial-board read-fen print-board)
          :as chessboard])
   (:use [chess.bitboard.impl.file-rank
          :only (lookup-file lookup-rank)])
-  (:require  [chess.bitboard.impl.moves
-         :only  (generate-moves find-piece-moves check?)
-         :as moves]))
+)
 
 (defn- coord->square [[file rank]]
   (- (+ (* 8 (inc rank)) (inc file)) 9))
@@ -26,18 +27,14 @@
          piece   (nth (:board game-state) from-sq)]
      (chessboard/move-piece game-state piece from-sq dest-sq)))
 
-(defn- flatten-until-vect [moves]
-  (filter #(and (sequential? %) (not-any? sequential? %))
-    (rest (tree-seq #(and (sequential? %) (some sequential? %)) seq moves))))
-
 (defn generate-moves [game-state]
-  (map (fn [[p from dest & data]]
+  (clojure.core/map (fn [[p from dest & data]]
          (list (square->coord from) (square->coord dest)))
-       (flatten-until-vect (filter #(not (empty? %)) (moves/generate-moves game-state)))))
+       (moves/generate-moves game-state)))
 
 (defn native-generate-moves [game-state]
   " returns moves in the form ([:P 56 57].....)"
-  (apply concat (filter #(not (empty? %)) (moves/generate-moves game-state))))
+  (moves/generate-moves game-state))
 
 
 (defn native-move-piece [game-state piece from-sq dest-sq promotion]
@@ -49,7 +46,7 @@
 (defn possible-moves [game-state coord]
   (let [square (coord->square coord)
         piece  (nth (:board game-state) square)]
-    (map  (fn[[_ _ dest]] (square->coord dest))
+    (clojure.core/map  (fn[[_ _ dest]] (square->coord dest))
           (moves/find-piece-moves piece square game-state))))
 
 (defn piece-at [game-state coord]

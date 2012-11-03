@@ -3,7 +3,12 @@
   (:use [chess.bitboard.impl.bitoperations])
   (:use [chess.bitboard.impl.chessboard])
   (:use [chess.bitboard.impl.piece-attacks])
+  (:use [clojure.core.protocols])
   (:use [clojure.pprint]))
+
+(require '[clojure.core.reducers :as r])
+
+
 (comment (set! *warn-on-reflection* true))
 
 (defn attacked-by-black? [mask-sq game-state]
@@ -157,7 +162,6 @@
         slide-moves-file   (bit-and (get-attack-file  game-state from-sq) not-occupied)
         slide-moves        (bit-or slide-moves-rank slide-moves-file)]
     (for-bitmap [dest-pos slide-moves]
-
       [piece from-sq dest-pos])))
 
 (defmethod find-piece-moves :Bishop [piece from-sq game-state]
@@ -179,14 +183,31 @@
     (for-bitmap [dest-pos slide-moves]
       [piece from-sq dest-pos])))
 
+
+ (extend-protocol CollReduce
+    java.lang.Long
+    (coll-reduce
+      ([coll f] (internal-reduce 0 coll f))
+      ([coll f val] (internal-reduce coll f val))))
+
+  (extend-protocol InternalReduce
+    java.lang.Long
+    (internal-reduce [bitmap f val]
+      (loop [val val  pieces bitmap]
+       (if (= 0 pieces)
+         val
+         (let [index (find-first-one-bit pieces)]
+          (recur (f val index) (bit-xor pieces (bit-set 0 index))))))))
+
+
 (defn generate-moves [game-state]
   (let [squares  (:board game-state)
         pieces   (pieces-by-turn game-state)]
-    (for-bitmap [from-sq pieces]
-        (find-piece-moves (squares from-sq) from-sq game-state))))
+    (into [] (r/mapcat #(find-piece-moves (squares %) % game-state) pieces))))
+
 
 (defn print-generate-moves [game-state]
   (print-board
-    (create-board-fn
-        (map (fn [[p x y]] [p y])
-             (apply concat (filter #(not (empty? %)) (generate-moves game-state))) ))))
+   (create-board-fn
+    (map (fn [[p x y]] [p y])
+         (apply concat (filter #(not (empty? %)) (generate-moves game-state))) ))))
