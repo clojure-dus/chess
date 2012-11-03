@@ -1,6 +1,9 @@
 (defproject chess "1.0.0-SNAPSHOT"
   :description "chess engine"
-  :dependencies [[org.clojure/clojure "1.4.0"]
+
+  :repositories [["sonatype-snapshots" "https://oss.sonatype.org/content/repositories/snapshots/"]]
+
+  :dependencies [[org.clojure/clojure "1.5.0-master-SNAPSHOT"]
                  [org.clojure/math.combinatorics "0.0.2"]
                  [ring "1.1.0"] ; http basics
                  [compojure "1.1.0"] ; http routing
