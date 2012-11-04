@@ -61,12 +61,12 @@
                          :P      :WhitePawn
                          :p      :BlackPawn)))
 
- (defmethod find-piece-moves :Knight [piece from-sq game-state]
+ (defmethod find-piece-moves :Knight [piece game-state from-sq]
    (let [piece-move-bitset    (aget ^longs knight-attack-array from-sq)
          not-occupied-squares (bit-not (pieces-by-turn game-state))]
      (bit-and piece-move-bitset not-occupied-squares)))
 
- (defmethod find-piece-moves :WhitePawn [piece from-sq game-state]
+ (defmethod find-piece-moves :WhitePawn [piece game-state from-sq]
    (let [moves          (aget ^longs pawn-white-move-array from-sq)
          all-pieces     (:allpieces game-state)
          occupied       (bit-and all-pieces moves)
@@ -81,7 +81,7 @@
                            (aget ^longs pawn-white-attack-array from-sq))]
      (bit-or moves double-moves attacks)))
 
-(defmethod find-piece-moves :BlackPawn [piece from-sq game-state]
+(defmethod find-piece-moves :BlackPawn [piece game-state from-sq]
   (let [moves          (aget ^longs pawn-black-move-array from-sq)
         all-pieces     (:allpieces game-state)
         occupied       (bit-and all-pieces moves)
@@ -117,7 +117,7 @@
                  (not (attacked-by-white? mask-rochade-black-queen game-state)))
            move-rochade-black-queen 0))))
 
- (defmethod find-piece-moves :WhiteKing [piece from-sq game-state]
+ (defmethod find-piece-moves :WhiteKing [piece game-state from-sq]
    (let [moves             (aget ^longs king-attack-array from-sq)
          occupied           (pieces-by-turn game-state)
          not-occupied       (bit-not occupied)
@@ -126,7 +126,7 @@
                    (get-rochade-moves game-state :K)
                    (get-rochade-moves game-state :Q))))
 
-(defmethod find-piece-moves :BlackKing [piece from-sq game-state]
+(defmethod find-piece-moves :BlackKing [piece game-state from-sq]
    (let [moves              (aget ^longs king-attack-array from-sq)
          ^long occupied     (pieces-by-turn game-state)
          not-occupied       (bit-not occupied)
@@ -135,20 +135,20 @@
                    (get-rochade-moves game-state :k)
                    (get-rochade-moves game-state :q))))
 
-(defmethod find-piece-moves :Rook [piece from-sq game-state]
+(defmethod find-piece-moves :Rook [piece game-state from-sq]
   (let [not-occupied       (bit-not (pieces-by-turn game-state))
         slide-moves-rank   (bit-and (get-attack-rank game-state from-sq) not-occupied)
         slide-moves-file   (bit-and (get-attack-file  game-state from-sq) not-occupied)
         slide-moves        (bit-or slide-moves-rank slide-moves-file)]
     slide-moves))
 
-(defmethod find-piece-moves :Bishop [piece from-sq game-state]
+(defmethod find-piece-moves :Bishop [piece game-state from-sq]
   (let [not-occupied       (bit-not (pieces-by-turn game-state))
         slide-diagonal-a1  (bit-and (get-attack-diagonal-a1h8 game-state from-sq) not-occupied)
         slide-diagonal-a8  (bit-and (get-attack-diagonal-a8h1 game-state from-sq) not-occupied)]
     (bit-or slide-diagonal-a1 slide-diagonal-a8)))
 
-(defmethod find-piece-moves :Queen  [piece from-sq game-state]
+(defmethod find-piece-moves :Queen  [piece game-state from-sq]
   (let [not-occupied       (bit-not (pieces-by-turn game-state))
         slide-moves-rank   (bit-and (get-attack-rank game-state from-sq) not-occupied)
         slide-moves-file   (bit-and (get-attack-file  game-state from-sq) not-occupied)
@@ -175,22 +175,30 @@
     [piece from-sq dest-pos]))
 
 (defn move-parser [piece from-square]
-  (fn[bitboard] (r/map #(create-move piece from-square %) bitboard)))
-
+  (fn[bitboard] (r/map (partial create-move piece from-square) bitboard)))
 
 (defn find-moves[game-state]
   (fn[square]
-    (let [piece            (get (:board game-state) square)
-          get-piece-moves  #(find-piece-moves piece % game-state)
+    (let [ piece            (get (:board game-state) square)
+          get-piece-moves  (partial find-piece-moves piece game-state)
           create-move      (move-parser piece square)
-          pipeline         (comp create-move  get-piece-moves)]
-         (pipeline square))))
+          transform         (comp create-move  get-piece-moves)]
+         (transform square))))
+
+
+
+(comment (defn possible-moves [game-state pieces]
+           (r/fold 1 (r/monoid concat vector) conj (r/mapcat  (find-moves game-state) pieces))))
 
 (defn possible-moves [game-state pieces]
   (into [] (r/mapcat  (find-moves game-state) pieces)))
 
+
+
 (defn generate-moves [game-state]
   (possible-moves game-state  (pieces-by-turn game-state)))
+
+
 
 (defn print-generate-moves [game-state]
   (print-board
