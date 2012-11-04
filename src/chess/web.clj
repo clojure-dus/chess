@@ -69,8 +69,8 @@
                                 :as request}
         (when-let [gamestate (get @games id)]
           (let [{:keys [from to]} (json/read-str (slurp json-stream) :key-fn keyword)]
-            (if-let [new-gamestate (make-move gamestate from to)]
-              (do
+            (if-let [gamestate-after-move (make-move gamestate from to)]
+              (let [new-gamestate (change-turn gamestate-after-move)]
                 (swap! games assoc id new-gamestate)
                 (json new-gamestate))
               (bad-request "move not allowed")))))
