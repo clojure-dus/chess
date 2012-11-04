@@ -7,7 +7,7 @@
                  [hiccup "1.0.1"] ; generating html
                  [org.clojure/data.json "0.2.0"]]
   :dev-dependencies [[swank-clojure "1.4.0"]]
-  :plugins [[lein-cljsbuild "0.2.6"]] ; see https://github.com/emezeske/lein-cljsbuild
+  :plugins [[lein-cljsbuild "0.2.9"]] ; see https://github.com/emezeske/lein-cljsbuild
   :cljsbuild {:builds [{:source-path "src-cljs"
                         :compiler {:output-to "resources/public/js/chess.js"
                                    :optimizations :whitespace
