@@ -1,7 +1,8 @@
 (ns chess.client.core
   (:require [chess.core :as chess]
             [chess.client.drawing :as d]
-            [chess.client.remote :as r]))
+            [chess.client.remote :as r]
+            [one.dispatch :as dispatch]))
 
 (defn log [& stuff]
   (doseq [s stuff]
@@ -73,9 +74,23 @@
 (defn input-blocked? [state]
   (:blocked state))
 
+(defn fire-async
+  "Dispatches an event asynchronously by using a timeout of 0 ms.
+   The code that actually dispatches the event is scheduled to run 'next', after the code that calls this function
+   has been executed (if my understanding of JavaScript is correct...)."
+  ([event-id]
+     (fire-async event-id nil))
+  ([event-id data]
+     (js/setTimeout
+      (fn []
+        (if data
+          (dispatch/fire event-id data)
+          (dispatch/fire event-id)))
+      0)))
+
 (defn move [state from to]
-  ;;(fire :move {:from (chess-pos from)
-  ;;             :to (chess-pos to)})
+  (fire-async :move {:from (chess-pos from)
+                     :to (chess-pos to)})
   (-> state
       stop-moving
       (set-marker to :field-focus)
@@ -156,12 +171,26 @@
                                                       (swap! state (fn [current-state]
                                                                      (if-not (input-blocked? current-state)
                                                                        (handle-mouse-move current-state pos)
-                                                                       state)))))
+                                                                       current-state)))))
                    (d/listen-for-mouse-down context (fn [pos]
                                                       (swap! state (fn [current-state]
                                                                      (if-not (input-blocked? current-state)
                                                                        (handle-mouse-down current-state pos)
-                                                                       state)))))
+                                                                       current-state)))))
                    (add-watch state :draw-board (fn [k r o n]
                                                   (d/draw o n context)))
+                   (dispatch/react-to #{:move} (fn [_ move]
+                                                 (r/move game-id move
+                                                         (fn [gamestate-after-move]
+                                                           (if gamestate-after-move
+                                                             (do
+                                                               (reset! state gamestate-after-move)
+                                                               (fire-async :next))
+                                                             (do
+                                                               (js/alert "move not possible")
+                                                               (swap! state unblock-input)))))))
+                   (dispatch/react-to #{:next} (fn [_ _]
+                                                 (r/nxt game-id
+                                                        (fn [gamestate-after-next]
+                                                          (reset! state gamestate-after-next)))))
                    (reset! state gamestate))))
