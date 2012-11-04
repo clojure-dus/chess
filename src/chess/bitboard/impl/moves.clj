@@ -3,7 +3,6 @@
   (:use [chess.bitboard.impl.bitoperations])
   (:use [chess.bitboard.impl.chessboard])
   (:use [chess.bitboard.impl.piece-attacks])
-  (:use [clojure.core.protocols])
   (:use [clojure.pprint]))
 
 (require '[clojure.core.reducers :as r])
@@ -159,23 +158,7 @@
     (bit-or slide-diagonal-a1 slide-diagonal-a8 slide-moves-rook)))
 
 
- (extend-protocol CollReduce
-    java.lang.Long
-    (coll-reduce
-      ([coll f] (internal-reduce 0 coll f))
-      ([coll f val] (internal-reduce coll f val))))
-
-  (extend-protocol InternalReduce
-    java.lang.Long
-    (internal-reduce [bitmap f val]
-      (loop [val val  pieces bitmap]
-       (if (= 0 pieces)
-         val
-         (let [index (find-first-one-bit pieces)]
-          (recur (f val index) (bit-xor pieces (bit-set 0 index))))))))
-
-
-(defn make-move [piece from-sq dest-pos]
+(defn create-move [piece from-sq dest-pos]
   (condp = piece
     :P (if (< dest-pos 56)
          [piece from-sq dest-pos]
@@ -191,17 +174,20 @@
           [piece from-sq dest-pos :n]])
     [piece from-sq dest-pos]))
 
+(defn move-parser [piece from-square]
+  (fn[bitboard] (r/map #(create-move piece from-square %) bitboard)))
+
+
 (defn find-moves[game-state]
   (fn[square]
     (let [piece            (get (:board game-state) square)
-          parse-moves      (fn[bitboard] (r/map #(make-move piece square %) bitboard))
-          find-piece-moves #(find-piece-moves piece % game-state)
-          pipeline         (comp parse-moves find-piece-moves)]
+          get-piece-moves  #(find-piece-moves piece % game-state)
+          create-move      (move-parser piece square)
+          pipeline         (comp create-move  get-piece-moves)]
          (pipeline square))))
 
 (defn possible-moves [game-state pieces]
   (into [] (r/mapcat  (find-moves game-state) pieces)))
-
 
 (defn generate-moves [game-state]
   (possible-moves game-state  (pieces-by-turn game-state)))
@@ -211,5 +197,3 @@
    (create-board-fn
     (map (fn [[p x y]] [p y])
          (generate-moves game-state) ))))
-
-(print-generate-moves initial-board)

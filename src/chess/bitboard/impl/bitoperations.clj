@@ -1,5 +1,8 @@
-(ns chess.bitboard.impl.bitoperations)
+(ns chess.bitboard.impl.bitoperations
+  (:use [clojure.core.protocols]))
 (import 'chess.bitboard.impl.BitOps)
+(require '[clojure.core.reducers :as r])
+
 (comment (set! *warn-on-reflection* true))
 (defn unsigned-shift-right[x n]
   "needed because clojure 1.4 doesn't support unsigned right shift"
@@ -27,21 +30,25 @@
              index (unsigned-shift-right (unchecked-multiply term debruin) 58)]
        (aget ^ints index-64 index))))
 
+
+ (extend-protocol CollReduce
+    java.lang.Long
+    (coll-reduce
+      ([coll f] (internal-reduce 0 coll f))
+      ([coll f val] (internal-reduce coll f val))))
+
+  (extend-protocol InternalReduce
+    java.lang.Long
+    (internal-reduce [bitmap f val]
+      (loop [val val  pieces bitmap]
+       (if (= 0 pieces)
+         val
+         (let [index (find-first-one-bit pieces)]
+          (recur (f val index) (bit-xor pieces (bit-set 0 index))))))))
+
 (defmacro bit-and? [& rest]
   "return true on bit-anded bitmaps"
   `(not= 0 (bit-and ~@rest )))
-
-(defmacro for-bitmap [[key bitmap] & body]
-"iterates for each bit set in bitmap. the index is bind to key. returns a vector of body results"
-`(loop [result# []
-          pieces#  ~bitmap]
-     (if (= 0 pieces#)
-       result#
-       (let [~key (find-first-one-bit pieces#)]
-         (recur (conj result# (do ~@body))
-                (bit-xor pieces# (bit-set 0 ~key)))))))
-
-
 
 (defmacro some-bitmap [pred bitmap]
   "iterates over all bitmaps 1s (squares)
@@ -120,7 +127,7 @@
 
 (defn bitmap->board-vector [board-vector piece bitmap]
   "adds a bitmap to a board. board is a vector of piece keyowrds"
-  (let [indexes (for-bitmap [idx bitmap] idx)
+  (let [indexes   (into [] (r/map  identity bitmap))
         update-fn (fn [board-vector idx] (assoc board-vector idx piece))]
      (reduce update-fn board-vector indexes)))
 
