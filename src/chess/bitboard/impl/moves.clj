@@ -64,10 +64,8 @@
 
  (defmethod find-piece-moves :Knight [piece from-sq game-state]
    (let [piece-move-bitset    (aget ^longs knight-attack-array from-sq)
-         not-occupied-squares (bit-not (pieces-by-turn game-state))
-         moves                (bit-and piece-move-bitset not-occupied-squares)]
-     (for-bitmap [dest-pos moves]
-       [piece from-sq dest-pos])))
+         not-occupied-squares (bit-not (pieces-by-turn game-state))]
+     (bit-and piece-move-bitset not-occupied-squares)))
 
  (defmethod find-piece-moves :WhitePawn [piece from-sq game-state]
    (let [moves          (aget ^longs pawn-white-move-array from-sq)
@@ -81,15 +79,8 @@
          double-moves   (bit-xor double-moves (bit-or occupied-3-row occupied-4-row))
 
          attacks  (bit-and (:blackpieces game-state)
-                           (aget ^longs pawn-white-attack-array from-sq))
-         moves    (bit-or moves double-moves attacks)]
-     (for-bitmap [dest-pos moves]
-       (if (< dest-pos 56)
-         [piece from-sq dest-pos]
-         [[piece from-sq dest-pos :Q] ; means last row so pawn gets promoted
-          [piece from-sq dest-pos :R]
-          [piece from-sq dest-pos :B]
-          [piece from-sq dest-pos :N]]))))
+                           (aget ^longs pawn-white-attack-array from-sq))]
+     (bit-or moves double-moves attacks)))
 
 (defmethod find-piece-moves :BlackPawn [piece from-sq game-state]
   (let [moves          (aget ^longs pawn-black-move-array from-sq)
@@ -103,15 +94,8 @@
         double-moves   (bit-xor double-moves (bit-or occupied-5-row occupied-6-row))
 
         attacks        (bit-and (:whitepieces game-state)
-                               (aget ^longs pawn-black-attack-array from-sq))
-        moves          (bit-or moves double-moves attacks)]
-    (for-bitmap [dest-pos moves]
-       (if (> dest-pos 7)
-         [piece from-sq dest-pos]
-         [[piece from-sq dest-pos :q] ; means last row so pawn gets promoted
-          [piece from-sq dest-pos :r]
-          [piece from-sq dest-pos :b]
-          [piece from-sq dest-pos :n]]))))
+                                (aget ^longs pawn-black-attack-array from-sq))]
+    (bit-or moves double-moves attacks)))
 
 (defn  ^Long get-rochade-moves  [game-state kind]
   (let [rochade  (:rochade game-state )
@@ -138,39 +122,32 @@
    (let [moves             (aget ^longs king-attack-array from-sq)
          occupied           (pieces-by-turn game-state)
          not-occupied       (bit-not occupied)
-         moves              (bit-and moves not-occupied)
-         moves              (bit-or moves
-                                    (get-rochade-moves game-state :K)
-                                    (get-rochade-moves game-state :Q))]
-     (for-bitmap [dest-pos moves]
-       [piece from-sq dest-pos])))
+         moves              (bit-and moves not-occupied)]
+           (bit-or moves
+                   (get-rochade-moves game-state :K)
+                   (get-rochade-moves game-state :Q))))
 
 (defmethod find-piece-moves :BlackKing [piece from-sq game-state]
    (let [moves              (aget ^longs king-attack-array from-sq)
          ^long occupied     (pieces-by-turn game-state)
          not-occupied       (bit-not occupied)
-         moves              (bit-and moves not-occupied)
-         moves              (bit-or moves
-                                    (get-rochade-moves game-state :k)
-                                    (get-rochade-moves game-state :q))]
-     (for-bitmap [dest-pos moves]
-       [piece from-sq dest-pos])))
+         moves              (bit-and moves not-occupied)]
+            (bit-or moves
+                   (get-rochade-moves game-state :k)
+                   (get-rochade-moves game-state :q))))
 
 (defmethod find-piece-moves :Rook [piece from-sq game-state]
   (let [not-occupied       (bit-not (pieces-by-turn game-state))
         slide-moves-rank   (bit-and (get-attack-rank game-state from-sq) not-occupied)
         slide-moves-file   (bit-and (get-attack-file  game-state from-sq) not-occupied)
         slide-moves        (bit-or slide-moves-rank slide-moves-file)]
-    (for-bitmap [dest-pos slide-moves]
-      [piece from-sq dest-pos])))
+    slide-moves))
 
 (defmethod find-piece-moves :Bishop [piece from-sq game-state]
   (let [not-occupied       (bit-not (pieces-by-turn game-state))
         slide-diagonal-a1  (bit-and (get-attack-diagonal-a1h8 game-state from-sq) not-occupied)
-        slide-diagonal-a8  (bit-and (get-attack-diagonal-a8h1 game-state from-sq) not-occupied)
-        slide-moves        (bit-or slide-diagonal-a1 slide-diagonal-a8)]
-    (for-bitmap [dest-pos slide-moves]
-           [piece from-sq dest-pos])))
+        slide-diagonal-a8  (bit-and (get-attack-diagonal-a8h1 game-state from-sq) not-occupied)]
+    (bit-or slide-diagonal-a1 slide-diagonal-a8)))
 
 (defmethod find-piece-moves :Queen  [piece from-sq game-state]
   (let [not-occupied       (bit-not (pieces-by-turn game-state))
@@ -178,10 +155,8 @@
         slide-moves-file   (bit-and (get-attack-file  game-state from-sq) not-occupied)
         slide-moves-rook   (bit-or slide-moves-rank slide-moves-file)
         slide-diagonal-a1  (bit-and (get-attack-diagonal-a1h8 game-state from-sq) not-occupied)
-        slide-diagonal-a8  (bit-and (get-attack-diagonal-a8h1 game-state from-sq) not-occupied)
-        slide-moves        (bit-or slide-diagonal-a1 slide-diagonal-a8 slide-moves-rook)]
-    (for-bitmap [dest-pos slide-moves]
-      [piece from-sq dest-pos])))
+        slide-diagonal-a8  (bit-and (get-attack-diagonal-a8h1 game-state from-sq) not-occupied)]
+    (bit-or slide-diagonal-a1 slide-diagonal-a8 slide-moves-rook)))
 
 
  (extend-protocol CollReduce
@@ -200,14 +175,41 @@
           (recur (f val index) (bit-xor pieces (bit-set 0 index))))))))
 
 
-(defn generate-moves [game-state]
-  (let [squares  (:board game-state)
-        pieces   (pieces-by-turn game-state)]
-    (into [] (r/mapcat #(find-piece-moves (squares %) % game-state) pieces))))
+(defn make-move [piece from-sq dest-pos]
+  (condp = piece
+    :P (if (< dest-pos 56)
+         [piece from-sq dest-pos]
+         [[piece from-sq dest-pos :Q] ; means last row so pawn gets promoted
+          [piece from-sq dest-pos :R]
+          [piece from-sq dest-pos :B]
+          [piece from-sq dest-pos :N]])
+    :p (if (> dest-pos 7)
+         [piece from-sq dest-pos]
+         [[piece from-sq dest-pos :q] ; means last row so pawn gets promoted
+          [piece from-sq dest-pos :r]
+          [piece from-sq dest-pos :b]
+          [piece from-sq dest-pos :n]])
+    [piece from-sq dest-pos]))
 
+(defn find-moves[game-state]
+  (fn[square]
+    (let [piece            (get (:board game-state) square)
+          parse-moves      (fn[bitboard] (r/map #(make-move piece square %) bitboard))
+          find-piece-moves #(find-piece-moves piece % game-state)
+          pipeline         (comp parse-moves find-piece-moves)]
+         (pipeline square))))
+
+(defn possible-moves [game-state pieces]
+  (into [] (r/mapcat  (find-moves game-state) pieces)))
+
+
+(defn generate-moves [game-state]
+  (possible-moves game-state  (pieces-by-turn game-state)))
 
 (defn print-generate-moves [game-state]
   (print-board
    (create-board-fn
     (map (fn [[p x y]] [p y])
-         (apply concat (filter #(not (empty? %)) (generate-moves game-state))) ))))
+         (generate-moves game-state) ))))
+
+(print-generate-moves initial-board)

@@ -28,7 +28,7 @@
      (chessboard/move-piece game-state piece from-sq dest-sq)))
 
 (defn generate-moves [game-state]
-  (clojure.core/map (fn [[p from dest & data]]
+  (map (fn [[p from dest & data]]
          (list (square->coord from) (square->coord dest)))
        (moves/generate-moves game-state)))
 
@@ -44,10 +44,9 @@
 
 
 (defn possible-moves [game-state coord]
-  (let [square (coord->square coord)
-        piece  (nth (:board game-state) square)]
-    (clojure.core/map  (fn[[_ _ dest]] (square->coord dest))
-          (moves/find-piece-moves piece square game-state))))
+  (let [square (coord->square coord)]
+    (map  (fn[[_ _ dest]] (square->coord dest))
+          (moves/possible-moves game-state (bit-set 0 square)))))
 
 (defn piece-at [game-state coord]
   (get-in chessboard/initial-board [:board (coord->square coord) ]))

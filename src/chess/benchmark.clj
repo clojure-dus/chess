@@ -17,11 +17,11 @@
     (println  (time (doseq [board boards] (f board))))))
 
 (defn measure-moves []
-  (measure 400 generate-moves allboards))
+  (measure 10000 generate-moves allboards))
 
 
 (defn measure-bitmap-moves []
-  (measure 400 bb/native-generate-moves allboards-bb))
+  (measure 10000 bb/native-generate-moves allboards-bb))
 
 
 (defn measure-rating []
