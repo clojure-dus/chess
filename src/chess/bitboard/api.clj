@@ -4,10 +4,10 @@
          :as moves])
   (:require [chess.bitboard.impl.chessboard
          :only (move-piece initial-board read-fen print-board)
-         :as chessboard])
+             :as chessboard])
+  (:require [chess.move-generator :as gen])
   (:use [chess.bitboard.impl.file-rank
-         :only (lookup-file lookup-rank)])
-)
+         :only (lookup-file lookup-rank)]))
 
 (defn- coord->square [[file rank]]
   (- (+ (* 8 (inc rank)) (inc file)) 9))
@@ -20,14 +20,14 @@
          (vector (square->coord from-sq) (square->coord dest-sq))
          ) col))
 
-(defn move-piece [game-state from-coord dest-coord]
+(defn- move-piece-coord [game-state from-coord dest-coord]
    "move piece by coordinates from and dest"
    (let [from-sq (coord->square from-coord)
          dest-sq (coord->square dest-coord)
          piece   (nth (:board game-state) from-sq)]
      (chessboard/move-piece game-state piece from-sq dest-sq)))
 
-(defn generate-moves [game-state]
+(defn- generate-moves-coord [game-state]
   (map (fn [[p from dest & data]]
          (list (square->coord from) (square->coord dest)))
        (moves/generate-moves game-state)))
@@ -61,3 +61,18 @@
 
 (defn print-board [game-state]
   (chessboard/print-board game-state))
+
+
+(defn move-generator []
+  (reify gen/MoveGenerator
+    (generate-moves [this game-state]
+      (generate-moves-coord game-state))
+
+    (move-piece [this game-state from to]
+      (move-piece-coord game-state from to))
+
+    (test-check? [this game-state]
+       (check? game-state))
+
+    (read-fen [this str]
+       (read-fen str))))

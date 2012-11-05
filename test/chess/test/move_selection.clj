@@ -1,5 +1,5 @@
 (ns chess.test.move-selection
-  (:require [chess.moves-api :only (generate-moves) :as moves])
+  (:require [chess.moves-api :only (generate-moves check?) :as moves])
   (:use [chess.core :only (initial-board move-piece)]
         [chess.fen :only [read-fen]]
         [chess.move-selection]
@@ -20,16 +20,16 @@
 
 (deftest test-check?
   (are [x y] (= x y)
-       true (check? (read-fen "8/5k2/6P1/8/8/8/8/2K5 b - - 0 1"))
-       true (check? (read-fen "8/5k2/4P3/8/8/8/8/2K5 b - - 0 1"))
-       true (check? (read-fen "4k3/8/8/8/8/2p5/3K4/8 w - - 0 1"))
-       true (check? (read-fen "4k3/8/8/8/8/4p3/3K4/8 w - - 0 1"))
-       true (check? (read-fen "8/5k2/8/8/8/8/8/2K2Q2 b - - 0 1"))
-       true (check? (read-fen "8/5k2/8/8/8/8/Q7/2K5 b - - 0 1"))
-       false (check? (read-fen "8/5k2/8/8/2R5/8/Q7/2K5 w - - 0 1"))
-       true (check? (read-fen "8/5k2/6B1/8/8/8/8/2K5 b - - 0 1"))
-       true (check? (read-fen "8/5k2/8/8/8/8/B7/2K5 b - - 0 1"))
-       false (check? (read-fen "8/5k2/8/8/2R5/8/B7/2K5 b - - 0 1"))))
+       true  (moves/check? (read-fen "8/5k2/6P1/8/8/8/8/2K5 b - - 0 1"))
+       true  (moves/check? (read-fen "8/5k2/4P3/8/8/8/8/2K5 b - - 0 1"))
+       true  (moves/check? (read-fen "4k3/8/8/8/8/2p5/3K4/8 w - - 0 1"))
+       true  (moves/check? (read-fen "4k3/8/8/8/8/4p3/3K4/8 w - - 0 1"))
+       true  (moves/check? (read-fen "8/5k2/8/8/8/8/8/2K2Q2 b - - 0 1"))
+       true  (moves/check? (read-fen "8/5k2/8/8/8/8/Q7/2K5 b - - 0 1"))
+       false (moves/check? (read-fen "8/5k2/8/8/2R5/8/Q7/2K5 w - - 0 1"))
+       true  (moves/check? (read-fen "8/5k2/6B1/8/8/8/8/2K5 b - - 0 1"))
+       true  (moves/check? (read-fen "8/5k2/8/8/8/8/B7/2K5 b - - 0 1"))
+       false (moves/check? (read-fen "8/5k2/8/8/2R5/8/B7/2K5 b - - 0 1"))))
 
 
 (deftest test-checkmated?

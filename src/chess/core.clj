@@ -71,6 +71,8 @@
 (defn whites-turn? [game-state]
   (= :w (:turn game-state)))
 
+
+
 (defn change-turn
   "changes the turn to the next player"
   [game-state]

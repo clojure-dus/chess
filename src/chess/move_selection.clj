@@ -1,14 +1,19 @@
 (ns chess.move-selection
-  (:require [chess.moves-api :only (generate-moves) :as moves])
+  (:require [chess.moves-api    :only  (move-generator):as default])
+  (:require [chess.bitboard.api :only (move-generator) :as bitboard])
+  (:use [chess.move-generator])
+
   (:use [chess.board-rating :only (rate)])
-  (:use [chess.core :only (move-piece pos-of-piece piece-at change-turn whites-turn?)])
+  (:use [chess.core :only (change-turn)])
   (:use [clojure.java.io])
   (:use [clojure.pprint]))
+
+(def ^:dynamic *move-engine*  (default/move-generator))
 
 (def MAXRATING 9999999)
 
 (defn move2board [[pos1 pos2] game-state]
-  (move-piece game-state pos1 pos2))
+  (move-piece *move-engine* game-state pos1 pos2))
 
 (defn moves2boards [moves game-state]
   "creates new game-states for the given boards"
@@ -18,26 +23,19 @@
   (let [chars (seq "abcdefgh")
         f (fn [[x y]] (str (nth chars x) (inc y))) ]
     (str (f from) "->" (f to))))
-     
 
 
-(defn check? [game-state]
-  "checks if the given board is in check"
-  (let [opponent-moves (moves/generate-moves (change-turn game-state))
-        king           (if (whites-turn? game-state) :K :k)
-        kings-pos      (pos-of-piece game-state king)]
-     (true? (some (fn [[_ to]] (= king (piece-at game-state to))) opponent-moves))))
 
 (defn checkmated?
   ([game-state]
-   (let [new-boards (moves2boards (moves/generate-moves game-state) game-state)]
+   (let [new-boards (moves2boards (generate-moves *move-engine* game-state) game-state)]
       (checkmated? game-state new-boards)))
   ([game-state new-boards]
-     (checkmated? game-state new-boards (check? game-state)))
+     (checkmated? game-state new-boards (test-check? *move-engine* game-state)))
   ([game-state new-boards is-check]
      (if (not is-check)
        false
-       (every? check? new-boards))))
+       (every? (partial test-check? *move-engine*) new-boards))))
 
 (defn checkmated-rating [ depth ]
    (if (= 0 (mod depth 2))
@@ -61,7 +59,7 @@
 
 (defn filter-non-check-moves [game-state possible-moves is-check]
   (if is-check
-    (filter #(not (check? (move2board % game-state))) possible-moves)
+    (filter #(not (test-check? *move-engine* (move2board % game-state))) possible-moves)
     possible-moves))
 
 (defn build-tree
@@ -69,8 +67,8 @@
   ([game-state depth max-depth r step]
      (if (= depth max-depth)
        {:score (rate-board game-state depth) :game-state game-state :former-step step}
-       (let [is-check (check? game-state)
-             possible-moves (filter-non-check-moves game-state (moves/generate-moves game-state) is-check)
+       (let [is-check (test-check? *move-engine* game-state)
+             possible-moves (filter-non-check-moves game-state (generate-moves *move-engine* game-state) is-check)
              possible-states (moves2boards possible-moves game-state)
              is-checkmated (and is-check (empty? possible-moves))
              subtree  (if (not is-checkmated) (pmap #(build-tree (change-turn (move2board % game-state)) (inc depth) max-depth [] %) possible-moves) nil)
@@ -92,5 +90,3 @@
    Returns seq with two positions 'from' and 'two'."
   [game-state]
   (min-max game-state 2))
-
-

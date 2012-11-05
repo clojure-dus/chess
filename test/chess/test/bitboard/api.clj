@@ -1,5 +1,6 @@
 (ns chess.test.bitboard.api
-  (:use [chess.bitboard.api])
+  (:use [chess.move-generator])
+  (:use [chess.bitboard.api :only (possible-moves initial-board move-generator)])
   (:use [clojure.test]))
 
 
@@ -14,5 +15,5 @@
                             ((5 1) (5 2)) ((5 1) (5 3)) ((6 0) (7 2)) ((6 0) (5 2))
                             ((6 1) (6 2)) ((6 1) (6 3))
                             ((7 1) (7 2)) ((7 1) (7 3))))
-          (apply hash-set (generate-moves initial-board)))))
+          (apply hash-set (generate-moves (move-generator) initial-board)))))
 (comment (run-tests))
