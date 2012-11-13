@@ -5,8 +5,11 @@
                  [ring "1.1.0"] ; http basics
                  [compojure "1.1.0"] ; http routing
                  [hiccup "1.0.1"] ; generating html
-                 [org.clojure/data.json "0.2.0"]]
-  :dev-dependencies [[swank-clojure "1.4.0"]]
+                 [org.clojure/data.json "0.2.0"]
+                 [com.typesafe.akka/akka-actor "2.0.2"]
+                 [com.typesafe.akka/akka-remote "2.0.2"]
+                 [com.typesafe.akka/akka-kernel "2.0.2"]]
+  :repositories {"Typesafe Repository for Akka" "http://repo.typesafe.com/typesafe/releases/"}
   :plugins [[lein-cljsbuild "0.2.9"]] ; see https://github.com/emezeske/lein-cljsbuild
   :cljsbuild {:builds [{:source-path "src-cljs"
                         :compiler {:output-to "resources/public/js/chess.js"
