@@ -9,4 +9,5 @@ pom.xml
 out
 chess.js
 crossover-cljs
-
+.idea
+*.iml
