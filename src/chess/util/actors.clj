@@ -116,11 +116,36 @@
     (.awaitTermination system)))
 )
 
-(def my-actor
+(defn make-routed-workers [system results-receiver f workers-count]
   (make-actor
-   {:system (make-system)}
-   {:ping (fn []
-            (println "pong"))
-    :add (fn [x y]
-           (Thread/sleep 3000)
-           (println (+ x y)))}))
+   {:router (RoundRobinRouter. workers-count)
+    :system system}
+   {:compute (fn [idx item]
+               (println "computed: " (f item))
+               (results-receiver [:result idx (f item)]))}))
+
+(defn make-results-receiver [system result-promise expected-results-count]
+  (let [received-results (atom [])]
+    (add-watch received-results :deliver-when-done
+               (fn [k r o n]
+                 (println "received results:" n)
+                 (when (= (count n) expected-results-count)
+                   (deliver result-promise
+                            (->> n
+                                 (sort-by first)
+                                 (map second))))))
+    (make-actor
+     {:system system}
+     {:result (fn [idx result]
+                (println "received result" result)
+                (swap! received-results conj [idx result]))})))
+
+(defn actor-map [system f coll]
+  (let [result (promise)
+        results-receiver (make-results-receiver system result (count coll))
+        workers (make-routed-workers system results-receiver f (count coll))
+        indexed-coll (map vector (range) coll)]
+    (doseq [[idx item] indexed-coll]
+      (workers [:compute idx item]))
+    ;; TODO shutdown actors?
+    @result))
