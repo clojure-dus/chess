@@ -1,23 +1,72 @@
 (ns chess.util.actors
-  (:import [akka.actor Props UntypedActor UntypedActorFactory ActorSystem]
+  (:import [akka.actor Props UntypedActor ActorContext UntypedActorFactory ActorSystem PoisonPill ActorRef]
            [com.typesafe.config ConfigFactory]
            [akka.routing RoundRobinRouter]))
 
 (def ^:dynamic *actor-context* nil)
 
-(defn create-context [actor]
+(defn create-context [^UntypedActor actor]
   {:self (.getSelf actor)
    :sender (.getSender actor)
    :context (.getContext actor)})
 
-(defn self []
+(defn ^ActorRef self []
   (:self *actor-context*))
 
-(defn sender []
+(defn ^ActorRef sender []
   (:sender *actor-context*))
 
-(defn context []
+(defn ^ActorContext context []
   (:context *actor-context*))
+
+;; see http://kotka.de/blog/2010/02/gen-class_how_it_works_and_how_to_use_it.html
+(gen-class
+ :name chess.util.actors.GenericActor
+ :extends akka.actor.UntypedActor
+ :state handlers
+ :init init
+ :constructors {[java.util.Map] []}
+ :prefix genericActor-)
+
+(defn genericActor-init [handlers]
+  [[] handlers])
+
+(defn genericActor-toString [this]
+  (str "GenericActor with handlers " (.handlers this)))
+
+(defn genericActor-onReceive [this [type & args :as msg]]
+  (try
+    (if-let [handler (get (.handlers this) type)]
+      (binding [*actor-context* (create-context this)]
+        (apply handler args))
+      (println "unknown type of message:" msg))
+    (catch Exception e
+      (.printStackTrace e))))
+
+(defn make-props [handlers]
+  (Props.
+   (reify UntypedActorFactory
+     (create [this]
+       (chess.util.actors.GenericActor. handlers)))))
+
+(defn with-router [^Props props router]
+  (if router
+    (.withRouter props router)
+    props))
+
+(defn make-actor
+  ([handlers]
+     (make-actor nil handlers))
+  ([{:keys [router system] :or {system (context)}}
+    handlers]
+     (let [props (-> (make-props handlers)
+                     (with-router router))
+           actor (.actorOf ^ActorContext system props)]
+       (fn this
+         ([msg] (this msg (self)))
+         ([msg sender] (if sender
+                         (.tell actor msg sender)
+                         (.tell actor msg)))))))
 
 (defn stop []
   (.stop (context) (self)))
@@ -30,40 +79,17 @@
       .system
       .shutdown))
 
-(defn make-props [handlers]
-  (Props. (proxy [UntypedActorFactory] []
-            (create []
-              (proxy [UntypedActor] []
-                (onReceive [[type & args :as msg]]
-                  (if-let [handler (get handlers type)]
-                    (binding [*actor-context* (create-context this)]
-                      (apply handler args))
-                    (println "unknown type of message:" msg))))))))
-
-(defn with-router [props router]
-  (if router
-    (.withRouter props router)
-    props))
-
 (defn make-system []
   (ActorSystem/create
    "name"
    (ConfigFactory/load
     (ConfigFactory/parseResourcesAnySyntax "doesntexist"))))
 
-(defn make-actor
-  ([handlers]
-     (make-actor nil handlers))
-  ([{:keys [router system] :or {system (context)}}
-    handlers]
-     (let [props (-> (make-props handlers)
-                     (with-router router))
-           actor (.actorOf system props)]
-       (fn this
-         ([msg] (this msg (self)))
-         ([msg sender] (if sender
-                         (.tell actor msg sender)
-                         (.tell actor msg)))))))
+(defn poison-pill
+  ([]
+     (PoisonPill/getInstance))
+  ([actor]
+     (actor (poison-pill))))
 
 (comment Pi Example
 ;; see https://github.com/gaverhae/okku-pi
@@ -120,32 +146,39 @@
   (make-actor
    {:router (RoundRobinRouter. workers-count)
     :system system}
-   {:compute (fn [idx item]
-               (println "computed: " (f item))
-               (results-receiver [:result idx (f item)]))}))
+   {:compute (fn [idx chunk]
+                     ;;(println "compute called for chunk" chunk)
+                     (results-receiver [:result idx (map f chunk)]))}))
 
 (defn make-results-receiver [system result-promise expected-results-count]
   (let [received-results (atom [])]
-    (add-watch received-results :deliver-when-done
-               (fn [k r o n]
-                 (println "received results:" n)
-                 (when (= (count n) expected-results-count)
-                   (deliver result-promise
-                            (->> n
-                                 (sort-by first)
-                                 (map second))))))
     (make-actor
      {:system system}
      {:result (fn [idx result]
-                (println "received result" result)
-                (swap! received-results conj [idx result]))})))
+                ;;(println "received result" result)
+                (swap! received-results conj [idx result])
+                (when (= (count @received-results) expected-results-count)
+                  (deliver result-promise
+                           (->> @received-results
+                                (sort-by first)
+                                (map second)
+                                (apply concat)))))})))
 
-(defn actor-map [system f coll]
+(defn eager-actor-map
+  "Applies f to every item in coll and returns a seq of the results (like map).
+  The results are computed by actors which are created in system. The computation
+  of the results is done in parallel but not semi-lazy (this is different to pmap)."
+  [system f coll]
   (let [result (promise)
-        results-receiver (make-results-receiver system result (count coll))
-        workers (make-routed-workers system results-receiver f (count coll))
-        indexed-coll (map vector (range) coll)]
-    (doseq [[idx item] indexed-coll]
-      (workers [:compute idx item]))
-    ;; TODO shutdown actors?
-    @result))
+        worker-count 10
+        chunk-size (int (/ (count coll) worker-count))
+        chunks (partition chunk-size chunk-size () coll)
+        results-receiver (make-results-receiver system result (count chunks))
+        workers (make-routed-workers system results-receiver f worker-count)
+        indexed-chunks (map vector (range) chunks)]
+    (doseq [[idx chunk] indexed-chunks]
+      (workers [:compute idx chunk]))
+    (let [the-result @result]
+      (poison-pill results-receiver)
+      (poison-pill workers)
+      the-result)))

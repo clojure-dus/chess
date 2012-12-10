@@ -6,9 +6,9 @@
                  [compojure "1.1.0"] ; http routing
                  [hiccup "1.0.1"] ; generating html
                  [org.clojure/data.json "0.2.0"]
-                 [com.typesafe.akka/akka-actor "2.0.2"]
-                 [com.typesafe.akka/akka-remote "2.0.2"]
-                 [com.typesafe.akka/akka-kernel "2.0.2"]]
+                 [com.typesafe.akka/akka-actor "2.0.3"]
+                 [com.typesafe.akka/akka-remote "2.0.3"]
+                 [com.typesafe.akka/akka-kernel "2.0.3"]]
   :repositories {"Typesafe Repository for Akka" "http://repo.typesafe.com/typesafe/releases/"}
   :plugins [[lein-cljsbuild "0.2.9"]] ; see https://github.com/emezeske/lein-cljsbuild
   :cljsbuild {:builds [{:source-path "src-cljs"
@@ -17,6 +17,7 @@
                                    :pretty-print true}}]
               :crossovers [chess.core]
               :crossover-path "crossover-cljs"}
+  :aot [chess.util.actors]
   :warn-on-reflection false
   :jvm-opts ["-Xmx1024M" "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
   :main chess.web
