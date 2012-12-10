@@ -1,6 +1,5 @@
 (defproject chess "1.0.0-SNAPSHOT"
   :description "chess engine"
-:repositories [["sonatype-snapshots" "https://oss.sonatype.org/content/repositories/snapshots/"]]
 
   :dependencies [[org.clojure/clojure "1.5.0-master-SNAPSHOT"]
                  [org.clojure/math.combinatorics "0.0.2"]
@@ -11,7 +10,9 @@
                  [com.typesafe.akka/akka-actor "2.0.3"]
                  [com.typesafe.akka/akka-remote "2.0.3"]
                  [com.typesafe.akka/akka-kernel "2.0.3"]]
-  :repositories {"Typesafe Repository for Akka" "http://repo.typesafe.com/typesafe/releases/"}
+  :repositories {
+    "Typesafe Repository for Akka" "http://repo.typesafe.com/typesafe/releases/"
+    "sonatype-snapshots" "https://oss.sonatype.org/content/repositories/snapshots/"}
   :plugins [[lein-cljsbuild "0.2.9"]] ; see https://github.com/emezeske/lein-cljsbuild
   :cljsbuild {:builds [{:source-path "src-cljs"
                         :compiler {:output-to "resources/public/js/chess.js"
