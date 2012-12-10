@@ -1,0 +1,11 @@
+src/cljs =  Client
+         -> web
+	 -> 
+
+src/clj  = Server
+	 -> game (game configuration, client interfaces)
+            engines (protocols) -> ai -> move_rating, move_selection
+	    	    		-> move_logic -> vector
+				   	      -> bitmap
+	   
+	    
