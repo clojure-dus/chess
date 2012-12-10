@@ -3,10 +3,11 @@ src/cljs =  Client
 
 
 src/clj  = Server
-	 -> game (game configuration, client interfaces)
-            engines -> ai ->  move_rating    -> materialbewertung
-	    	       	  ->  move_selection -> minmax
-	    	    -> move_logic (protocols)-> vector
-				   	     -> bitmap
+	 -> core (game configuration, client interfaces)
+            ai/move_rating.clj
+	    ai/move_selection/minmax.clj
+	    move_logic/core.clj
+	    move_logic/vector2d/vector.clj
+	    move_logic/bitboard/....clj
 	   
 	    
