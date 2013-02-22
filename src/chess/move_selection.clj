@@ -1,6 +1,7 @@
 (ns chess.move-selection
   (:require [chess.moves-api    :only  (move-generator):as default])
   (:require [chess.bitboard.api :only (move-generator) :as bitboard])
+  (:require [clojure.core.reducers :as r])
   (:use [chess.move-generator])
 
   (:use [chess.board-rating :only (rate)])
@@ -23,8 +24,6 @@
   (let [chars (seq "abcdefgh")
         f (fn [[x y]] (str (nth chars x) (inc y))) ]
     (str (f from) "->" (f to))))
-
-
 
 (defn checkmated?
   ([game-state]
@@ -59,7 +58,7 @@
 
 (defn filter-non-check-moves [game-state possible-moves is-check]
   (if is-check
-    (filter #(not (test-check? *move-engine* (move2board % game-state))) possible-moves)
+    (into [] (r/filter #(not (test-check? *move-engine* (move2board % game-state))) possible-moves))
     possible-moves))
 
 (defn build-tree
@@ -72,7 +71,7 @@
              possible-states (moves2boards possible-moves game-state)
              is-checkmated (and is-check (empty? possible-moves))
              subtree  (if (not is-checkmated) (pmap #(build-tree (change-turn (move2board % game-state)) (inc depth) max-depth [] %) possible-moves) nil)
-             rates    (flatten (map :score subtree))
+             rates    (into [] (r/flatten (r/map :score subtree)))
              max-rate (min-or-max rates depth is-checkmated)
              rates2moves  (zipmap rates possible-moves)
              max-step (get rates2moves (first (filter #(= max-rate %) rates)))]
