@@ -1,4 +1,5 @@
 (ns chess.moves-impl 
+  (:require [clojure.core.reducers :as r])
   (:use [chess.core :only (white? black? piece-at filter-my-positions pos-on-board? pos-empty? piece move-piece)])
   (:use [chess.directions]))
 
@@ -11,7 +12,7 @@
 (defn- get-moves "collects the moves into all posible directions"
   [game-state position dirs n]
   (let [steps (partial all-steps game-state position)]
-    (partition 2 (flatten (map #(steps % n) dirs)))))
+    (partition 2 (into [] (r/flatten (r/map #(steps % n) dirs))))))
 
 
 (defn- build-pair [k v]
@@ -22,9 +23,9 @@
 (declare possible-moves)
 
 (defn- build-all-pairs [game-state positions]
-  (map (fn [x] (let [moves (possible-moves game-state x)]
+  (into [] (r/map (fn [x] (let [moves (possible-moves game-state x)]
                  (when (seq moves)
-                   (build-pair x moves)))) positions))
+                   (build-pair x moves)))) positions)))
 
 (defmulti possible-moves piece)
 
@@ -51,7 +52,7 @@
                 :else (non-attacks-fn (pawn-non-attack-steps is-white) 1))]
       (filter #(not (nil? %))
           (concat non-attacking-moves
-               (map #(attacks-fn % 1 non-attacking-moves) (pawn-attack-steps is-white)))))))
+               (into [] (r/map #(attacks-fn % 1 non-attacking-moves) (pawn-attack-steps is-white))))))))
 
 (defmethod possible-moves :queen
   [game-state position]
@@ -67,8 +68,8 @@
 
 (defmethod possible-moves :knight
   [game-state initial-position]
-  (filter (fn [position] (and (pos-on-board? position) (let [piece (piece-at game-state position)] (or (= :_ piece) (enemy-on-pos? game-state position)))))
-          (knight-steps initial-position)))
+  (into [] (r/filter (fn [position] (and (pos-on-board? position) (let [piece (piece-at game-state position)] (or (= :_ piece) (enemy-on-pos? game-state position)))))
+          (knight-steps initial-position))))
 
 (defn enrich [game-state]
   (-> game-state (assoc :white-pos (filter-my-positions white? game-state))
