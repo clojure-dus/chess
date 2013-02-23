@@ -32,7 +32,7 @@
   (testing "no moves if pawn is blocked"
     (is (= '() (possible-moves (move-piece initial-board [0 6] [0 2]) [0 1]))))
   (testing "pawn attacks diagonal"
-    (is (= '((0 2) (0 3) (1 2)) (possible-moves (move-piece initial-board [1 6] [1 2]) [0 1])))))
+    (is (= '((1 2) (0 2) (0 3)) (possible-moves (move-piece initial-board [1 6] [1 2]) [0 1])))))
 
 (deftest test-queen-moves
   (let [game-state (-> initial-board (move-piece [3 1] [4 4]) (move-piece [2 1] [2 2]))]

@@ -1,4 +1,5 @@
-(ns chess.core)
+(ns chess.core
+  (:require [clojure.core.reducers :as r]))
 
 ; UPPERCASE -> white
 ; lowercase -> black
@@ -31,7 +32,7 @@
 
 (defn filter-my-positions [color-fn game-state]
   "returns all posititions which are occupied by the given color"
-  (filter (fn [pos] (color-fn (piece-at game-state pos))) all-positions))
+  (into [] (r/filter (fn [pos] (color-fn (piece-at game-state pos))) all-positions)))
 
 (defn pos-on-board? "checks if a positition is on the chess board"
   [[x y]]
@@ -66,7 +67,7 @@
 
 (defn pos-of-piece [game-state p]
   "returns the positions [x y] of the given piece on the board"
-  (filter (fn [pos] (= p (piece-at game-state pos))) all-positions))
+  (into [] (r/filter (fn [pos] (= p (piece-at game-state pos))) all-positions)))
 
 (defn whites-turn? [game-state]
   (= :w (:turn game-state)))

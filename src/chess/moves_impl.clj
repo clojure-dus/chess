@@ -6,7 +6,7 @@
 (defn- knight-steps
   "steps a knight could do from a given position - includes steps that are not on the game-state!"
   [[x y]]
-  (map (fn [[xn yn]] (list (+ x xn) (+ y yn)))
+  (r/map (fn [[xn yn]] (list (+ x xn) (+ y yn)))
        '((2 1) (2 -1) (-2 1) (-2 -1) (1 2) (-1 2) (1 -2) (-1 -2))))
 
 (defn- get-moves "collects the moves into all posible directions"
@@ -51,8 +51,7 @@
                 (and (not is-white) (= y 6)) (non-attacks-fn steps-down 2)
                 :else (non-attacks-fn (pawn-non-attack-steps is-white) 1))]
       (filter #(not (nil? %))
-          (concat non-attacking-moves
-               (into [] (r/map #(attacks-fn % 1 non-attacking-moves) (pawn-attack-steps is-white))))))))
+               (into non-attacking-moves (r/map #(attacks-fn % 1 non-attacking-moves) (pawn-attack-steps is-white)))))))
 
 (defmethod possible-moves :queen
   [game-state position]
