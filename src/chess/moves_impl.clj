@@ -20,7 +20,7 @@
   "k:starting position v:collection of target positions
    creates a sequence coordinate pairs for a turn '((x-old y-old) (x-new y-new))"
    (when (seq v)
-    (r/reduce #(conj %1 [k %2]) [] v)))
+    (r/reduce #(conj (conj %1 k) %2) [] v)))
 
 (declare possible-moves)
 
@@ -28,9 +28,8 @@
   (r/fold (r/monoid into vector) conj coll))
 
 (defn- build-all-pairs [game-state positions]
-  (into [] (r/map (fn [x] (let [moves (possible-moves game-state x)]
-                 (when (seq moves)
-                   (build-pair x moves)))) positions)))
+  (fold-to-vec (r/flatten (r/map (fn [x] (let [moves (possible-moves game-state x)]
+                   (build-pair x moves))) positions))))
 
 (defmulti possible-moves piece)
 
@@ -85,7 +84,7 @@
   (let [enriched-game-state (enrich game-state)]
     (->> (filter #(not (nil? %))
                  (build-all-pairs enriched-game-state (fetch-positions enriched-game-state)))
-         flatten (partition 2) (partition 2))))
+          (partition 2) (partition 2))))
 
 (defn make-move
   "Attempts to move the piece from pos 'from' to pos 'to'.
