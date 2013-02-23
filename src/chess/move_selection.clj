@@ -3,7 +3,6 @@
   (:require [chess.bitboard.api :only (move-generator) :as bitboard])
   (:require [clojure.core.reducers :as r])
   (:use [chess.move-generator])
-
   (:use [chess.board-rating :only (rate)])
   (:use [chess.core :only (change-turn)])
   (:use [clojure.java.io])
@@ -65,21 +64,16 @@
   ([game-state max-depth] (build-tree game-state 0 max-depth [] nil))
   ([game-state depth max-depth r step]
      (if (= depth max-depth)
-       {:score (rate-board game-state depth) :game-state game-state :former-step step}
+       {:score (rate-board game-state depth)}
        (let [is-check (test-check? *move-engine* game-state)
              possible-moves (filter-non-check-moves game-state (generate-moves *move-engine* game-state) is-check)
-             possible-states (moves2boards possible-moves game-state)
              is-checkmated (and is-check (empty? possible-moves))
              subtree  (if is-checkmated nil (pmap #(build-tree (change-turn (move2board % game-state)) (inc depth) max-depth [] %) possible-moves))
              rates    (into [] (r/flatten (r/map :score subtree)))
              max-rate (min-or-max rates depth is-checkmated)
-             rates2moves  (zipmap rates possible-moves)
-             max-step (get rates2moves max-rate)]
-             {:score max-rate :max-step max-step :game-state game-state :former-step step :tree subtree}))))
+             max-step (get (zipmap rates possible-moves) max-rate)]
+             {:score max-rate :max-step max-step}))))
 
-(defn trace-tree [game-state max-depth]
-  (with-open [w (writer "tree.trace")]
-    (pprint (build-tree game-state max-depth) w)))
 
 (defn min-max [game-state max-depth]
   (:max-step (build-tree game-state max-depth)))
