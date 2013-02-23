@@ -6,8 +6,9 @@
 (defn- knight-steps
   "steps a knight could do from a given position - includes steps that are not on the game-state!"
   [[x y]]
-  (r/map (fn [[xn yn]] (list (+ x xn) (+ y yn)))
+  (r/map (fn [[xn yn]] [ (+ x xn) (+ y yn) ])
        '((2 1) (2 -1) (-2 1) (-2 -1) (1 2) (-1 2) (1 -2) (-1 -2))))
+
 
 (defn- get-moves "collects the moves into all posible directions"
   [game-state position dirs n]
@@ -18,9 +19,13 @@
 (defn- build-pair [k v]
   "k:starting position v:collection of target positions
    creates a sequence coordinate pairs for a turn '((x-old y-old) (x-new y-new))"
-    (reduce #(conj %1 [k %2]) [] v))
+   (when (seq v)
+    (r/reduce #(conj %1 [k %2]) [] v)))
 
 (declare possible-moves)
+
+(defn fold-to-vec [coll]
+  (r/fold (r/monoid into vector) conj coll))
 
 (defn- build-all-pairs [game-state positions]
   (into [] (r/map (fn [x] (let [moves (possible-moves game-state x)]
@@ -50,8 +55,8 @@
     (let [non-attacking-moves (cond (and is-white (= y 1)) (non-attacks-fn steps-up 2)
                 (and (not is-white) (= y 6)) (non-attacks-fn steps-down 2)
                 :else (non-attacks-fn (pawn-non-attack-steps is-white) 1))]
-      (filter #(not (nil? %))
-               (into non-attacking-moves (r/map #(attacks-fn % 1 non-attacking-moves) (pawn-attack-steps is-white)))))))
+      (into [] (r/filter #(not (nil? %))
+                         (into non-attacking-moves (r/map #(attacks-fn % 1 non-attacking-moves) (pawn-attack-steps is-white))))))))
 
 (defmethod possible-moves :queen
   [game-state position]
@@ -63,7 +68,7 @@
 
 (defmethod possible-moves :bishop 
   [game-state position]
-    (get-moves game-state position (list steps-up-left steps-up-right steps-down-left steps-down-right) infinite-steps))
+    (get-moves game-state position [steps-up-left steps-up-right steps-down-left steps-down-right] infinite-steps))
 
 (defmethod possible-moves :knight
   [game-state initial-position]
@@ -71,8 +76,8 @@
           (knight-steps initial-position))))
 
 (defn enrich [game-state]
-  (-> game-state (assoc :white-pos (filter-my-positions white? game-state))
-                 (assoc :black-pos (filter-my-positions black? game-state))))
+  (-> game-state (assoc :white-pos (into [] (filter-my-positions white? game-state)))
+                 (assoc :black-pos (into [] (filter-my-positions black? game-state)))))
 
 (defn generate-moves
   "generates all legal moves for the given game-state"

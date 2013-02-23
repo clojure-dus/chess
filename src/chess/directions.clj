@@ -1,5 +1,5 @@
 (ns chess.directions
-  (:use [chess.core :only (white? black? piece-at filter-my-positions pos-on-board? pos-empty? piece)]))
+  (:use [chess.core :only (white? black? piece-at pos-on-board? pos-empty? piece)]))
 
 (defn enemy-on-pos?
   "checks if an enemy piece is on the given position "

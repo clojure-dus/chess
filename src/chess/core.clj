@@ -32,7 +32,7 @@
 
 (defn filter-my-positions [color-fn game-state]
   "returns all posititions which are occupied by the given color"
-  (into [] (r/filter (fn [pos] (color-fn (piece-at game-state pos))) all-positions)))
+  (r/filter (fn [pos] (color-fn (piece-at game-state pos))) all-positions))
 
 (defn pos-on-board? "checks if a positition is on the chess board"
   [[x y]]
