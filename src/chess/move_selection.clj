@@ -18,7 +18,7 @@
 
 (defn moves2boards [moves game-state]
   "creates new game-states for the given boards"
-  (map #(move2board % game-state) moves))
+  (into [] (r/map #(move2board % game-state) moves)))
 
 (defn pprint-move [[from to]]
   (let [chars (seq "abcdefgh")
@@ -70,11 +70,11 @@
              possible-moves (filter-non-check-moves game-state (generate-moves *move-engine* game-state) is-check)
              possible-states (moves2boards possible-moves game-state)
              is-checkmated (and is-check (empty? possible-moves))
-             subtree  (if (not is-checkmated) (pmap #(build-tree (change-turn (move2board % game-state)) (inc depth) max-depth [] %) possible-moves) nil)
+             subtree  (if is-checkmated nil (pmap #(build-tree (change-turn (move2board % game-state)) (inc depth) max-depth [] %) possible-moves))
              rates    (into [] (r/flatten (r/map :score subtree)))
              max-rate (min-or-max rates depth is-checkmated)
              rates2moves  (zipmap rates possible-moves)
-             max-step (get rates2moves (first (filter #(= max-rate %) rates)))]
+             max-step (get rates2moves max-rate)]
              {:score max-rate :max-step max-step :game-state game-state :former-step step :tree subtree}))))
 
 (defn trace-tree [game-state max-depth]
