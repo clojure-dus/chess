@@ -1,5 +1,5 @@
 (ns chess.bitboard.api
-  (:require  [chess.bitboard.impl.moves
+  (:require   [chess.bitboard.impl.moves
          :only  (generate-moves find-piece-moves check?)
          :as moves ])
   (:require [chess.bitboard.impl.chessboard
