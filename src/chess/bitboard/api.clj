@@ -1,11 +1,12 @@
 (ns chess.bitboard.api
   (:require  [chess.bitboard.impl.moves
          :only  (generate-moves find-piece-moves check?)
-         :as moves])
+         :as moves ])
   (:require [chess.bitboard.impl.chessboard
          :only (move-piece initial-board read-fen print-board)
              :as chessboard])
   (:require [chess.move-generator :as gen])
+  
   (:use [chess.bitboard.impl.file-rank
          :only (lookup-file lookup-rank)]))
 
