@@ -55,15 +55,7 @@
   (let [fig (piece-at game-state pos1)]
     (set-piece (set-piece game-state pos1 :_) pos2 fig)))
 
-(defn piece [game-state position]
-  "returns a keyword (color-neutral) for the piece on the given position"
-  (let [p (piece-at game-state position)]
-    (p {:r :rook, :R :rook,
-        :p :pawn, :P :pawn,
-        :n :knight,:N :knight,
-        :b :bishop,:B :bishop,
-        :q :queen, :Q :queen,
-        :k :king,  :K :king} )))
+
 
 (defn pos-of-piece [game-state p]
   "returns the positions [x y] of the given piece on the board"

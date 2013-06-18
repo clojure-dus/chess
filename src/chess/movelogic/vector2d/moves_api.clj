@@ -34,6 +34,6 @@
 
     (test-check? [this game-state]
        (check? game-state))
-
+   (get-piece [this game-state position] (piece-at game-state position))
     (read-fen [this str]
        (read-fen str))))
