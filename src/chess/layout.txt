@@ -4,7 +4,7 @@ src/cljs =  Client
 
 src/clj  = Server
 	 -> core (game configuration, client interfaces)
-            ai/move_rating.clj
+        ai/move_rating.clj
 	    ai/move_selection/minmax.clj
 	    move_logic/core.clj
 	    move_logic/vector2d/vector.clj

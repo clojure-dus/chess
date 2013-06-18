@@ -1,6 +1,6 @@
-(ns chess.bitboard.impl.bitoperations
+(ns chess.movelogic.bitboard.bitoperations
   (:use [clojure.core.protocols]))
-(import 'chess.bitboard.impl.BitOps)
+(import 'chess.movelogic.bitboard.BitOps)
 (require '[clojure.core.reducers :as r])
 
 (comment (set! *warn-on-reflection* true))

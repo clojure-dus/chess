@@ -1,4 +1,4 @@
-package chess.bitboard.impl;
+package chess.movelogic.bitboard;
 
 
 public class BitOps {

@@ -1,13 +1,13 @@
-(ns chess.bitboard.api
-  (:require   [chess.bitboard.impl.moves
+(ns chess.movelogic.bitboard.api
+  (:require   [chess.movelogic.bitboard.moves
          :only  (generate-moves find-piece-moves check?)
          :as moves ])
-  (:require [chess.bitboard.impl.chessboard
+  (:require [chess.movelogic.bitboard.chessboard
          :only (move-piece initial-board read-fen print-board)
              :as chessboard])
-  (:require [chess.move-generator :as gen])
+  (:require [chess.movelogic.move-generator :as gen])
   
-  (:use [chess.bitboard.impl.file-rank
+  (:use [chess.movelogic.bitboard.file-rank
          :only (lookup-file lookup-rank)]))
 
 (defn- coord->square [[file rank]]
