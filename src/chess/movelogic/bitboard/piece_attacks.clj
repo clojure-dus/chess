@@ -1,6 +1,5 @@
-(ns chess.bitboard.impl.piece-attacks
-  (:use [chess.bitboard.impl.file-rank])
-  (:use [chess.bitboard.impl.bitoperations]))
+(ns chess.movelogic.bitboard.piece-attacks
+  (:use [chess.movelogic.bitboard file-rank bitoperations]))
 
 ; pre-calculated move and attack arrays
 

@@ -1,11 +1,10 @@
 (ns chess.movelogic.move-generator
   (:require [chess.movelogic.core :as core])
   (:require [chess.movelogic.vector2d.moves-api :only (move-generator) :as default])
-                                        ;  (:require [chess.movelogic.bitboard.api       :only (move-generator) :as bitboard])
-)
+  (:require [chess.movelogic.bitboard.api       :only (move-generator) :as bitboard]))
 
 
-(def ^:dynamic *move-engine*  (default/move-generator))
+(def ^:dynamic *move-engine*  (bitboard/move-generator))
 
 (defn generate-moves[game-state]
   (core/generate-moves *move-engine* game-state))
@@ -22,8 +21,11 @@
 (defn move2board [[pos1 pos2] game-state]
   (core/move-piece *move-engine* game-state pos1 pos2))
 
-(defn filter-positions-by-color [game-state color-fn]
-  (core/filter-positions-by-color *move-engine* game-state  color-fn))
+(defn filter-positions-by-color [game-state white]
+  (core/filter-positions-by-color *move-engine* game-state  white))
+
+(defn initial-board[] 
+   (core/initial-board *move-engine*))
 
 (defn get-piece [this game-state position]
   (core/get-piece *move-engine* game-state position))
@@ -42,6 +44,10 @@
   "changes the turn to the next player"
   [game-state]
   (core/change-turn game-state))
+
+
+
+
 
 
 

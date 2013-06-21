@@ -1,8 +1,5 @@
-(ns chess.bitboard.impl.moves
-  (:use [chess.bitboard.impl.file-rank])
-  (:use [chess.bitboard.impl.bitoperations])
-  (:use [chess.bitboard.impl.chessboard])
-  (:use [chess.bitboard.impl.piece-attacks])
+(ns chess.movelogic.bitboard.moves
+  (:use [chess.movelogic.bitboard bitoperations file-rank chessboard piece-attacks])
   (:use [clojure.pprint]))
 
 (require '[clojure.core.reducers :as r])

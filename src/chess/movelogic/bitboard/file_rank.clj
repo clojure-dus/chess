@@ -1,5 +1,6 @@
-(ns chess.movelogic.bitboard.impl.file-rank
+(ns chess.movelogic.bitboard.file-rank
   ( :use [chess.movelogic.bitboard.bitoperations]))
+
 
 (def file-squares
   "vector where each item shows the column number"

@@ -1,7 +1,5 @@
 (ns chess.movelogic.bitboard.chessboard
-  (:use [chess.movelogic.bitboard.bitoperations])
-  (:use [chess.movelogic.bitboard.file-rank])
-  (:use [chess.movelogic.bitboard.piece-attacks])
+  (:use [chess.movelogic.bitboard bitoperations file-rank piece-attacks])
   (:use [chess.movelogic.fen :rename {read-fen other-impl-read-fen}]))
 
 (def empty-board

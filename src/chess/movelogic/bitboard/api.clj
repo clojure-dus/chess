@@ -6,9 +6,10 @@
          :only (move-piece initial-board read-fen print-board)
              :as chessboard])
   (:require [chess.movelogic.core :as gen])
-  
-  (:use [chess.movelogic.bitboard.file-rank
-         :only (lookup-file lookup-rank)]))
+  (:use [chess.movelogic.bitboard bitoperations])
+  (:use [chess.movelogic.bitboard.file-rank :only (lookup-file lookup-rank)]))
+
+(require '[clojure.core.reducers :as r])
 
 (defn- coord->square [[file rank]]
   (- (+ (* 8 (inc rank)) (inc file)) 9))
@@ -17,9 +18,8 @@
   [(dec (aget ^ints lookup-file square)) (dec (aget ^ints lookup-rank square))])
 
 (defn native->coords [col]
-  (mapv (fn [[piece from-sq dest-sq & promotion]]
-         (vector (square->coord from-sq) (square->coord dest-sq))
-         ) col))
+  (r/map (fn [sq]
+           (square->coord sq)) col))
 
 (defn- move-piece-coord [game-state from-coord dest-coord]
    "move piece by coordinates from and dest"
@@ -74,14 +74,18 @@
 
     (test-check? [this game-state]
        (check? game-state))
-     (get-piece [this game-state position] (piece-at game-state position))
 
     (read-fen [this str]
        (read-fen str))
  
-   (filter-positions-by-color [this game-state color-fn]
-      (core/filter-my-positions color-fn game-state))
+   (filter-positions-by-color [this game-state white] 
+     (native->coords (if (and white true) 
+                       (game-state :whitepieces) 
+                       (game-state :blackpieces))))
+   
+(initial-board [this]
+       chessboard/initial-board)
 
     (get-piece [this game-state position] 
-      (core/piece-at game-state position))))
+      (piece-at game-state position))))
 

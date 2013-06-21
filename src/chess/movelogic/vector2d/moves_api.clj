@@ -27,8 +27,11 @@
     (read-fen [this str]
       (read-fen str))
 
-    (filter-positions-by-color [this game-state color-fn]
-      (core/filter-my-positions color-fn game-state))
+    (filter-positions-by-color [this game-state white]
+      (core/filter-my-positions (if (= true white) core/white? core/black?) game-state))
+    
+     (initial-board [this]
+      (core/initial-board))
 
     (get-piece [this game-state position] 
       (core/piece-at game-state position))))

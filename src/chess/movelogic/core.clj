@@ -5,7 +5,8 @@
   (move-piece [this game-state from to])
   (test-check? [this game-state])
   (read-fen [this str])
-  (filter-positions-by-color [this game-state color-fn])
+  (filter-positions-by-color [this game-state white])   
+  (initial-board [this])
   (get-piece [this game-state position]))
 
 (def piece-map

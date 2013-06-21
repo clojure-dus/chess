@@ -9,9 +9,8 @@
         [compojure.handler :only [api]]
         [hiccup.page :only [html5]]
         [hiccup.form :only [form-to submit-button]]
-        [chess.core :only [initial-board change-turn]]
-        [chess.moves-api :only [make-move]]
-        [chess.move-selection :only [select-move]]))
+        [chess.movelogic.move-generator :only [initial-board change-turn move-piece]]
+        [chess.ai.move-selection.min-max :only [select-move]]))
 
 (defonce games (atom {}))
 
@@ -69,7 +68,7 @@
                                 :as request}
         (when-let [gamestate (get @games id)]
           (let [{:keys [from to]} (json/read-str (slurp json-stream) :key-fn keyword)]
-            (if-let [gamestate-after-move (make-move gamestate from to)]
+            (if-let [gamestate-after-move (move-piece gamestate from to)]
               (let [new-gamestate (change-turn gamestate-after-move)]
                 (swap! games assoc id new-gamestate)
                 (json new-gamestate))
