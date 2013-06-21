@@ -1,5 +1,6 @@
-(ns chess.move_logic.vector2d.core
-  (:require [clojure.core.reducers :as r]))
+(ns chess.movelogic.vector2d.core
+ 
+ (:require [clojure.core.reducers :as r]))
 
 ; UPPERCASE -> white
 ; lowercase -> black
@@ -31,7 +32,7 @@
     [x y]))
 
 (defn filter-my-positions [color-fn game-state]
-  "returns all posititions which are occupied by the given color"
+  "returns all positions which are occupied by the given color"
   (r/filter (fn [pos] (color-fn (piece-at game-state pos))) all-positions))
 
 (defn pos-on-board? "checks if a positition is on the chess board"

@@ -1,48 +1,47 @@
- (ns chess.movelogic.move-generator
-  (:require [chess.movelogic.vector2d.moves-api    :only  (move-generator):as default])
-  (:require [chess.movelogic.bitboard.api :only (move-generator) :as bitboard]))
-
-  (defprotocol MoveGenerator
-     (generate-moves [this game-state])
-     (move-piece [this game-state from to])
-     (test-check? [this game-state])
-     (read-fen [this str])
-     (filter-positions-by-color [this color-fn])
-     (get-piece [this game-state position])
-     )
+(ns chess.movelogic.move-generator
+  (:require [chess.movelogic.core :as core])
+  (:require [chess.movelogic.vector2d.moves-api :only (move-generator) :as default])
+                                        ;  (:require [chess.movelogic.bitboard.api       :only (move-generator) :as bitboard])
+)
 
 
 (def ^:dynamic *move-engine*  (default/move-generator))
 
-(defn move2board [[pos1 pos2] game-state]
-     (move-piece *move-engine* game-state pos1 pos2))
-
 (defn generate-moves[game-state]
-    (generate-moves *move-engine* game-state))
+  (core/generate-moves *move-engine* game-state))
+
+(defn move-piece [this game-state from to]
+  (core/move-piece *move-engine* game-state from to))
 
 (defn test-check? [game-state]
-  	(test-check? *move-engine* game-state))
+  (core/test-check? *move-engine* game-state))
+
+(defn read-fen [str] 
+  (core/read-fen *move-engine* str))
+
+(defn move2board [[pos1 pos2] game-state]
+  (core/move-piece *move-engine* game-state pos1 pos2))
+
+(defn filter-positions-by-color [game-state color-fn]
+  (core/filter-positions-by-color *move-engine* game-state  color-fn))
+
+(defn get-piece [this game-state position]
+  (core/get-piece *move-engine* game-state position))
 
 (defn whites-turn? [game-state]
-  (= :w (:turn game-state)))
+  (core/whites-turn? game-state))
+
 
 (defn piece [game-state position]
   "returns a keyword (color-neutral) for the piece on the given position"
   (let [p (get-piece *move-engine* game-state position)]
-    (p {:r :rook, :R :rook,
-        :p :pawn, :P :pawn,
-        :n :knight,:N :knight,
-        :b :bishop,:B :bishop,
-        :q :queen, :Q :queen,
-        :k :king,  :K :king} )))
+    (p core/piece-map)))
 
 
 (defn change-turn
   "changes the turn to the next player"
   [game-state]
-  (if (whites-turn? game-state)
-    (assoc game-state :turn :b)
-    (assoc game-state :turn :w)))
+  (core/change-turn game-state))
 
 
 

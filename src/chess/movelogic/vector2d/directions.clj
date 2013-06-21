@@ -1,5 +1,5 @@
-(ns chess.directions
-  (:use [chess.core :only (white? black? piece-at pos-on-board? pos-empty? piece)]))
+(ns chess.movelogic.vector2d.directions
+  (:use [chess.movelogic.vector2d.core :only (white? black? piece-at pos-on-board? pos-empty?)]))
 
 (defn enemy-on-pos?
   "checks if an enemy piece is on the given position "

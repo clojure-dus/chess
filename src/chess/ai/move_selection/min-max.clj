@@ -1,8 +1,7 @@
-(ns chess.move-selection
-
+(ns chess.ai.move-selection.min-max
   (:require [clojure.core.reducers :as r])
-  (:use [chess.move-generator])
-  (:use [chess.board-rating :only (rate)])
+  (:use [chess.movelogic.move-generator])
+  (:use [chess.ai.rating.board-rating :only (rate)])
   (:use [clojure.java.io])
   (:use [clojure.pprint]))
 

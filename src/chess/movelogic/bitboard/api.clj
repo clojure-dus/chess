@@ -5,7 +5,7 @@
   (:require [chess.movelogic.bitboard.chessboard
          :only (move-piece initial-board read-fen print-board)
              :as chessboard])
-  (:require [chess.movelogic.move-generator :as gen])
+  (:require [chess.movelogic.core :as gen])
   
   (:use [chess.movelogic.bitboard.file-rank
          :only (lookup-file lookup-rank)]))
@@ -77,4 +77,11 @@
      (get-piece [this game-state position] (piece-at game-state position))
 
     (read-fen [this str]
-       (read-fen str))))
+       (read-fen str))
+ 
+   (filter-positions-by-color [this game-state color-fn]
+      (core/filter-my-positions color-fn game-state))
+
+    (get-piece [this game-state position] 
+      (core/piece-at game-state position))))
+

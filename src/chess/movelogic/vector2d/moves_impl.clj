@@ -1,7 +1,8 @@
-(ns chess.moves-impl 
+(ns chess.movelogic.vector2d.moves-impl 
   (:require [clojure.core.reducers :as r])
-  (:use [chess.core :only (white? black? piece-at filter-my-positions pos-on-board? pos-empty? piece move-piece)])
-  (:use [chess.directions]))
+  (:use [chess.movelogic.core :only (piece-map) ])
+  (:use [chess.movelogic.vector2d.core :only (white? black?  piece-at filter-my-positions pos-on-board? pos-empty?  move-piece)])
+  (:use [chess.movelogic.vector2d.directions]))
 
 (defn- knight-steps
   "steps a knight could do from a given position - includes steps that are not on the game-state!"
@@ -30,6 +31,13 @@
 (defn- build-all-pairs [game-state positions]
   (fold-to-vec (r/flatten (r/map (fn [x] (let [moves (possible-moves game-state x)]
                    (build-pair x moves))) positions))))
+
+
+(defn piece [game-state position]
+  "returns a keyword (color-neutral) for the piece on the given position"
+  (let [p (piece-at  game-state position)]
+    (p piece-map)))
+
 
 (defmulti possible-moves piece)
 
