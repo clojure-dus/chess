@@ -19,8 +19,7 @@
 (deftest test-piece-at-bitboard
   (testing "piece-at should return the correct piece for the given game-state and position"
     (binding [*move-engine* bitboard-engine]    
-      (let [fut (partial get-piece (initial-board))
-            _ (print "board :" (initial-board))]
+      (let [fut (partial get-piece (initial-board))]
         (are [x y] (= x y)
              :R (fut [0 0])
              :R (fut [7 0])
