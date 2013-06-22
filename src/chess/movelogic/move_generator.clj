@@ -12,8 +12,11 @@
 (defn generate-moves[game-state]
   (core/generate-moves *move-engine* game-state))
 
-(defn move-piece [this game-state from to]
+(defn move-piece [game-state from to]
   (core/move-piece *move-engine* game-state from to))
+
+(defn make-move [game-state from to]
+  (core/make-move *move-engine* game-state from to))
 
 (defn test-check? [game-state]
   (core/test-check? *move-engine* game-state))
@@ -27,10 +30,9 @@
 (defn filter-positions-by-color [game-state white]
   (core/filter-positions-by-color *move-engine* game-state  white))
 
-(defn initial-board[] 
-   (core/initial-board *move-engine*))
+(defn initial-board[] (core/initial-board  *move-engine*))
 
-(defn get-piece [this game-state position]
+(defn get-piece [game-state position]
   (core/get-piece *move-engine* game-state position))
 
 (defn whites-turn? [game-state]

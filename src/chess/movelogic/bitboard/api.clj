@@ -12,20 +12,30 @@
 (require '[clojure.core.reducers :as r])
 
 (defn- coord->square [[file rank]]
+"in the moment our chess uses [7 7] as h8 bitboard internaly uses [8 8] as h8" 
   (- (+ (* 8 (inc rank)) (inc file)) 9))
 
+                      
+
 (defn- square->coord [square]
+"in the moment our chess uses [7 7] as h8 bitboard internaly uses [8 8] as h8" 
   [(dec (aget ^ints lookup-file square)) (dec (aget ^ints lookup-rank square))])
 
 (defn native->coords [col]
   (r/map (fn [sq]
            (square->coord sq)) col))
 
-(defn- move-piece-coord [game-state from-coord dest-coord]
-   "move piece by coordinates from and dest"
+(defn pos-on-board? "checks if a positition is on the chess board"
+  [[x y]]
+  (every? (fn [n] (<= 0 n 7)) [x y]))
+
+(defn- move-piece-coord 
+  "move piece by coordinates from and dest" 
+     [game-state from-coord dest-coord]
+   {:pre [(pos-on-board? from-coord) (pos-on-board? dest-coord)]}
    (let [from-sq (coord->square from-coord)
          dest-sq (coord->square dest-coord)
-         piece   (nth (:board game-state) from-sq)]
+         piece   (nth (:board game-state) (- 63 from-sq))]
      (chessboard/move-piece game-state piece from-sq dest-sq)))
 
 (defn- generate-moves-coord [game-state]
@@ -50,7 +60,7 @@
           (moves/possible-moves game-state (bit-set 0 square)))))
 
 (defn piece-at [game-state coord]
-  (get-in chessboard/initial-board [:board (coord->square coord) ]))
+  (get-in game-state [:board (- 63 (coord->square coord)) ]))
 
 (defn check? [game-state]
   (true? (moves/check? game-state)))
@@ -72,6 +82,9 @@
     (move-piece [this game-state from to]
       (move-piece-coord game-state from to))
 
+     (make-move [this game-state from to]
+       (move-piece-coord game-state from to))
+
     (test-check? [this game-state]
        (check? game-state))
 
@@ -83,7 +96,7 @@
                        (game-state :whitepieces) 
                        (game-state :blackpieces))))
    
-(initial-board [this]
+    (initial-board [this]
        chessboard/initial-board)
 
     (get-piece [this game-state position] 

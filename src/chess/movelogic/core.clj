@@ -3,6 +3,7 @@
 (defprotocol MoveGenerator
   (generate-moves [this game-state])
   (move-piece [this game-state from to])
+  (make-move [this game-state from to]) 
   (test-check? [this game-state])
   (read-fen [this str])
   (filter-positions-by-color [this game-state white])   
@@ -17,6 +18,8 @@
    :q :queen, :Q :queen,
    :k :king,  :K :king})
 
+
+
 (defn whites-turn? [game-state]
   (= :w (:turn game-state)))
 
@@ -26,3 +29,4 @@
   (if (whites-turn? game-state)
     (assoc game-state :turn :b)
     (assoc game-state :turn :w)))
+

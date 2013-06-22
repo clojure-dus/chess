@@ -33,10 +33,9 @@
 (binding [*move-engine* vector-engine]
       (measure-rating))
 
-
-(binding [*move-engine* vector-engine]
-  (measure-move-selection))
-
 (comment
   (binding [*move-engine* vector-engine]
-    (measure-moves)))
+    (measure-move-selection)))
+
+(binding [*move-engine* vector-engine]
+  (measure-moves))

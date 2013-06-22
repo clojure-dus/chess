@@ -11,6 +11,7 @@
                 (vector (vec (repeat 8 :P)) [:R :N :B :Q :K :B :N :R]))),
    :turn :w
    :rochade #{:K :Q :k :q}})
+
 (def white-pieces #{:R :N :B :Q :K :P})
 (def black-pieces #{:r :n :b :q :k :p})
 
@@ -55,7 +56,6 @@
          (pos-on-board? pos2)]}
   (let [fig (piece-at game-state pos1)]
     (set-piece (set-piece game-state pos1 :_) pos2 fig)))
-
 
 
 (defn pos-of-piece [game-state p]

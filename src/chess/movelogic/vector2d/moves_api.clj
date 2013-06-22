@@ -9,7 +9,7 @@
   (let [opponent-moves (impl/generate-moves  (gen/change-turn game-state))
         king           (if (gen/whites-turn? game-state) :K :k)
         kings-pos      (core/pos-of-piece game-state king)]
-     (true? (some (fn [[_ to]] (= king (core/piece-at game-state to))) opponent-moves))))
+    (true? (some (fn [[_ to]] (= king (core/piece-at game-state to))) opponent-moves))))
 
 
 
@@ -19,6 +19,9 @@
       (impl/generate-moves game-state))
 
     (move-piece [this game-state from to]
+      (core/move-piece game-state from to))
+
+     (make-move [this game-state from to]
       (impl/make-move game-state from to))
 
     (test-check? [this game-state]
@@ -30,8 +33,8 @@
     (filter-positions-by-color [this game-state white]
       (core/filter-my-positions (if (= true white) core/white? core/black?) game-state))
     
-     (initial-board [this]
-      (core/initial-board))
+    (initial-board [this]
+      core/initial-board)
 
     (get-piece [this game-state position] 
       (core/piece-at game-state position))))
