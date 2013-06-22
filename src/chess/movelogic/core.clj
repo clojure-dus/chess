@@ -2,13 +2,15 @@
 
 (defprotocol MoveGenerator
   (generate-moves [this game-state])
+  (possible-moves [this game-state coord])
   (move-piece [this game-state from to])
   (make-move [this game-state from to]) 
   (test-check? [this game-state])
   (read-fen [this str])
   (filter-positions-by-color [this game-state white])   
   (initial-board [this])
-  (get-piece [this game-state position]))
+  (get-piece [this game-state position])
+  (print-board [this game-state]))
 
 (def piece-map
   {:r :rook, :R :rook,

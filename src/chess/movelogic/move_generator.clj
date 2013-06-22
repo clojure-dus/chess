@@ -12,6 +12,9 @@
 (defn generate-moves[game-state]
   (core/generate-moves *move-engine* game-state))
 
+(defn possible-moves [game-state coord]
+  (core/possible-moves *move-engine* game-state coord))
+
 (defn move-piece [game-state from to]
   (core/move-piece *move-engine* game-state from to))
 
@@ -32,6 +35,9 @@
 
 (defn initial-board[] (core/initial-board  *move-engine*))
 
+(defn print-board[game-state]
+ (core/print-board *move-engine* game-state))
+
 (defn get-piece [game-state position]
   (core/get-piece *move-engine* game-state position))
 
@@ -43,7 +49,6 @@
   "returns a keyword (color-neutral) for the piece on the given position"
   (let [p (get-piece *move-engine* game-state position)]
     (p core/piece-map)))
-
 
 (defn change-turn
   "changes the turn to the next player"

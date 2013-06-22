@@ -1,9 +1,9 @@
 (ns chess.movelogic.vector2d.core
- 
- (:require [clojure.core.reducers :as r]))
+  
+  (:require [clojure.core.reducers :as r]))
 
-; UPPERCASE -> white
-; lowercase -> black
+                                        ; UPPERCASE -> white
+                                        ; lowercase -> black
 (def initial-board
   {:board (vec (concat
                 (vector [:r :n :b :q :k :b :n :r] (vec (repeat 8 :p)))
@@ -11,6 +11,11 @@
                 (vector (vec (repeat 8 :P)) [:R :N :B :Q :K :B :N :R]))),
    :turn :w
    :rochade #{:K :Q :k :q}})
+
+(defn print-board[game-state]
+  (println "----- vector2d version -----")
+  (clojure.pprint/pprint  game-state))
+(print-board initial-board)
 
 (def white-pieces #{:R :N :B :Q :K :P})
 (def black-pieces #{:r :n :b :q :k :p})

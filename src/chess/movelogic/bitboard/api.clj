@@ -1,9 +1,9 @@
 (ns chess.movelogic.bitboard.api
   (:require   [chess.movelogic.bitboard.moves
-         :only  (generate-moves find-piece-moves check?)
-         :as moves ])
+               :only  (generate-moves find-piece-moves check?)
+               :as moves ])
   (:require [chess.movelogic.bitboard.chessboard
-         :only (move-piece initial-board read-fen print-board)
+             :only (move-piece initial-board read-fen print-board)
              :as chessboard])
   (:require [chess.movelogic.core :as gen])
   (:use [chess.movelogic.bitboard bitoperations])
@@ -12,13 +12,11 @@
 (require '[clojure.core.reducers :as r])
 
 (defn- coord->square [[file rank]]
-"in the moment our chess uses [7 7] as h8 bitboard internaly uses [8 8] as h8" 
+  "in the moment our chess uses [7 7] as h8 bitboard internaly uses [8 8] as h8" 
   (- (+ (* 8 (inc rank)) (inc file)) 9))
 
-                      
-
 (defn- square->coord [square]
-"in the moment our chess uses [7 7] as h8 bitboard internaly uses [8 8] as h8" 
+  "in the moment our chess uses [7 7] as h8 bitboard internaly uses [8 8] as h8" 
   [(dec (aget ^ints lookup-file square)) (dec (aget ^ints lookup-rank square))])
 
 (defn native->coords [col]
@@ -31,12 +29,12 @@
 
 (defn- move-piece-coord 
   "move piece by coordinates from and dest" 
-     [game-state from-coord dest-coord]
-   {:pre [(pos-on-board? from-coord) (pos-on-board? dest-coord)]}
-   (let [from-sq (coord->square from-coord)
-         dest-sq (coord->square dest-coord)
-         piece   (nth (:board game-state) (- 63 from-sq))]
-     (chessboard/move-piece game-state piece from-sq dest-sq)))
+  [game-state from-coord dest-coord]
+  {:pre [(pos-on-board? from-coord) (pos-on-board? dest-coord)]}
+  (let [from-sq (coord->square from-coord)
+        dest-sq (coord->square dest-coord)
+        piece   (nth (:board game-state) from-sq)]
+    (chessboard/move-piece game-state piece from-sq dest-sq)))
 
 (defn- generate-moves-coord [game-state]
   (map (fn [[p from dest & data]]
@@ -49,8 +47,8 @@
 
 
 (defn native-move-piece [game-state piece from-sq dest-sq promotion]
-   "move by squares"
-   (chessboard/move-piece game-state piece from-sq dest-sq promotion))
+  "move by squares"
+  (chessboard/move-piece game-state piece from-sq dest-sq promotion))
 
 
 
@@ -60,7 +58,7 @@
           (moves/possible-moves game-state (bit-set 0 square)))))
 
 (defn piece-at [game-state coord]
-  (get-in game-state [:board (- 63 (coord->square coord)) ]))
+  (get-in game-state [:board (coord->square coord) ]))
 
 (defn check? [game-state]
   (true? (moves/check? game-state)))
@@ -78,27 +76,33 @@
   (reify gen/MoveGenerator
     (generate-moves [this game-state]
       (generate-moves-coord game-state))
+    
+    (possible-moves [this game-state coord]
+      (possible-moves game-state coord))
 
     (move-piece [this game-state from to]
       (move-piece-coord game-state from to))
 
-     (make-move [this game-state from to]
-       (move-piece-coord game-state from to))
+    (make-move [this game-state from to]
+      (move-piece-coord game-state from to))
 
     (test-check? [this game-state]
-       (check? game-state))
+      (check? game-state))
 
     (read-fen [this str]
-       (read-fen str))
- 
-   (filter-positions-by-color [this game-state white] 
-     (native->coords (if (and white true) 
-                       (game-state :whitepieces) 
-                       (game-state :blackpieces))))
-   
+      (read-fen str))
+    
+    (filter-positions-by-color [this game-state white] 
+      (native->coords (if (and white true) 
+                        (game-state :whitepieces) 
+                        (game-state :blackpieces))))
+    
     (initial-board [this]
-       chessboard/initial-board)
+      chessboard/initial-board)
 
     (get-piece [this game-state position] 
-      (piece-at game-state position))))
+      (piece-at game-state position))
+    
+    (print-board[this game-state]
+      (chessboard/print-board game-state))))
 

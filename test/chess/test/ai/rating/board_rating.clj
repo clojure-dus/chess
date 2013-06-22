@@ -1,4 +1,4 @@
-(ns chess.test.board-rating
+(ns chess.test.ai.rating.board-rating
   (:use [clojure.test] 
         [chess.ai.rating.board-rating] 
         [chess.movelogic.fen] 

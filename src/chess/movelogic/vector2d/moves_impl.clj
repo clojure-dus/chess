@@ -87,13 +87,13 @@
   (-> game-state (assoc :white-pos (into [] (filter-my-positions white? game-state)))
       (assoc :black-pos (into [] (filter-my-positions black? game-state)))))
 
- (defn generate-moves
-   "generates all legal moves for the given game-state"
-   [game-state]
-   (let [enriched-game-state (enrich game-state)]
-     (->> (filter #(not (nil? %))
-                  (build-all-pairs enriched-game-state (fetch-positions enriched-game-state)))
-          (partition 2) (partition 2))))
+(defn generate-moves
+  "generates all legal moves for the given game-state"
+  [game-state]
+  (let [enriched-game-state (enrich game-state)]
+    (->> (filter #(not (nil? %))
+                 (build-all-pairs enriched-game-state (fetch-positions enriched-game-state)))
+         (partition 2) (partition 2))))
 
 (defn make-move
   "Attempts to move the piece from pos 'from' to pos 'to'.

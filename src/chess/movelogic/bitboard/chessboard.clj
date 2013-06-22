@@ -23,7 +23,7 @@
 (defn set-piece [game-state piece dest]
   (thread-it game-state
              (update-in it [piece] bit-or (bit-set 0 dest))
-             (assoc-in it [:board (- 63 dest)] piece)
+             (assoc-in it [:board dest] piece)
              (assoc-in it [:whitepieces] (reduce #(bit-or %1 (%2 it)) 0 [:R :N :B :Q :K :P]))
              (assoc-in it [:blackpieces] (reduce #(bit-or %1 (%2 it)) 0 [:r :n :b :q :k :p]))
              (assoc-in it [:allpieces] (bit-or (:whitepieces it) (:blackpieces it)))))
@@ -34,13 +34,13 @@
       (set-piece new-piece square)))
 
 (defn move-piece [game-state piece from dest & data]
-  (let [captured         (get-in game-state [:board (- 63 dest)])
+  (let [captured         (get-in game-state [:board dest])
         check-promotion  (fn[game-state]
                            (if-let [promotion (first data)]
                              (promote game-state dest piece promotion)
-                             game-state))]
+                             game-state))]        
     (-> game-state
-        (assoc-in [:board (- 63 from)] :_)
+        (assoc-in [:board from] :_)
         (update-in [piece] bit-xor (bit-set 0 from))
         (assoc-in [captured] (bit-xor (game-state captured) (bit-set 0 dest)))
         (set-piece piece dest)
@@ -58,7 +58,7 @@
 
 (defn read-fen [fen-str]
   (let [other   (other-impl-read-fen fen-str)
-        squares (flatten  (:board other))
+        squares (flatten  (reverse (:board other)))
         squares (map-indexed vector squares)
         squares (map reverse squares)]
     (assoc (create-board-fn squares) :turn (:turn other) :rochade (:rochade other))))
@@ -70,4 +70,5 @@
     (:blackpieces game-state)))
 
 (defn print-board [game-state]
-  (print-board-vector (:board game-state)))
+(println "----- bitmap version -----")  
+(print-board-vector (:board game-state)))

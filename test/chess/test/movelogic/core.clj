@@ -1,4 +1,4 @@
-(ns chess.test.core
+(ns chess.test.movelogic.core
   (:use [chess.movelogic.move-generator])
   (:use [chess.movelogic.vector2d.core :only (pos-of-piece)])
   (:use [clojure.test]))

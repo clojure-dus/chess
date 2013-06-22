@@ -111,19 +111,16 @@
           (recur (inc i) (next xs))))
       ret))
 
-
 (defn print-board-vector [board-vector]
  (let [abc  "    a  b  c  d  e  f  g  h \n"
-       rows board-vector
-       rows (map (fn[x] (str x " ")) rows)
+       rows (map (fn[x] (str x " ")) (reverse board-vector))
        rows (partition 8 rows)
-       rows (map (fn[rank row] (vec (cons (str " " rank "  ") row)))  (range 1 9) rows)
+       rows  (map #(reverse %) rows)
+       rows (map (fn[rank row] (vec (cons (str " " rank "  ") row)))  (range 8 0 -1) rows)
        rows (map (fn [x] (conj x "\n")) rows)
-       rows (reverse rows)
        rows (apply str (flatten rows))]
    (println)
    (print rows abc)))
-
 
 (defn bitmap->board-vector [board-vector piece bitmap]
   "adds a bitmap to a board. board is a vector of piece keyowrds"

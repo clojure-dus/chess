@@ -1,4 +1,4 @@
-(ns chess.test.bitboard.api
+(ns chess.test.movelogic.bitboard.api
   (:use [chess.move-generator])
   (:use [chess.bitboard.api :only (possible-moves initial-board move-generator)])
   (:use [clojure.test]))

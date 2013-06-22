@@ -176,7 +176,7 @@
 
 (defn find-moves[game-state]
   (fn[square]
-    (let [ piece            (get (:board game-state) (- 63 square))
+    (let [piece            (get (:board game-state)  square)
           get-piece-moves  (partial find-piece-moves piece game-state)
           create-move      (move-parser piece square)
           transform         (comp create-move  get-piece-moves)]

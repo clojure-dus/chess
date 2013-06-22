@@ -18,10 +18,13 @@
     (generate-moves [this game-state]
       (impl/generate-moves game-state))
 
+    (possible-moves [this game-state coord]
+      (impl/possible-moves game-state coord))
+
     (move-piece [this game-state from to]
       (core/move-piece game-state from to))
 
-     (make-move [this game-state from to]
+    (make-move [this game-state from to]
       (impl/make-move game-state from to))
 
     (test-check? [this game-state]
@@ -37,4 +40,7 @@
       core/initial-board)
 
     (get-piece [this game-state position] 
-      (core/piece-at game-state position))))
+      (core/piece-at game-state position))
+
+    (print-board [this game-state]
+      (core/print-board game-state))))
