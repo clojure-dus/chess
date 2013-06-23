@@ -1,5 +1,6 @@
 (ns chess.test.movelogic.fen
   (:use clojure.test
+        [chess.core.core]
         [chess.movelogic.move-generator]))
 
 (deftest test-read-fen

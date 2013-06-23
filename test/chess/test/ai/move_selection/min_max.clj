@@ -1,7 +1,7 @@
 (ns chess.test.ai.move-selection.min-max
+  (:use [chess.core.core])
   (:require [chess.movelogic.move-generator :only 
-             (generate-moves test-check? initial-board move-piece read-fen 
-                             *move-engine* bitboard-engine vector-engine) :as gen])
+             (generate-moves test-check? initial-board move-piece read-fen) :as gen])
   (:use [chess.ai.move-selection.min-max 
          :only (min-max MAXRATING rate-board checkmated? build-tree filter-non-check-moves)]
         [clojure.pprint]
@@ -36,4 +36,4 @@
   (let [game-state (gen/read-fen "5rk1/4Npp1/8/R7/8/6K1/8/8 b - - 0 1")
         moves (gen/generate-moves game-state)]
     (is (= '(((6 7) (7 6)) ((6 7) (7 7))) (filter-non-check-moves game-state moves true)))))
-;(run-tests)
+                                        ;(run-tests)

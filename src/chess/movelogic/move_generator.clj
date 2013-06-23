@@ -1,13 +1,6 @@
 (ns chess.movelogic.move-generator
   (:require [chess.movelogic.core :as core])
-  (:require [chess.movelogic.vector2d.moves-api :only (move-generator) :as vector2d])
-  (:require [chess.movelogic.bitboard.api       :only (move-generator) :as bitboard]))
-
-(def  bitboard-engine  (bitboard/move-generator))
-
-(def  vector-engine  (vector2d/move-generator))
-
-(def ^:dynamic *move-engine* vector-engine)
+   (:use chess.core.core))
 
 (defn generate-moves[game-state]
   (core/generate-moves *move-engine* game-state))

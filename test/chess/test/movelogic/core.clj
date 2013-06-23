@@ -1,7 +1,8 @@
 (ns chess.test.movelogic.core
-  (:use [chess.movelogic.move-generator])
-  (:use [chess.movelogic.vector2d.core :only (pos-of-piece)])
-  (:use [clojure.test]))
+  (:use [chess.core.core]
+        [chess.movelogic.move-generator]
+        [chess.movelogic.vector2d.core :only (pos-of-piece)]
+        [clojure.test]))
 
 (deftest test-piece-at
   (testing "piece-at should return the correct piece for the given game-state and position"

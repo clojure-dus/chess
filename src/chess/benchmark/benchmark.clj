@@ -1,4 +1,5 @@
 (ns chess.benchmark.benchmark
+  (:use [chess.core.core])
   (:use [chess.movelogic.move-generator])
   (:use [chess.ai.move-selection.min-max])
   (:use [chess.ai.rating.board-rating :only (rate)]))
