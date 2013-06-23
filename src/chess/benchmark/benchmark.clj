@@ -24,19 +24,10 @@
 (defn measure-move-selection []
   (measure 1 select-move allboards))
 
-(binding [*move-engine* bitboard-engine]
-      (measure-rating))
-
-(comment
-  (binding [*move-engine* bitboard-engine]
-    (measure-move-selection)))
-
 (binding [*move-engine* vector-engine]
-      (measure-rating))
 
-(comment
-  (binding [*move-engine* vector-engine]
-    (measure-move-selection)))
+  (measure-rating)
 
-(binding [*move-engine* vector-engine]
+  (measure-move-selection)
+
   (measure-moves))
