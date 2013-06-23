@@ -22,8 +22,8 @@
 
 (defn checkmated?
   ([game-state]
-     (let [new-boards (moves2boards (generate-moves game-state) game-state)]
-       (checkmated? game-state new-boards)))
+   (let [new-boards (moves2boards (generate-moves game-state) game-state)]
+      (checkmated? game-state new-boards)))
   ([game-state new-boards]
      (checkmated? game-state new-boards (test-check?  game-state)))
   ([game-state new-boards is-check]
@@ -32,9 +32,9 @@
        (every? test-check? new-boards))))
 
 (defn checkmated-rating [ depth ]
-  (if (= 0 (mod depth 2))
-    (* -1 MAXRATING)
-    MAXRATING))
+   (if (= 0 (mod depth 2))
+     (* -1 MAXRATING)
+     MAXRATING))
 
 (defn rate-board [game-state depth]
   (if (checkmated? game-state)
@@ -64,12 +64,11 @@
        (let [is-check (test-check?  game-state)
              possible-moves (filter-non-check-moves game-state (generate-moves  game-state) is-check)
              is-checkmated (and is-check (empty? possible-moves))
-             subtree  (if is-checkmated nil (pmap #(build-tree (change-turn (move2board % game-state)) 
-                                                               (inc depth) max-depth [] %) possible-moves))
+             subtree  (if is-checkmated nil (pmap #(build-tree (change-turn (move2board % game-state)) (inc depth) max-depth [] %) possible-moves))
              rates    (into [] (r/flatten (r/map :score subtree)))
              max-rate (min-or-max rates depth is-checkmated)
              max-step (get (zipmap rates possible-moves) max-rate)]
-         {:score max-rate :max-step max-step}))))
+             {:score max-rate :max-step max-step}))))
 
 
 (defn min-max [game-state max-depth]

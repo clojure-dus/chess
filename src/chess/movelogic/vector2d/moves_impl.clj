@@ -103,4 +103,5 @@
   (when (and
          (or (and (= :w (:turn game-state)) (white? (piece-at game-state from)))
              (and (= :b (:turn game-state)) (black? (piece-at game-state from))))
-         (some #{to} (possible-moves game-state from)))))
+         (some #{to} (possible-moves game-state from)))
+(move-piece game-state from to)))

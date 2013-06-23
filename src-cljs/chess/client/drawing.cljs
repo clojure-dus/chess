@@ -1,5 +1,5 @@
 (ns chess.client.drawing
-  (:require [chess.core :as chess]))
+  (:require [chess.movelogic.vector2d.core :as chess]))
 
 (defn- log [& stuff]
   (doseq [s stuff]

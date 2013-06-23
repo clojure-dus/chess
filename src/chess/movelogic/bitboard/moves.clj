@@ -184,17 +184,12 @@
 
 
 
-(comment (defn possible-moves [game-state pieces]
-           (r/fold 1 (r/monoid concat vector) conj (r/mapcat  (find-moves game-state) pieces))))
-
 (defn possible-moves [game-state pieces]
   (into [] (r/mapcat  (find-moves game-state) pieces)))
 
 
-
 (defn generate-moves [game-state]
   (possible-moves game-state  (pieces-by-turn game-state)))
-
 
 
 (defn print-generate-moves [game-state]

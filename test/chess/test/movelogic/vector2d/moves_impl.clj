@@ -40,4 +40,3 @@
             [:R :N :B :Q :K :B :N :R]]
            (:board (make-move initial-board [0 1] [0 3]))))))
 
-(run-tests)

@@ -47,7 +47,7 @@
 
 (defn piece [game-state position]
   "returns a keyword (color-neutral) for the piece on the given position"
-  (let [p (get-piece *move-engine* game-state position)]
+  (let [p (get-piece game-state position)]
     (p core/piece-map)))
 
 (defn change-turn

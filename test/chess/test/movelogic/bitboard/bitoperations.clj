@@ -1,5 +1,5 @@
-(ns chess.test.bitboard.impl.bitoperations
-  (:use [chess.bitboard.impl.bitoperations])
+(ns chess.test.movelogic.bitboard.bitoperations
+  (:use [chess.movelogic.bitboard.bitoperations])
   (:use [clojure.test]))
 
 (deftest test-find-first-one-bit

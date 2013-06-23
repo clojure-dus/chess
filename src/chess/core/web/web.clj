@@ -16,7 +16,7 @@
 
 (defn create-game []
   (let [id (str (java.util.UUID/randomUUID))]
-    (swap! games assoc id initial-board)
+    (swap! games assoc id (initial-board))
     id))
 
 (defn page [& body]

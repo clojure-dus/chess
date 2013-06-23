@@ -1,5 +1,5 @@
 (ns chess.client.core
-  (:require [chess.core :as chess]
+  (:require [chess.movelogic.vector2d.core :as chess]
             [chess.client.drawing :as d]
             [chess.client.remote :as r]
             [one.dispatch :as dispatch]))

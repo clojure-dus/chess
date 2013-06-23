@@ -1,8 +1,7 @@
-(ns chess.test.bitboard.impl.piece-attacks
- (:use [chess.bitboard.impl.chessboard])
- (:use [chess.bitboard.impl.piece-attacks])
- (:use [chess.bitboard.impl.chessboard])
- (:use [chess.bitboard.impl.bitoperations])
+(ns chess.test.movelogic.bitboard.piece-attacks
+ (:use [chess.movelogic.bitboard.chessboard])
+ (:use [chess.movelogic.bitboard.piece-attacks])
+ (:use [chess.movelogic.bitboard.bitoperations])
   (:use [clojure.test]))
 
 (deftest test-knight-attack-array

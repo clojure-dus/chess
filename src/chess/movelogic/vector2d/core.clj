@@ -1,5 +1,5 @@
 (ns chess.movelogic.vector2d.core
-  
+  (:use [clojure.pprint])
   (:require [clojure.core.reducers :as r]))
 
                                         ; UPPERCASE -> white
@@ -15,7 +15,6 @@
 (defn print-board[game-state]
   (println "----- vector2d version -----")
   (clojure.pprint/pprint  game-state))
-(print-board initial-board)
 
 (def white-pieces #{:R :N :B :Q :K :P})
 (def black-pieces #{:r :n :b :q :k :p})
