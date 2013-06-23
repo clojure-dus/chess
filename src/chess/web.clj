@@ -9,7 +9,7 @@
         [compojure.handler :only [api]]
         [hiccup.page :only [html5]]
         [hiccup.form :only [form-to submit-button]]
-        [chess.movelogic.move-generator :only [initial-board change-turn move-piece]]
+        [chess.movelogic.move-generator :only [initial-board change-turn move-piece make-move]]
         [chess.ai.move-selection.min-max :only [select-move]]))
 
 (defonce games (atom {}))

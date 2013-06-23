@@ -1,7 +1,7 @@
 (defproject chess "1.0.0-SNAPSHOT"
   :description "chess engine"
 
-  :dependencies [[org.clojure/clojure "1.5.0-master-SNAPSHOT"]
+  :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/math.combinatorics "0.0.2"]
                  [ring "1.1.0"] ; http basics
                  [compojure "1.1.0"] ; http routing
@@ -18,7 +18,7 @@
                         :compiler {:output-to "resources/public/js/chess.js"
                                    :optimizations :whitespace
                                    :pretty-print true}}]
-              :crossovers [chess.core]
+              :crossovers [chess.movelogic.vector2d.core]
               :crossover-path "crossover-cljs"}
   :aot [chess.util.actors]
   :warn-on-reflection false
