@@ -1,52 +1,81 @@
 (ns chess.movelogic.move-generator
   (:require [chess.movelogic.core :as core])
-   (:use chess.core.core))
+  (:use chess.core.core)
+  (:require [clojure.core.reducers :as r]))
 
-(defn generate-moves[game-state]
-  (core/generate-moves *move-engine* game-state))
+  (defn generate-moves[game-state]
+    (core/generate-moves *move-engine* game-state))
 
-(defn possible-moves [game-state coord]
-  (core/possible-moves *move-engine* game-state coord))
+  (defn possible-moves [game-state coord]
+    (core/possible-moves *move-engine* game-state coord))
 
-(defn move-piece [game-state from to]
-  (core/move-piece *move-engine* game-state from to))
+  (defn move-piece [game-state from to]
+    (core/move-piece *move-engine* game-state from to))
 
-(defn make-move [game-state from to]
-  (core/make-move *move-engine* game-state from to))
+  (defn make-move [game-state from to]
+    (core/make-move *move-engine* game-state from to))
 
-(defn test-check? [game-state]
-  (core/test-check? *move-engine* game-state))
+  (defn test-check? [game-state]
+    (core/test-check? *move-engine* game-state))
 
-(defn read-fen [str] 
-  (core/read-fen *move-engine* str))
+  (defn read-fen [str] 
+    (core/read-fen *move-engine* str))
 
-(defn move2board [[pos1 pos2] game-state]
-  (core/move-piece *move-engine* game-state pos1 pos2))
+  (defn move2board [[pos1 pos2] game-state]
+    (core/move-piece *move-engine* game-state pos1 pos2))
 
-(defn filter-positions-by-color [game-state white]
-  (core/filter-positions-by-color *move-engine* game-state  white))
+  (defn filter-positions-by-color [game-state white]
+    (core/filter-positions-by-color *move-engine* game-state  white))
 
-(defn initial-board[] (core/initial-board  *move-engine*))
+  (defn initial-board[] (core/initial-board  *move-engine*))
 
-(defn print-board[game-state]
- (core/print-board *move-engine* game-state))
-
-(defn get-piece [game-state position]
-  (core/get-piece *move-engine* game-state position))
-
-(defn whites-turn? [game-state]
-  (core/whites-turn? game-state))
+  (defn print-board[game-state]
+    (core/print-board *move-engine* game-state))
 
 
-(defn piece [game-state position]
-  "returns a keyword (color-neutral) for the piece on the given position"
-  (let [p (get-piece game-state position)]
-    (p core/piece-map)))
+  (defn pprint-move [[from to]]
+    (let [chars (seq "abcdefgh")
+          f (fn [[x y]] (str (nth chars x) (inc y))) ]
+      (str (f from) "->" (f to))))
 
-(defn change-turn
-  "changes the turn to the next player"
-  [game-state]
-  (core/change-turn game-state))
+
+  (defn get-piece [game-state position]
+    (core/get-piece *move-engine* game-state position))
+
+  (defn whites-turn? [game-state]
+    (core/whites-turn? game-state))
+
+
+  (defn piece [game-state position]
+    "returns a keyword (color-neutral) for the piece on the given position"
+    (let [p (get-piece game-state position)]
+      (p core/piece-map)))
+
+  (defn change-turn
+    "changes the turn to the next player"
+    [game-state]
+    (core/change-turn game-state))
+
+
+  (defn moves2boards [moves game-state]
+    "creates new game-states for the given boards"
+    (into [] (r/map #(move2board % game-state) moves)))
+
+  (defn checkmated?
+    ([game-state]
+       (let [new-boards (moves2boards (generate-moves game-state) game-state)]
+         (checkmated? game-state new-boards)))
+    ([game-state new-boards]
+       (checkmated? game-state new-boards (test-check?  game-state)))
+    ([game-state new-boards is-check]
+       (if (not is-check)
+         false
+         (every? test-check? new-boards))))
+
+  (defn filter-non-check-moves [game-state possible-moves is-check]
+    (if is-check
+      (into [] (r/filter #(not (test-check? (move2board % game-state))) possible-moves))
+      possible-moves))
 
 
 
