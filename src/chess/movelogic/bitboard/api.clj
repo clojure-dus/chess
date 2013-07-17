@@ -3,14 +3,13 @@
                :only  (generate-moves find-piece-moves check?)
                :as moves ])
   (:require [chess.movelogic.bitboard.chessboard
-             :only (move-piece initial-board read-fen print-board)
-             :as chessboard])
-  (:require [chess.movelogic.core :as gen])
+             :only (move-piece initial-board read-fen print-board) :as chessboard])
+  (:require [chess.movelogic.protocol :as proto])
   (:use [chess.movelogic.bitboard bitoperations])
   (:use [chess.movelogic.bitboard.file-rank :only (lookup-file lookup-rank)]))
 
 (require '[clojure.core.reducers :as r])
-
+(import 'chess.movelogic.bitboard.chessboard.GameState)
 (defn- coord->square [[file rank]]
   "in the moment our chess uses [7 7] as h8 bitboard internaly uses [8 8] as h8" 
   (- (+ (* 8 (inc rank)) (inc file)) 9))
@@ -51,7 +50,6 @@
   (chessboard/move-piece game-state piece from-sq dest-sq promotion))
 
 
-
 (defn possible-moves [game-state coord]
   (let [square (coord->square coord)]
     (map  (fn[[_ _ dest]] (square->coord dest))
@@ -63,46 +61,41 @@
 (defn check? [game-state]
   (true? (moves/check? game-state)))
 
+
+(extend-type GameState 
+  proto/MoveGenerator
+  (generate-moves [this]
+    (generate-moves-coord this))
+
+  (possible-moves [this coord]
+    (possible-moves this coord))
+
+  (move-piece [this from to]
+    (move-piece-coord this from to)) 
+
+  (test-check? [this](check? this))
+
+  (filter-positions-by-color [this white]
+    (native->coords (if (and white true) 
+                      (:whitepieces this) 
+                      (:blackpieces this))))   
+
+  (get-piece [this position]
+    (piece-at this position))
+
+  (print-board [this] 
+    (chessboard/print-board this)))
+
+
 (def initial-board chessboard/initial-board)
 
 (defn read-fen [str]
   (chessboard/read-fen str))
 
-(defn print-board [game-state]
-  (chessboard/print-board game-state))
 
 
-(defn move-generator []
-  (reify gen/MoveGenerator
-    (generate-moves [this game-state]
-      (generate-moves-coord game-state))
-    
-    (possible-moves [this game-state coord]
-      (possible-moves game-state coord))
 
-    (move-piece [this game-state from to]
-      (move-piece-coord game-state from to))
 
-    (make-move [this game-state from to]
-      (move-piece-coord game-state from to))
 
-    (test-check? [this game-state]
-      (check? game-state))
 
-    (read-fen [this str]
-      (read-fen str))
-    
-    (filter-positions-by-color [this game-state white] 
-      (native->coords (if (and white true) 
-                        (game-state :whitepieces) 
-                        (game-state :blackpieces))))
-    
-    (initial-board [this]
-      chessboard/initial-board)
-
-    (get-piece [this game-state position] 
-      (piece-at game-state position))
-    
-    (print-board[this game-state]
-      (chessboard/print-board game-state))))
 

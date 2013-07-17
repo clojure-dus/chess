@@ -1,7 +1,7 @@
 (ns chess.test.ai.move-selection.min-max
-  (:use [chess.core.core])
-  (:require [chess.movelogic.move-generator :only 
-             (generate-moves test-check? initial-board move-piece read-fen checkmated? filter-non-check-moves) :as gen])
+  (:use [chess.core])
+  (:require [chess.movelogic.protocol :only 
+             (generate-moves test-check? move-piece checkmated? filter-non-check-moves) :as moves])
   (:use [chess.ai.move-selection.min-max 
          :only (min-max MAXRATING rate-board  build-tree )]
         [clojure.pprint]
@@ -13,7 +13,7 @@
 
 
 (deftest test-min-max
-  (are [x y z] (= x (min-max (gen/read-fen y) z))
+  (are [x y z] (= x (min-max  (read-fen y) z))
        '((7 4) (5 6)) checkmated-in-one-turn 2
        '((7 4) (5 6)) checkmated-in-one-turn 1
        '((0 7) (2 5)) "B7/8/8/8/k5K1/2Q5/8/8 w - - 0 0" 1
@@ -21,19 +21,19 @@
        '((3 4) (4 6)) "5rk1/5pp1/8/R2N4/8/6K1/8/8 w - - 0 1" 3))
 
 (deftest test-checkmated?
-  (is (gen/checkmated? (gen/read-fen checkmated-board )))
-  (is (not(gen/checkmated? (gen/initial-board)))))
+  (is (moves/checkmated? (read-fen checkmated-board )))
+  (is (not(moves/checkmated? (initial-board)))))
 
 (deftest test-rate-board
-  (is (= MAXRATING (rate-board (gen/read-fen checkmated-board) 1))))
+  (is (= MAXRATING (rate-board (read-fen checkmated-board) 1))))
 
 (deftest test-build-tree
-  (let [tree (build-tree (gen/read-fen checkmated-in-one-turn) 2)]
+  (let [tree (build-tree (read-fen checkmated-in-one-turn) 2)]
     (is (= MAXRATING (:score tree)))))
 
 
 (deftest test-filter-non-check-moves
-  (let [game-state (gen/read-fen "5rk1/4Npp1/8/R7/8/6K1/8/8 b - - 0 1")
-        moves (gen/generate-moves game-state)]
-    (is (= '(((6 7) (7 6)) ((6 7) (7 7))) (gen/filter-non-check-moves game-state moves true)))))
+  (let [game-state (read-fen "5rk1/4Npp1/8/R7/8/6K1/8/8 b - - 0 1")
+        moves (moves/generate-moves game-state)]
+    (is (= '(((6 7) (7 6)) ((6 7) (7 7))) (moves/filter-non-check-moves game-state moves true)))))
                                         ;(run-tests)

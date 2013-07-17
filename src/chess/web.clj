@@ -9,8 +9,8 @@
         [compojure.handler :only [api]]
         [hiccup.page :only [html5]]
         [hiccup.form :only [form-to submit-button]]
-        [chess.movelogic.move-generator :only [initial-board change-turn move-piece make-move]]
-        [chess.ai.move-selection.min-max :only [select-move]]))
+        [chess.movelogic.protocol :only [change-turn move-piece]]
+        [chess.core :only [initial-board select-move]]))
 
 (defonce games (atom {}))
 
@@ -77,7 +77,7 @@
         (when-let [gamestate (get @games id)]
           (let [[from to] (select-move gamestate)
                 new-gamestate (-> gamestate
-                                  (make-move from to)
+                                  (move-piece from to)
                                   change-turn)]
             (do
               (swap! games assoc id new-gamestate)

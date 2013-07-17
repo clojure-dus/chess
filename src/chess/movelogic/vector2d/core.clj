@@ -1,16 +1,26 @@
 (ns chess.movelogic.vector2d.core
   (:use [clojure.pprint])
+  (:use [chess.movelogic.protocol  :only [read-fen->map]])
   (:require [clojure.core.reducers :as r]))
 
                                         ; UPPERCASE -> white
                                         ; lowercase -> black
+
+
+(defrecord GameState [board turn rochade])
+
 (def initial-board
-  {:board (vec (concat
-                (vector [:r :n :b :q :k :b :n :r] (vec (repeat 8 :p)))
-                (repeat 4 (vec (repeat 8 :_)))
-                (vector (vec (repeat 8 :P)) [:R :N :B :Q :K :B :N :R]))),
-   :turn :w
-   :rochade #{:K :Q :k :q}})
+  (map->GameState {:board (vec (concat
+                                (vector [:r :n :b :q :k :b :n :r] (vec (repeat 8 :p)))
+                                (repeat 4 (vec (repeat 8 :_)))
+                                (vector (vec (repeat 8 :P)) [:R :N :B :Q :K :B :N :R]))),
+                   :turn :w
+                   :rochade #{:K :Q :k :q}}))
+
+(defn read-fen [s]
+  "reads a string in Forsyth-Edwards notation and returns internal chess board representation"
+  (map->GameState (read-fen->map s)))
+
 
 (defn print-board[game-state]
   (println "----- vector2d version -----")

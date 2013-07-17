@@ -1,6 +1,6 @@
 (ns chess.ai.rating.board-rating
   (:require [clojure.core.reducers :as r])
-  (:use [chess.movelogic.move-generator :only (initial-board  filter-positions-by-color piece)]))
+  (:use [chess.movelogic.protocol :only (filter-positions-by-color piece)]))
 
 (defn rate-position [game-state position]
   (get {:pawn 1 :knight 3 :bishop 3 :rook 5 :queen 9} (piece game-state position) 0))

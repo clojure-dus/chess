@@ -1,6 +1,6 @@
 (ns chess.ai.move-selection.min-max
   (:require [clojure.core.reducers :as r])
-  (:use [chess.movelogic.move-generator])
+  (:use [chess.movelogic.protocol])
   (:use [chess.ai.rating.board-rating :only (rate)])
   (:use [clojure.java.io]))
 
@@ -27,14 +27,19 @@
        (apply min c))))
 
 (defn build-tree
-  ([game-state max-depth] (build-tree game-state 0 max-depth [] nil))
+  ([game-state max-depth] 
+     (build-tree game-state 0 max-depth [] nil))
   ([game-state depth max-depth r step]
      (if (= depth max-depth)
        {:score (rate-board game-state depth)}
-       (let [is-check (test-check?  game-state)
-             possible-moves (filter-non-check-moves game-state (generate-moves  game-state) is-check)
+       (let [is-check (test-check? game-state)
+             possible-moves (filter-non-check-moves game-state 
+                                        (generate-moves game-state) is-check)
              is-checkmated (and is-check (empty? possible-moves))
-             subtree  (if is-checkmated nil (pmap #(build-tree (change-turn (move2board % game-state)) (inc depth) max-depth [] %) possible-moves))
+             move2board (partial move-piece game-state)
+             subtree  (if is-checkmated nil (pmap #(build-tree  
+                                               (change-turn (move2board  (first %) (second %))) 
+                                                   (inc depth) max-depth [] %) possible-moves))
              rates    (into [] (r/flatten (r/map :score subtree)))
              max-rate (min-or-max rates depth is-checkmated)
              max-step (get (zipmap rates possible-moves) max-rate)]
@@ -46,5 +51,5 @@
 (defn select-move
   "Generates the next move for the given game-state.
    Returns seq with two positions 'from' and 'two'."
-  [game-state]
-  (min-max game-state 2))
+  [game-state max-depth]  
+(min-max game-state max-depth))

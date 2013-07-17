@@ -2,6 +2,7 @@
   :description "chess engine"
 
   :dependencies [[org.clojure/clojure "1.5.1"]
+                 [criterium "0.4.1"] 
                  [org.clojure/math.combinatorics "0.0.2"]
                  [ring "1.1.0"] ; http basics
                  [compojure "1.1.0"] ; http routing

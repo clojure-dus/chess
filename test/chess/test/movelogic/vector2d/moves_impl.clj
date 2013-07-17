@@ -38,5 +38,5 @@
             [:_ :_ :_ :_ :_ :_ :_ :_]
             [:_ :P :P :P :P :P :P :P]
             [:R :N :B :Q :K :B :N :R]]
-           (:board (make-move initial-board [0 1] [0 3]))))))
+           (:board (move-piece initial-board [0 1] [0 3]))))))
 

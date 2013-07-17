@@ -1,6 +1,6 @@
 (ns chess.movelogic.vector2d.moves-impl 
   (:require [clojure.core.reducers :as r])
-  (:use [chess.movelogic.core :only (piece-map) ])
+  (:use [chess.movelogic.protocol :only (piece-map piece) ])
   (:use [chess.movelogic.vector2d.core :only (white? black?  piece-at filter-my-positions pos-on-board? pos-empty?  move-piece)])
   (:use [chess.movelogic.vector2d.directions]))
 
@@ -32,11 +32,6 @@
   (fold-to-vec (r/flatten (r/map (fn [x] (let [moves (possible-moves game-state x)]
                                            (build-pair x moves))) positions))))
 
-
-(defn piece [game-state position]
-  "returns a keyword (color-neutral) for the piece on the given position"
-  (let [p (piece-at  game-state position)]
-    (piece-map p) ))
 
 
 (defmulti possible-moves piece)
@@ -104,4 +99,4 @@
          (or (and (= :w (:turn game-state)) (white? (piece-at game-state from)))
              (and (= :b (:turn game-state)) (black? (piece-at game-state from))))
          (some #{to} (possible-moves game-state from)))
-(move-piece game-state from to)))
+       (move-piece game-state from to)))
