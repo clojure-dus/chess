@@ -1,6 +1,8 @@
 chess
 =====
 
+Tries to implement an Chess Engine with clojure.
+
 setup
 ------------
 
