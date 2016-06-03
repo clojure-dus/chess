@@ -3,10 +3,7 @@
   (:use [clojure.pprint]))
 
 (require '[clojure.core.reducers :as r])
-
-
 (comment (set! *warn-on-reflection* true))
-
 (defn attacked-by-black? [mask-sq game-state]
   "looks at squares set in mask-sq and returns true if black attacks any of these squares"
   (some-bitmap  (fn [sq]
