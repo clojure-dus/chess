@@ -528,7 +528,8 @@ the engine that is should play according to the Chess960 rules.
 This is done by the special engine option UCI_Chess960. If the engine knows about Chess960
 it should send the command 'option name UCI_Chess960 type check default false'
 to the GUI at program startup.
-Whenever a Chess960 game is played, the GUI should set this engine option to 'true'.
+Whenever a Chess960 game is played, the GUI should set this engine option to 'true':
+setoption name UCI_Chess960 value true
 
 Castling is different in Chess960 and the white king move when castling short is not always e1g1.
 A king move could both be the castling king move or just a normal king move.
